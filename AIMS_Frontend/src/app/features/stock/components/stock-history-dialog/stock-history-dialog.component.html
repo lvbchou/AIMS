@@ -1,0 +1,48 @@
+<div class="backdrop" (click)="onClose()"></div>
+
+<div class="modal" role="dialog" aria-modal="true">
+
+  <div class="modal-header">
+    <div class="header-text">
+      <h2 class="modal-title">Adjustment History</h2>
+      <span class="product-name">{{ item.title }}</span>
+    </div>
+    <button type="button" class="btn-close" (click)="onClose()">✕</button>
+  </div>
+
+  <div class="modal-body">
+
+    <!-- Empty state -->
+    <div class="empty" *ngIf="history.length === 0">
+      <p>No adjustment history yet.</p>
+    </div>
+
+    <!-- History list -->
+    <div class="history-list" *ngIf="history.length > 0">
+      <div class="history-item" *ngFor="let h of history">
+
+        <div class="item-left">
+          <span class="type-badge" [class]="typeColors[h.adjustType]">
+            {{ typeLabels[h.adjustType] }}
+          </span>
+          <span class="reason">{{ h.reason }}</span>
+          <span class="date">{{ h.adjustedAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+
+        <div class="item-right">
+          <span class="qty-change" [class]="typeColors[h.adjustType]">
+            {{ typeColors[h.adjustType] === 'increase' ? '+' : '-' }}{{ h.quantity }}
+          </span>
+          <span class="qty-range">{{ h.quantityBefore }} → {{ h.quantityAfter }}</span>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <div class="modal-footer">
+    <button type="button" class="btn-close-footer" (click)="onClose()">Close</button>
+  </div>
+
+</div>

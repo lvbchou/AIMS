@@ -1,0 +1,50 @@
+.filter-panel { 
+    padding: 20px 0;
+}
+
+.filter-heading { 
+    font-size: 12px; 
+    font-weight: 700; 
+    letter-spacing: .08em; 
+    color: #cc0000; 
+    margin: 0 0 12px; 
+}
+
+.range-list { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; 
+    margin-bottom: 16px; 
+
+}
+
+.range-item { 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    font-size: 13px; 
+    color: var(--color-text-primary); 
+    cursor: pointer; 
+}
+
+.range-item input { 
+    width: 16px; 
+    height: 16px; 
+    accent-color: #cc0000; 
+    cursor: pointer; 
+}
+
+.btn-filter { 
+    width: 100%; 
+    padding: 9px 0; 
+    background: #cc0000; 
+    color: #fff; 
+    border: none; 
+    border-radius: 4px; 
+    font-size: 13px; 
+    font-weight: 700; 
+    cursor: pointer; 
+    &:hover { 
+        background: #aa0000; 
+    } 
+}

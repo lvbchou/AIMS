@@ -1,0 +1,67 @@
+<div class="card" [class.selected]="selected" [class.selection-mode]="selectionMode">
+
+  <input *ngIf="isManager"
+    type="checkbox"
+    class="checkbox"
+    [checked]="selected"
+    [disabled]="isMaxSelected && !selected"
+    (change)="onToggle()"
+  />
+
+  <!-- Image: click → view detail popup (cả 2 mode) -->
+  <div class="card-image" (click)="onImageClick()" title="Click to view details">
+    <img [src]="product.imageUrl || 'https://picsum.photos/seed/' + product.productId + '/400/400'"
+         [alt]="product.title" />
+    <div class="image-overlay">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <circle cx="11" cy="11" r="8" stroke="#fff" stroke-width="2"/>
+        <path d="M21 21l-4.35-4.35" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <h3 class="card-title">{{ product.title }}</h3>
+    <p class="card-category">{{ product.productType }}</p>
+    <p class="card-price">{{ product.sellingPrice | number }} VND</p>
+  </div>
+
+  <div class="card-actions" *ngIf="isManager">
+    <button class="btn-update" (click)="onUpdate()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+      Update
+    </button>
+    <button class="btn-delete" (click)="onDelete()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+        <polyline points="3,6 5,6 21,6"/>
+        <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+        <path d="M10 11v6M14 11v6"/>
+        <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+      </svg>
+      Delete
+    </button>
+  </div>
+
+  <div class="card-actions" *ngIf="isCustomer">
+    <button class="btn-add" (click)="onAddToCart(); $event.stopPropagation()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" stroke="currentColor" stroke-width="2"/>
+        <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2"/>
+        <path d="M16 10a4 4 0 01-8 0" stroke="currentColor" stroke-width="2"/>
+      </svg>
+      Add
+    </button>
+    <button class="btn-info" (click)="onImageClick(); $event.stopPropagation()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+        <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" stroke-width="2"/>
+        <line x1="12" y1="16" x2="12.01" y2="16" stroke="currentColor" stroke-width="2"/>
+      </svg>
+      Info
+    </button>
+  </div>
+
+</div>

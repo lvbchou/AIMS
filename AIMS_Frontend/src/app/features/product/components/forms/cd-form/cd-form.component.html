@@ -1,0 +1,79 @@
+<section class="category-section" [formGroup]="form">
+  <h3 class="category-title">Category Details — CD</h3>
+
+  <div class="form-grid">
+
+    <!-- Artists (dynamic list) -->
+    <div class="form-field full-width">
+      <label>Artists <span class="required">*</span></label>
+      <div formArrayName="artists" class="dynamic-list">
+        <div
+          *ngFor="let artist of artists.controls; let i = index"
+          class="dynamic-list-item"
+        >
+          <input
+            type="text"
+            [formControlName]="i"
+            placeholder="Artist name"
+            [class.invalid]="artist.invalid && artist.touched"
+          />
+          <button
+            type="button"
+            class="btn-remove"
+            (click)="removeArtist(i)"
+            [disabled]="artists.length === 1"
+          >✕</button>
+        </div>
+        <button type="button" class="btn-add" (click)="addArtist()">
+          + Add Artist
+        </button>
+      </div>
+    </div>
+
+    <div class="form-field">
+      <label>Record Label <span class="required">*</span></label>
+      <input type="text" formControlName="recordLabel"
+        [class.invalid]="form.get('recordLabel')?.invalid && form.get('recordLabel')?.touched" />
+      <span class="error-msg"
+        *ngIf="form.get('recordLabel')?.invalid && form.get('recordLabel')?.touched">
+        Record label is required
+      </span>
+    </div>
+
+    <div class="form-field">
+      <label>Genre <span class="required">*</span></label>
+      <input type="text" formControlName="genre"
+        [class.invalid]="form.get('genre')?.invalid && form.get('genre')?.touched" />
+      <span class="error-msg"
+        *ngIf="form.get('genre')?.invalid && form.get('genre')?.touched">
+        Genre is required
+      </span>
+    </div>
+
+    <div class="form-field">
+      <label>Release Date</label>
+      <input type="date" formControlName="releaseDate" />
+    </div>
+
+    <!-- Tracklist (dynamic list) -->
+    <div class="form-field full-width">
+      <label>Tracklist <span class="required">*</span></label>
+      <div formArrayName="tracklist" class="dynamic-list">
+        <div
+          *ngFor="let track of tracklist.controls; let i = index"
+          [formGroupName]="i"
+          class="dynamic-list-item"
+        >
+          <span class="track-index">{{ i + 1 }}.</span>
+          <input type="text" formControlName="title" placeholder="Track title"
+            [class.invalid]="$any(track).get('title')?.invalid && $any(track).get('title')?.touched" />
+          <input type="text" formControlName="length" placeholder="mm:ss" class="input-short"
+            [class.invalid]="$any(track).get('length')?.invalid && $any(track).get('length')?.touched" />
+          <button type="button" class="btn-remove" (click)="removeTrack(i)">✕</button>
+        </div>
+        <button type="button" class="btn-add" (click)="addTrack()">+ Add Track</button>
+      </div>
+    </div>
+
+  </div>
+</section>

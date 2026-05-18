@@ -1,0 +1,63 @@
+<section class="category-section" [formGroup]="form">
+  <h3 class="category-title">Category Details — Newspaper</h3>
+
+  <div class="form-grid">
+
+    <div class="form-field">
+      <label>Editor in Chief <span class="required">*</span></label>
+      <input type="text" formControlName="editorInChief"
+        [class.invalid]="form.get('editorInChief')?.invalid && form.get('editorInChief')?.touched" />
+      <span class="error-msg"
+        *ngIf="form.get('editorInChief')?.invalid && form.get('editorInChief')?.touched">
+        Editor in chief is required
+      </span>
+    </div>
+
+    <div class="form-field">
+      <label>Issue Number</label>
+      <input type="text" formControlName="issueNumber" />
+    </div>
+
+    <div class="form-field">
+      <label>Publication Frequency</label>
+      <input type="text" formControlName="publicationFrequency" />
+    </div>
+
+    <div class="form-field">
+      <label>ISBN</label>
+      <input type="text" formControlName="isbn" />
+    </div>
+
+    <div class="form-field">
+      <label>Publisher <span class="required">*</span></label>
+      <input type="text" formControlName="publisher"
+        [class.invalid]="form.get('publisher')?.invalid && form.get('publisher')?.touched" />
+      <span class="error-msg"
+        *ngIf="form.get('publisher')?.invalid && form.get('publisher')?.touched">
+        Publisher is required
+      </span>
+    </div>
+
+    <div class="form-field">
+      <label>Publication Date <span class="required">*</span></label>
+      <input type="date" formControlName="publicationDate"
+        [class.invalid]="form.get('publicationDate')?.invalid && form.get('publicationDate')?.touched" />
+      <span class="error-msg"
+        *ngIf="form.get('publicationDate')?.invalid && form.get('publicationDate')?.touched">
+        Publication date is required
+      </span>
+    </div>
+
+    <div class="form-field">
+      <label>Language</label>
+      <input type="text" formControlName="language" />
+    </div>
+
+    <div class="form-field full-width">
+      <label>Sections (comma separated)</label>
+      <input type="text" formControlName="sections"
+        placeholder="e.g. Politics, Sports, Economy" />
+    </div>
+
+  </div>
+</section>

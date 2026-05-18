@@ -1,0 +1,206 @@
+$font-inter:        'Inter', Arial, sans-serif;
+$color-primary:    #D32F2F;
+$color-primary-hv: #AF101A;
+$color-update:     #007296;
+$color-update-hv:  #004d63;
+$color-text-btn:   #FFFFFF;
+
+:host { display: block; }
+
+.card {
+  background: #fff;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  position: relative;
+  font-family: $font-inter;
+  transition: box-shadow 0.2s, border-color 0.2s;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  &.selected {
+    border-color: $color-primary;
+  }
+}
+
+// ── Checkbox ─────────────────────────────────────────────────────────
+.checkbox {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 16px;
+  height: 16px;
+  z-index: 2;
+  cursor: pointer;
+  accent-color: $color-primary;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.card.selection-mode .checkbox {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+// ── Image ─────────────────────────────────────────────────────────────
+.card-image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: #111;
+  cursor: pointer;
+  position: relative;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.25s ease, filter 0.25s ease;
+  }
+
+  // Hover overlay with search icon
+  .image-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: background 0.2s, opacity 0.2s;
+  }
+
+  &:hover {
+    img {
+      transform: scale(1.04);
+      filter: brightness(0.8);
+    }
+
+    .image-overlay {
+      background: rgba(0, 0, 0, 0.3);
+      opacity: 1;
+    }
+  }
+}
+
+// ── Body ──────────────────────────────────────────────────────────────
+.card-body {
+  padding: 12px 12px;
+}
+
+.card-title {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+  color: #111;
+  margin: 0 0 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-category {
+  font-size: 12px;
+  font-weight: 400;
+  color: #62748E;
+  margin: 0 0 4px;
+}
+
+.card-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: #D40924;
+  margin: 0;
+}
+
+// ── Actions ───────────────────────────────────────────────────────────
+.card-actions {
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px 10px;
+}
+
+.btn-update,
+.btn-delete {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 0;
+  border: none;
+  border-radius: 5px;
+  font-family: $font-inter;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  svg {
+    path, polyline {
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  }
+}
+
+.btn-update {
+  background: $color-update;
+  color: $color-text-btn;
+  svg path { stroke: $color-text-btn; }
+  &:hover { background: $color-update-hv; }
+}
+
+.btn-delete {
+  background: $color-primary;
+  color: $color-text-btn;
+  svg path, svg polyline { stroke: $color-text-btn; }
+  &:hover { background: $color-primary-hv; }
+}
+
+/* ── Customer mode buttons ───────────────────────────────────── */
+.btn-add {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 0;
+  border: none;
+  border-radius: 5px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  background: #D32F2F;
+  color: #fff;
+  transition: background .15s;
+  svg path, svg line { stroke: #fff; stroke-width: 2; stroke-linecap: round; }
+  &:hover { background: #AF101A; }
+}
+
+.btn-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 0;
+  border: none;
+  border-radius: 5px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  background: #007296;
+  color: #fff;
+  transition: background .15s;
+  svg circle, svg line { stroke: #fff; stroke-width: 2; stroke-linecap: round; }
+  &:hover { background: #004d63; }
+}

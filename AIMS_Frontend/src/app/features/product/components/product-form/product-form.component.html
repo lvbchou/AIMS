@@ -1,0 +1,189 @@
+<div class="modal-backdrop" (click)="onCancel()"></div>
+
+<div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+
+  <!-- Header -->
+  <div class="modal-header">
+    <h2 id="modal-title" class="modal-title">{{ modalTitle }}</h2>
+    <button type="button" class="btn-close" (click)="onCancel()" aria-label="Close">✕</button>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="modal-form">
+    <div class="modal-body">
+
+      <!-- ── General Information ────────────────────────────────────────── -->
+      <section class="section">
+        <h3 class="section-title">General Information</h3>
+
+        <!-- productType: root form -->
+        <div class="form-grid">
+          <div class="form-field">
+            <label>Product Type <span class="required">*</span></label>
+            <select
+              formControlName="productType"
+              (change)="onTypeChange($any($event.target).value)"
+            >
+              <option *ngFor="let type of types" [value]="type">{{ type }}</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- general fields -->
+        <div class="form-grid" formGroupName="general">
+
+          <div class="form-field full-width">
+            <label>Title <span class="required">*</span></label>
+            <input
+              type="text"
+              formControlName="title"
+              [class.invalid]="generalForm.get('title')?.invalid && generalForm.get('title')?.touched"
+            />
+            <span class="error-msg"
+              *ngIf="generalForm.get('title')?.invalid && generalForm.get('title')?.touched">
+              Title is required
+            </span>
+          </div>
+
+          <div class="form-field">
+            <label>Category <span class="required">*</span></label>
+            <input
+              type="text"
+              formControlName="category"
+              [class.invalid]="generalForm.get('category')?.invalid && generalForm.get('category')?.touched"
+            />
+            <span class="error-msg"
+              *ngIf="generalForm.get('category')?.invalid && generalForm.get('category')?.touched">
+              Category is required
+            </span>
+          </div>
+
+          <div class="form-field">
+            <label>Barcode <span class="required">*</span></label>
+            <input
+              type="text"
+              formControlName="barcode"
+              [class.invalid]="generalForm.get('barcode')?.invalid && generalForm.get('barcode')?.touched"
+            />
+            <span class="error-msg"
+              *ngIf="generalForm.get('barcode')?.invalid && generalForm.get('barcode')?.touched">
+              Barcode is required
+            </span>
+          </div>
+
+          <div class="form-field full-width">
+            <label>Image URL <span class="required">*</span></label>
+            <input
+              type="url"
+              formControlName="imageUrl"
+              placeholder="https://"
+              [class.invalid]="generalForm.get('imageUrl')?.invalid && generalForm.get('imageUrl')?.touched"
+            />
+            <span class="error-msg"
+              *ngIf="generalForm.get('imageUrl')?.invalid && generalForm.get('imageUrl')?.touched">
+              Image URL is required
+            </span>
+          </div>
+
+          <div class="form-field">
+            <label>Original Value (VND) <span class="required">*</span></label>
+            <input
+              type="number"
+              formControlName="originalValue"
+              min="0"
+              [class.invalid]="generalForm.get('originalValue')?.invalid && generalForm.get('originalValue')?.touched"
+            />
+            <span class="error-msg"
+              *ngIf="generalForm.get('originalValue')?.invalid && generalForm.get('originalValue')?.touched">
+              Original value is required
+            </span>
+          </div>
+
+          <div class="form-field">
+            <label>Selling Price (VND) <span class="required">*</span></label>
+            <input
+              type="number"
+              formControlName="sellingPrice"
+              min="0"
+              [class.invalid]="generalForm.get('sellingPrice')?.invalid && generalForm.get('sellingPrice')?.touched"
+            />
+            <span class="error-msg"
+              *ngIf="generalForm.get('sellingPrice')?.invalid && generalForm.get('sellingPrice')?.touched">
+              Selling price is required
+            </span>
+          </div>
+
+          <div class="form-field">
+            <label>Weight (kg) <span class="required">*</span></label>
+            <input
+              type="number"
+              formControlName="weight"
+              min="0"
+              step="0.01"
+              [class.invalid]="generalForm.get('weight')?.invalid && generalForm.get('weight')?.touched"
+            />
+            <span class="error-msg"
+              *ngIf="generalForm.get('weight')?.invalid && generalForm.get('weight')?.touched">
+              Weight is required
+            </span>
+          </div>
+
+          <div class="form-field">
+            <label>Dimensions <span class="required">*</span></label>
+            <input
+              type="text"
+              formControlName="dimensions"
+              placeholder="e.g. 20x15x2 cm"
+              [class.invalid]="generalForm.get('dimensions')?.invalid && generalForm.get('dimensions')?.touched"
+            />
+            <span class="error-msg"
+              *ngIf="generalForm.get('dimensions')?.invalid && generalForm.get('dimensions')?.touched">
+              Dimensions is required
+            </span>
+          </div>
+
+          <div class="form-field full-width">
+            <label>Description <span class="required">*</span></label>
+            <textarea
+              formControlName="description"
+              rows="3"
+              [class.invalid]="generalForm.get('description')?.invalid && generalForm.get('description')?.touched"
+            ></textarea>
+            <span class="error-msg"
+              *ngIf="generalForm.get('description')?.invalid && generalForm.get('description')?.touched">
+              Description is required
+            </span>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ── Category Details (dynamic sub-form) ───────────────────────── -->
+      <ng-container [ngSwitch]="selectedType">
+        <app-dvd-form
+          *ngSwitchCase="ProductType.DVD"
+          [form]="categoryForm"
+        />
+        <app-cd-form
+          *ngSwitchCase="ProductType.CD"
+          [form]="categoryForm"
+        />
+        <app-book-form
+          *ngSwitchCase="ProductType.BOOK"
+          [form]="categoryForm"
+        />
+        <app-newspaper-form
+          *ngSwitchCase="ProductType.NEWSPAPER"
+          [form]="categoryForm"
+        />
+      </ng-container>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button type="button" class="btn-cancel" (click)="onCancel()">Cancel</button>
+      <button type="submit" class="btn-submit">{{ submitLabel }}</button>
+    </div>
+
+  </form>
+</div>
