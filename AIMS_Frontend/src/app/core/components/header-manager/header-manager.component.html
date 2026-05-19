@@ -1,0 +1,40 @@
+<header class="aims-header">
+  <div class="header-inner">
+
+    <!-- Logo -->
+    <a class="logo" routerLink="/product-manager">AIMS</a>
+
+    <!-- Nav -->
+    <nav class="nav">
+      <ng-container *ngFor="let item of navItems">
+        <a class="nav-link" [routerLink]="item.route" routerLinkActive="active">{{ item.label }}</a>
+      </ng-container>
+    </nav>
+
+    <!-- Spacer -->
+    <div class="spacer"></div>
+
+    <!-- Account -->
+    <div class="account-menu">
+      <button class="account-btn" (click)="toggleAccount()">
+        <svg class="icon-user" width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" stroke-linecap="round"/>
+        </svg>
+        <span class="account-label">Account</span>
+        <span class="chevron" [class.open]="accountOpen">
+          <svg class="icon-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M2 4l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </button>
+
+      <div class="dropdown" *ngIf="accountOpen">
+        <ng-container *ngFor="let m of accountMenuItems">
+          <a class="dropdown-item" [routerLink]="m.route">{{ m.label }}</a>
+        </ng-container>
+      </div>
+    </div>
+
+  </div>
+</header>

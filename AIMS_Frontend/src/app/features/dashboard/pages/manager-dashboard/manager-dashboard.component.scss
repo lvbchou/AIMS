@@ -1,0 +1,99 @@
+$font-family:   'Inter', Arial, sans-serif;
+$color-primary: #D40924;
+$color-bg:      #fbf8f8;
+
+:host { display: block; }
+
+// ── Hero ──────────────────────────────────────────────────────────────
+.hero {
+  background: $color-primary;
+  padding: 48px 24px;
+  text-align: center;
+  font-family: $font-family;
+
+  h1 {
+    font-size: 36px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 8px;
+  }
+
+  p {
+    font-size: 15px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+  }
+}
+
+// ── Content ───────────────────────────────────────────────────────────
+.content {
+  background: $color-bg;
+  padding: 40px 24px;
+  min-height: calc(100vh - 48px - 96px - 160px);
+  font-family: $font-family;
+}
+
+// ── Card Grid ─────────────────────────────────────────────────────────
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+
+  @media (max-width: 900px)  { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 480px)  { grid-template-columns: 1fr; }
+}
+
+// ── Card ──────────────────────────────────────────────────────────────
+.card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  padding: 24px 20px;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.2s;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+
+  h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #111;
+    margin: 12px 0 4px;
+  }
+
+  p {
+    font-size: 14px;
+    font-weight: 400;
+    color: #62748e;
+    margin: 0;
+  }
+}
+
+// ── Card Icon ─────────────────────────────────────────────────────────
+.card-icon {
+  width: 44px;
+  height: 44px;
+  background: #fff0f0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    width: 22px;
+    height: 22px;
+
+    path, polyline, line, circle, rect {
+      stroke: $color-primary;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  }
+}

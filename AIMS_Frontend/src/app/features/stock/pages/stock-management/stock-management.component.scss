@@ -1,0 +1,28 @@
+$font: 'Inter', Arial, sans-serif;
+$primary: #D32F2F;
+
+.page {
+  padding: 24px 16px;
+  background: #F9F9F9;
+  min-height: calc(100vh - 48px);
+  font-family: $font;
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+.page-header {
+  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0F1216;
+  margin: 0 0 2px;
+}
+
+.page-subtitle {
+  font-size: 13px;
+  color: #62748E;
+  font-weight: 400;
+  margin: 0;
+}

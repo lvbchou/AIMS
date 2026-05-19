@@ -1,0 +1,24 @@
+<div class="page-layout">
+  <aside class="sidebar" *ngIf="showFilter">
+    <app-product-filter (filterApplied)="onFilterApplied($event)"></app-product-filter>
+  </aside>
+  <main class="main-content" [class.full-width]="!showFilter">
+    <h1 class="page-title">{{ pageTitle }}</h1>
+    <div *ngIf="!loading && products.length === 0" class="no-results"><p>No product found!</p></div>
+    <div *ngIf="products.length > 0" class="product-grid">
+      <app-product-card
+        *ngFor="let p of products"
+        [product]="p"
+        [mode]="'customer'"
+        (viewDetail)="onViewDetail($event)"
+        (addToCart)="onAddToCart($event)">
+      </app-product-card>
+    </div>
+  </main>
+</div>
+<app-product-detail-modal
+  *ngIf="selectedProductId !== null"
+  [productId]="selectedProductId!"
+  (close)="closeModal()"
+  (addToCart)="onAddToCart($event.product.productId)">
+</app-product-detail-modal>
