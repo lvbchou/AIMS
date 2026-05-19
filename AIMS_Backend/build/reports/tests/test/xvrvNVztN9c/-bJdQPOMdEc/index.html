@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - com.aims.controller.ProductControllerViewSearchFilterTest$FilterProductEndpoint</title>
+<link href="../../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<div class="breadcrumbs">
+<a class="breadcrumb" href="../../index.html">all</a> &gt; 
+<a class="breadcrumb" href="../index.html">com.aims.controller.ProductControllerViewSearchFilterTest</a> &gt; 
+<span class="breadcrumb">com.aims.controller.ProductControllerViewSearchFilterTest$FilterProductEndpoint</span>
+</div>
+<div class="tab-container">
+<ul class="tabLinks">
+<li>
+<a class="successGroup" href="#">Gradle Test Run :test</a>
+</li>
+</ul>
+<div class="tab">
+<h2>Gradle Test Run :test</h2>
+<h1>GET /api/products/filter</h1>
+<div class="tab-container">
+<ul class="tabLinks">
+<li>
+<a class="" href="#">summary</a>
+</li>
+<li>
+<a class="" href="#">standard output</a>
+</li>
+<li>
+<a class="" href="#">error output</a>
+</li>
+</ul>
+<div class="tab">
+<h2>summary</h2>
+<div>
+<div class="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox">
+<div class="counter">6</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox">
+<div class="counter">0</div>
+<p>skipped</p>
+</div>
+</td>
+<td>
+<div class="infoBox duration">
+<div class="counter">1.009s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="test-results">
+<thead>
+<tr>
+<th>Child</th>
+<th>Name</th>
+<th>Tests</th>
+<th>Failures</th>
+<th>Skipped</th>
+<th>Duration</th>
+<th>Success rate</th>
+</tr>
+</thead>
+<tr>
+<td class="success">CT015 Filter Products In Valid Price Range Returns 200</td>
+<td class="path">CT015_filterProductsInValidPriceRangeReturns200()</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0.020s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">CT016 Filter With No Products In Range Returns 200</td>
+<td class="path">CT016_filterWithNoProductsInRangeReturns200()</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0.053s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">CT017 Filter With Invalid Price Range Returns 400</td>
+<td class="path">CT017_filterWithInvalidPriceRangeReturns400()</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0.006s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">CT018 Filter With Missing Price Range Param Returns 400</td>
+<td class="path">CT018_filterWithMissingPriceRangeParamReturns400()</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0.003s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">CT019 Filter With Min Equals Max Boundary Returns 200</td>
+<td class="path">CT019_filterWithMinEqualsMaxBoundaryReturns200()</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0.002s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">CT020 Filter With Zero Min Price Returns 200</td>
+<td class="path">CT020_filterWithZeroMinPriceReturns200()</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0.003s</td>
+<td class="success">100%</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="tab">
+<h2>standard output</h2>
+<span class="code">
+<pre id="root-0-test-stdout-com.aims.controller.ProductControllerViewSearchFilterTest$FilterProductEndpoint">07:50:12.434 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.aims.controller.ProductControllerViewSearchFilterTest$FilterProductEndpoint]: FilterProductEndpoint does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+07:50:12.439 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.aims.AimsBackendApplication for test class com.aims.controller.ProductControllerViewSearchFilterTest$FilterProductEndpoint
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.0)
+
+2026-05-19T07:50:12.564+07:00  INFO 16747 --- [AIMS_Backend] [    Test worker] .c.ProductControllerViewSearchFilterTest : Starting ProductControllerViewSearchFilterTest using Java 23.0.1 with PID 16747 (started by chaulevubao in /Users/chaulevubao/Downloads/AIMS_Backend)
+2026-05-19T07:50:12.564+07:00  INFO 16747 --- [AIMS_Backend] [    Test worker] .c.ProductControllerViewSearchFilterTest : No active profile set, falling back to 1 default profile: &quot;default&quot;
+2026-05-19T07:50:13.332+07:00  INFO 16747 --- [AIMS_Backend] [    Test worker] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-05-19T07:50:13.333+07:00  INFO 16747 --- [AIMS_Backend] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-05-19T07:50:13.333+07:00  INFO 16747 --- [AIMS_Backend] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-05-19T07:50:13.346+07:00  INFO 16747 --- [AIMS_Backend] [    Test worker] .c.ProductControllerViewSearchFilterTest : Started ProductControllerViewSearchFilterTest in 0.885 seconds (process running for 1.349)
+</pre>
+<button class="clipboard-copy-btn" aria-label="Copy to clipboard" data-copy-element-id="root-0-test-stdout-com.aims.controller.ProductControllerViewSearchFilterTest$FilterProductEndpoint">Copy</button>
+</span>
+</div>
+<div class="tab">
+<h2>error output</h2>
+<span class="code">
+<pre id="root-0-test-stderr-com.aims.controller.ProductControllerViewSearchFilterTest$FilterProductEndpoint">WARNING: A Java agent has been loaded dynamically (/Users/chaulevubao/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.14.16/4a451ee6484abac3a498df0f3b33ed00a6fced4d/byte-buddy-agent-1.14.16.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+</pre>
+<button class="clipboard-copy-btn" aria-label="Copy to clipboard" data-copy-element-id="root-0-test-stderr-com.aims.controller.ProductControllerViewSearchFilterTest$FilterProductEndpoint">Copy</button>
+</span>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="https://www.gradle.org">Gradle 9.5.1</a> at May 19, 2026, 7:50:13 AM</p>
+</div>
+</div>
+</body>
+</html>
