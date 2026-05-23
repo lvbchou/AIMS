@@ -14,8 +14,8 @@ export class ProductService {
   constructor(private http: HttpClient) {}
 
   // ── Get all ───────────────────────────────────────────────────────
-  getAll(): Observable<Product[]> {
-    return this.http.get<Product[]>(this.BASE_URL);
+  getAll(): Observable<ProductSummary[]> {
+    return this.http.get<ProductSummary[]>(this.BASE_URL);
   }
 
   // ── Get by id ─────────────────────────────────────────────────────
@@ -29,8 +29,6 @@ export class ProductService {
   }
 
   // ── Update ────────────────────────────────────────────────────────
-  update(product: Partial<Product>): Observable<Product> {
-    return this.http.put<Product>(`${this.BASE_URL}/${product.productId}`, product);
   update(id: number, product: Partial<Product>): Observable<Product> {
     return this.http.put<Product>(`${this.BASE_URL}/${id}`, product);
   }
@@ -45,18 +43,19 @@ export class ProductService {
     return this.http.delete<void>(this.BASE_URL, { body: ids });
   }
 
-  search(keyword: string, category?: string): Observable<ProductSummary[]> {
-    let params = new HttpParams().set('keyword', keyword);
+  // ── Search (SD step 1.1.3) ────────────────────────────────────────
+  search(keyword?: string, category?: string): Observable<ProductSummary[]> {
+    let params = new HttpParams();
+    if (keyword)  params = params.set('keyword', keyword);
     if (category) params = params.set('category', category);
     return this.http.get<ProductSummary[]>(`${this.BASE_URL}/search`, { params });
   }
 
+  // ── Filter by price range (SD step 2.1.1) ────────────────────────
+  // Độc lập — không cần search trước, query thẳng DB theo giá
+  // priceRange format: "min-max" e.g. "100000-200000"
   filterByPrice(min: number, max: number): Observable<ProductSummary[]> {
     const params = new HttpParams().set('priceRange', `${min}-${max}`);
     return this.http.get<ProductSummary[]>(`${this.BASE_URL}/filter`, { params });
-  }
-
-  getByBarcode(barcode: string): Observable<Product> {
-    return this.http.get<Product>(`${this.BASE_URL}/${barcode}`);
   }
 }

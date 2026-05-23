@@ -1,8 +1,9 @@
 <!-- Skeleton khi đang loading -->
 <div class="grid" *ngIf="isLoading">
-  <app-product-card-skeleton
+  <div
     *ngFor="let i of skeletonItems"
-  ></app-product-card-skeleton>
+    class="skeleton-card"
+  ></div>
 </div>
 
 <!-- Danh sách thật khi đã load xong -->

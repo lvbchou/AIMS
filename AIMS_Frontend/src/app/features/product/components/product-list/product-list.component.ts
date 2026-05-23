@@ -1,41 +1,38 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProductCardComponent } from '../product-card/product-card.component';
 import { ProductSummary } from '../../models/product.model';
-import { ProductType } from '../../models/product-type.enum';
-import { ProductCardSkeletonComponent } from '../../skeleton/product-card-skeleton/product-card-skeleton.component';
 
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [CommonModule, ProductCardComponent, ProductCardSkeletonComponent],
+  imports: [CommonModule, ProductCardComponent],
   templateUrl: './product-list.component.html',
-  styleUrls: ['./product-list.component.scss']
+  styleUrl: './product-list.component.scss'
 })
 export class ProductListComponent {
-  @Input() products: ProductSummary[] = [];
 
+  @Input() products: ProductSummary[] = [];
+  @Input() isLoading = false;
+  @Input() skeletonCount = 10;
   @Input() selectedIds: Set<number> = new Set();
   @Input() selectionMode = false;
   @Input() isMaxSelected = false;
-  @Input() isLoading = false;
-  @Input() skeletonCount = 10;
 
-  @Output() toggleSelect = new EventEmitter<number>();
-  @Output() onUpdate = new EventEmitter<number>();
-  @Output() onDelete = new EventEmitter<ProductSummary>();
-  @Output() onDelete = new EventEmitter<number>();
-  @Output() onViewDetail = new EventEmitter<number>();
+  @Output() toggleSelect  = new EventEmitter<number>();
+  @Output() onUpdate      = new EventEmitter<number>();
+  @Output() onDelete      = new EventEmitter<number>();
+  @Output() onViewDetail  = new EventEmitter<number>();
 
   get skeletonItems(): number[] {
-    return Array(this.skeletonCount).fill(0);
+    return Array.from({ length: this.skeletonCount }, (_, i) => i);
   }
 
   isSelected(productId: number): boolean {
     return this.selectedIds.has(productId);
   }
 
-  onToggle(productId: number) {
+  onToggle(productId: number): void {
     this.toggleSelect.emit(productId);
   }
 }

@@ -5,8 +5,6 @@ import com.aims.dto.ProductSummaryDTO;
 import com.aims.entity.*;
 import com.aims.exception.*;
 import com.aims.mapper.ProductMapper;
-import com.aims.entity.*;
-import com.aims.exception.*;
 import com.aims.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,10 +15,6 @@ import java.util.Locale;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * ProductService - implements business logic for CUD Product use case.
- * Matches the ProductService class in the service package diagram.
- */
 @Service
 @Transactional
 public class ProductService {
@@ -32,10 +26,8 @@ public class ProductService {
     }
 
     // ----------------------------------------------------------------
-    // CREATE
+    // CREATE PRODUCTS
     // ----------------------------------------------------------------
-
-    public Product saveProduct(ProductInfoDTO productInfo) {
     public void saveProduct(ProductInfoDTO productInfo) {
         validateProductInfo(productInfo);
 
@@ -44,10 +36,12 @@ public class ProductService {
         }
 
         Product product = buildProductFromDTO(productInfo);
-        return productRepository.save(product);
         productRepository.save(product);
     }
 
+    // ----------------------------------------------------------------
+    // UPDATE PRODUCTS
+    // ----------------------------------------------------------------
     public void updateProduct(Integer productId, ProductInfoDTO dto) {
         validateProductInfo(dto);
         Product existing = productRepository.findById(productId)
@@ -78,7 +72,6 @@ public class ProductService {
             newspaper.setPublicationDate(dto.getPublicationDate());
             newspaper.setIssueNumber(dto.getIssueNumber());
             newspaper.setPublicationFrequency(dto.getPublicationFrequency());
-            newspaper.setISSN(dto.getISSN());
             newspaper.setLanguage(dto.getLanguage());
             newspaper.setEditorInChief(dto.getEditorInChief());
             newspaper.setSections(dto.getSections());
@@ -105,10 +98,8 @@ public class ProductService {
 
             if (dto.getTracks() != null) {
                 cd.getTracks().clear();
-                dto.getTracks().forEach(t ->
-                        cd.getTracks().add(
-                                new Track(t.getTrackTitle(), t.getTrackLength(), cd))
-                );
+                dto.getTracks().forEach(t -> cd.getTracks().add(
+                        new Track(t.getTrackTitle(), t.getTrackLength(), cd)));
             }
         }
 
@@ -116,7 +107,28 @@ public class ProductService {
     }
 
     // ----------------------------------------------------------------
-    // READ
+    // DELETE PRODUCT
+    // ----------------------------------------------------------------
+    public void deleteProduct(Integer productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException(productId));
+        if (product.getQuantityInStock() > 0) {
+            product.setStatus("deactivated");
+        } else {
+            product.setStatus("deleted");
+        }
+        productRepository.save(product);
+    }
+
+    public void deleteManyProducts(List<Integer> productIds) {
+        for (Integer id : productIds) {
+            productRepository.findById(id)
+                    .ifPresent(product -> deleteProduct(product.getProductId()));
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // VIEW PRODUCTS
     // ----------------------------------------------------------------
     @Transactional(readOnly = true)
     public List<ProductSummaryDTO> getAllProducts() {
@@ -125,10 +137,9 @@ public class ProductService {
                 .map(p -> new ProductSummaryDTO(
                         p.getProductId(),
                         p.getTitle(),
-                        p.getClass().getSimpleName().toUpperCase(),  // "CD", "DVD"...
+                        p.getClass().getSimpleName().toUpperCase(), // "CD", "DVD"...
                         p.getSellingPrice(),
-                        p.getImage()
-                ))
+                        p.getImage()))
                 .toList();
     }
 
@@ -140,45 +151,76 @@ public class ProductService {
         return ProductMapper.toDTO(product);
     }
 
+    // ----------------------------------------------------------------
+    // SEARCH PRODUCTS
+    // ----------------------------------------------------------------
+    private void isValidInput(String keyword, String category) {
+        boolean keywordEmpty = (keyword == null || keyword.isBlank());
+        boolean categoryEmpty = (category == null || category.isBlank());
+        if (keywordEmpty && categoryEmpty) {
+            throw new EmptySearchInputException();
+        }
+    }
+
     @Transactional(readOnly = true)
-    public List<ProductInfoDTO> searchProduct(String keyword, String category) {
+    public List<ProductSummaryDTO> searchProduct(String keyword, String category) {
+        // SD step 1.1.1 – isValidInput (self-call on controller delegates here)
+        isValidInput(keyword, category);
+
+        // SD step 1.1.3 – searchProduct(keyword, category) on Product entity
         return productRepository.searchByKeywordAndCategory(keyword, category)
                 .stream()
-                .map(ProductMapper::toDTO)
+                .map(p -> new ProductSummaryDTO(
+                        p.getProductId(),
+                        p.getTitle(),
+                        p.getClass().getSimpleName().toUpperCase(),
+                        p.getSellingPrice(),
+                        p.getImage()))
                 .toList();
     }
 
-    public List<ProductInfoDTO> filterProduct(List<ProductInfoDTO> products, String priceRange) {
-
     @Transactional(readOnly = true)
-    public Product viewProduct(String barcode) {
-        return productRepository.findByBarcode(barcode)
-                .orElseThrow(() -> new ProductNotFoundException(barcode));
-    }
-
-    /**
-     * Search products by keyword.
-     */
-    @Transactional(readOnly = true)
-    public List<Product> searchProduct(String keyword) {
-        return productRepository.searchByKeywordOrCategory(keyword);
+    public List<ProductSummaryDTO> filterProduct(List<ProductSummaryDTO> products, String priceRange) {
+        long[] range = parsePriceRange(priceRange);
+        return products.stream()
+                .filter(p -> p.sellingPrice() >= range[0] && p.sellingPrice() <= range[1])
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<Product> filterProduct(List<Product> products, String priceRange) {
+    public List<ProductSummaryDTO> filterByPriceRange(String priceRange) {
+        long[] range = parsePriceRange(priceRange);
+        return productRepository.findByPriceRange(range[0], range[1])
+                .stream()
+                .map(p -> new ProductSummaryDTO(
+                        p.getProductId(),
+                        p.getTitle(),
+                        p.getClass().getSimpleName().toUpperCase(),
+                        p.getSellingPrice(),
+                        p.getImage()))
+                .toList();
+    }
+
+    private long[] parsePriceRange(String priceRange) {
         String[] parts = priceRange.split("-");
         if (parts.length != 2) {
-            throw new InvalidProductInfoException("Invalid price range format. Expected: min-max");
+            throw new InvalidProductInfoException("Invalid price range format. Expected: min-max (e.g. 100000-200000)");
         }
-        long min = Long.parseLong(parts[0].trim());
-        long max = Long.parseLong(parts[1].trim());
-
-        return products.stream()
-                .filter(p -> p.getSellingPrice() >= min && p.getSellingPrice() <= max)
-                .toList();
-        return productRepository.findByPriceRange(min, max);
+        try {
+            long min = Long.parseLong(parts[0].trim());
+            long max = Long.parseLong(parts[1].trim());
+            if (min < 0 || max < min) {
+                throw new InvalidProductInfoException("Price range invalid: min must be >= 0 and max >= min");
+            }
+            return new long[] { min, max };
+        } catch (NumberFormatException e) {
+            throw new InvalidProductInfoException("Price range must contain valid numbers. Expected: min-max");
+        }
     }
 
+    // ----------------------------------------------------------------
+    // STOCK UTILITIES
+    // ----------------------------------------------------------------
     @Transactional(readOnly = true)
     public boolean validateQuantityOfSelectedProducts() {
         return productRepository.findAll()
@@ -187,41 +229,17 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public boolean checkStockAvailable(Product product) {
+    public boolean checkStockAvailable(Integer productId) {
+        Product product = productRepository.findActiveById(productId)
+                .orElseThrow(() -> new ProductNotFoundException(productId));
         return product.getQuantityInStock() > 0;
     }
 
     // ----------------------------------------------------------------
-    // UPDATE
+    // VALIDATION (private - used by saveProduct / updateProduct)
     // ----------------------------------------------------------------
 
-    public void deleteProduct(Integer productId) {
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ProductNotFoundException(productId));
-
-        if (product.getQuantityInStock() > 0) {
-            // Còn hàng → chỉ deactivated
-            product.setStatus("deactivated");
-        } else {
-            // Hết hàng → deleted
-            product.setStatus("deleted");
-        }
-
-        productRepository.save(product);
-    // DELETE
-    // ----------------------------------------------------------------
-
-    public void deleteProduct(Product product) {
-        productRepository.findById(product.getProductId())
-                .orElseThrow(() -> new ProductNotFoundException(product.getProductId()));
-        productRepository.delete(product);
-    }
-
-    // ----------------------------------------------------------------
-    // VALIDATION
-    // ----------------------------------------------------------------
-
-    public boolean validateProductInfo(ProductInfoDTO productInfo) {
+    private boolean validateProductInfo(ProductInfoDTO productInfo) {
         if (productInfo.getTitle() == null || productInfo.getTitle().isBlank()) {
             throw new InvalidProductInfoException("Title must not be empty");
         }
@@ -262,6 +280,7 @@ public class ProductService {
         }
         if (productInfo.getWeight() == null || productInfo.getWeight() <= 0) {
             throw new InvalidProductInfoException("Weight must be positive");
+        }
         if (productInfo.getQuantityInStock() < 0) {
             throw new InvalidProductInfoException("Quantity must not be negative");
         }
@@ -330,7 +349,7 @@ public class ProductService {
                     throw new InvalidProductInfoException("Disc type is required for DVD");
 
                 if (!productInfo.getDiscType().toUpperCase().equals("BLU-RAY") &&
-                !productInfo.getDiscType().toUpperCase().equals("HD-DVD"))
+                        !productInfo.getDiscType().toUpperCase().equals("HD-DVD"))
                     throw new InvalidProductInfoException(
                             "Disc type must be Blu-ray or HD-DVD");
 
@@ -363,12 +382,6 @@ public class ProductService {
     // ----------------------------------------------------------------
     // FACTORY METHOD - builds correct subtype from DTO
     // ----------------------------------------------------------------
-
-    private Product buildProductFromDTO(ProductInfoDTO dto) {
-        dto.setQuantityInStock(0);
-    // FACTORY METHOD
-    // ----------------------------------------------------------------
-
     private Product buildProductFromDTO(ProductInfoDTO dto) {
         return switch (dto.getProductType().toUpperCase()) {
             case "BOOK" -> {
@@ -410,8 +423,7 @@ public class ProductService {
                 if (dto.getTracks() != null) {
                     List<Track> tracks = dto.getTracks().stream()
                             .map(t -> new Track(t.getTrackTitle(),
-                                                t.getTrackLength(), cd))
-                            .map(t -> new Track(t.getTrackTitle(), t.getTrackLength(), cd))
+                                    t.getTrackLength(), cd))
                             .collect(Collectors.toCollection(ArrayList::new));
                     cd.setTracks(tracks);
                 }
@@ -421,5 +433,4 @@ public class ProductService {
                     "Unknown product type: " + dto.getProductType());
         };
     }
-}
 }

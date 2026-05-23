@@ -1,10 +1,10 @@
-package com.hust.aims.service;
+package com.aims.service;
 
 public class PlaceOrderService {
 
     /**
      * Tính phí vận chuyển đơn hàng theo quy chuẩn hệ thống AIMS.
-     * * @param orderAmount Tổng giá trị tiền hàng (VND)
+     * @param orderAmount Tổng giá trị tiền hàng (VND)
      * @param weight      Tổng khối lượng hàng đặt (kg)
      * @param city        Tên tỉnh/thành phố nhận hàng
      * @return Phí vận chuyển áp dụng (VND)

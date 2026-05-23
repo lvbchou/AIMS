@@ -33,8 +33,6 @@ public class CD extends DiscProduct {
     public CD(String title, String category, String barcode, String image,
               Long originalValue, Long sellingPrice, Double weight,
               String description, String dimensions, Integer quantityInStock,
-              long originalValue, long sellingPrice, double weight,
-              String description, String dimensions, int quantityInStock,
               String genre, LocalDate releaseDate,
               List<String> artists, String recordLabel) {
         super(title, category, barcode, image, originalValue, sellingPrice,

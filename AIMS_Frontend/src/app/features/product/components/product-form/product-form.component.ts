@@ -34,7 +34,6 @@ export class ProductFormComponent implements OnInit {
   @Output() submitted = new EventEmitter<Product>();
   @Output() cancelled = new EventEmitter<void>();
 
-  // Nếu có product → update mode, không có → create mode
   @Input() product: Product | null = null;
 
   readonly ProductType = ProductType;
@@ -42,45 +41,24 @@ export class ProductFormComponent implements OnInit {
 
   form!: FormGroup;
 
-  // Tiêu đề động theo mode
-  get isUpdateMode(): boolean {
-    return this.product !== null;
-  }
-
-  get modalTitle(): string {
-    return this.isUpdateMode ? 'Update Product' : 'Add New Product';
-  }
-
-  get submitLabel(): string {
-    return this.isUpdateMode ? 'Update' : 'Add Product';
-  }
+  get isUpdateMode(): boolean { return this.product !== null; }
+  get modalTitle(): string { return this.isUpdateMode ? 'Update Product' : 'Add New Product'; }
+  get submitLabel(): string { return this.isUpdateMode ? 'Update' : 'Add Product'; }
 
   constructor(private fb: FormBuilder) {}
 
   ngOnInit(): void {
     const initialType = (this.product?.productType as ProductType) ?? ProductType.DVD;
     this.buildForm(initialType);
-
-    // Nếu là update mode → patch data vào form
     if (this.product) {
       this.patchForm(this.product);
     }
-
     document.body.style.overflow = 'hidden';
   }
 
-  // ── Getters ────────────────────────────────────────────────────────────────
-  get selectedType(): ProductType {
-    return this.form.get('productType')?.value;
-  }
-
-  get generalForm(): FormGroup {
-    return this.form.get('general') as FormGroup;
-  }
-
-  get categoryForm(): FormGroup {
-    return this.form.get('categoryDetails') as FormGroup;
-  }
+  get selectedType(): ProductType { return this.form.get('productType')?.value; }
+  get generalForm(): FormGroup { return this.form.get('general') as FormGroup; }
+  get categoryForm(): FormGroup { return this.form.get('categoryDetails') as FormGroup; }
 
   // ── Form builder ───────────────────────────────────────────────────────────
   private buildForm(type: ProductType): void {
@@ -90,7 +68,6 @@ export class ProductFormComponent implements OnInit {
         title:         ['', Validators.required],
         category:      ['', Validators.required],
         barcode:       ['', Validators.required],
-        image:      ['', Validators.required],
         imageUrl:      ['', Validators.required],
         originalValue: [0, [Validators.required, Validators.min(0)]],
         sellingPrice:  [0, [Validators.required, Validators.min(0)]],
@@ -106,56 +83,43 @@ export class ProductFormComponent implements OnInit {
   private patchForm(product: Product): void {
     this.form.patchValue({ productType: product.productType });
 
-    // Patch general — map image → imageUrl
     this.generalForm.patchValue({
       title:         product.title,
       category:      product.category,
       barcode:       product.barcode,
-      image:      product.image,      // ← backend trả về 'image', form dùng 'imageUrl'
+      imageUrl:      product.imageUrl ?? (product as any).image ?? '',
       originalValue: product.originalValue,
       sellingPrice:  product.sellingPrice,
       weight:        product.weight,
       dimensions:    product.dimensions,
       description:   product.description,
     });
-    // Truyền thẳng product (flat) vào patchCategoryDetails
-    this.patchCategoryDetails(product.productType, product);
-    const { productType, categoryDetails, ...general } = product as any;
 
-    this.form.patchValue({
-      productType,
-      general,
-    });
-
-    // Patch categoryDetails theo từng type
-    this.patchCategoryDetails(productType, categoryDetails);
+    // Patch categoryDetails — dùng typeDetails nếu có, không thì dùng product flat
+    const details = (product as any).typeDetails ?? product;
+    this.patchCategoryDetails(product.productType, details);
   }
 
   private patchCategoryDetails(type: ProductType, details: any): void {
     if (!details) return;
-
     const group = this.form.get('categoryDetails') as FormGroup;
 
     switch (type) {
       case ProductType.CD: {
-        // Patch artists FormArray
         const artistsArray = group.get('artists') as FormArray;
         artistsArray.clear();
         (details.artists ?? ['']).forEach((a: string) => {
           artistsArray.push(new FormControl(a, Validators.required));
         });
 
-        // Patch tracklist FormArray
         const tracklistArray = group.get('tracklist') as FormArray;
         tracklistArray.clear();
-        (details.tracks ?? []).forEach((t: any) => {
+        // Support both {trackTitle, trackLength} (from backend) and {title, length} (mock)
+        const tracks = details.tracks ?? details.tracklist ?? [];
+        tracks.forEach((t: any) => {
           tracklistArray.push(this.fb.group({
-            title:  [t.trackTitle  ?? '', Validators.required],
-            length: [t.trackLength ?? '', Validators.required],
-        (details.tracklist ?? []).forEach((t: any) => {
-          tracklistArray.push(this.fb.group({
-            title:  [t.title  ?? '', Validators.required],
-            length: [t.length ?? '', Validators.required],
+            title:  [t.trackTitle ?? t.title  ?? '', Validators.required],
+            length: [t.trackLength ?? t.length ?? '', Validators.required],
           }));
         });
 
@@ -168,7 +132,6 @@ export class ProductFormComponent implements OnInit {
       }
 
       case ProductType.NEWSPAPER: {
-        // Patch sections FormArray
         const sectionsArray = group.get('sections') as FormArray;
         sectionsArray.clear();
         (details.sections ?? ['']).forEach((s: string) => {
@@ -179,14 +142,14 @@ export class ProductFormComponent implements OnInit {
           editorInChief:        details.editorInChief        ?? '',
           issueNumber:          details.issueNumber          ?? '',
           publicationFrequency: details.publicationFrequency ?? '',
-          ISSN:                 details.ISSN                 ?? '',
-          isbn:                 details.isbn                 ?? '',
+          ISSN:                 details.ISSN ?? details.issn  ?? '',
           publisher:            details.publisher            ?? '',
           publicationDate:      details.publicationDate      ?? '',
           language:             details.language             ?? '',
         });
         break;
       }
+
       case ProductType.BOOK:
         group.patchValue({
           author:          details.author          ?? '',
@@ -198,6 +161,7 @@ export class ProductFormComponent implements OnInit {
           language:        details.language        ?? '',
         });
         break;
+
       case ProductType.DVD:
         group.patchValue({
           discType:    details.discType    ?? '',
@@ -209,9 +173,9 @@ export class ProductFormComponent implements OnInit {
           genre:       details.genre       ?? '',
           releaseDate: details.releaseDate ?? '',
         });
+        break;
 
       default:
-        // DVD và Book không có FormArray → patchValue thẳng
         group.patchValue(details);
         break;
     }
@@ -257,12 +221,14 @@ export class ProductFormComponent implements OnInit {
           issueNumber:          [''],
           publicationFrequency: [''],
           ISSN:                 [''],
-          isbn:                 [''],
           publisher:            ['', Validators.required],
           publicationDate:      ['', Validators.required],
           language:             [''],
           sections:             this.fb.array([new FormControl('')]),
         });
+
+      default:
+        return this.fb.group({});
     }
   }
 
@@ -278,22 +244,12 @@ export class ProductFormComponent implements OnInit {
       this.form.markAllAsTouched();
       return;
     }
-    const { productType, general, categoryDetails } = this.form.value;
-    const payload: Product = {
-      productType,
-      ...general,
-      ...categoryDetails,
-      // Giữ lại productId nếu là update mode
-      ...(this.product?.productId ? { productId: this.product.productId } : {}),
-    }
 
-    // document.body.style.overflow = '';
-    this.submitted.emit(payload);
+    const { productType, general, categoryDetails } = this.form.value;
     const product = {
-      ...general,
       productType,
-      categoryDetails,
-      // Giữ lại productId nếu là update mode
+      ...general,
+      typeDetails: categoryDetails,
       ...(this.product?.productId ? { productId: this.product.productId } : {}),
     } as Product;
 

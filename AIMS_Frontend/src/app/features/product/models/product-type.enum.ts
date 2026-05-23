@@ -3,6 +3,4 @@ export enum ProductType {
   CD        = 'CD',
   BOOK      = 'BOOK',
   NEWSPAPER = 'NEWSPAPER',
-  BOOK      = 'Book',
-  NEWSPAPER = 'Newspaper',
 }

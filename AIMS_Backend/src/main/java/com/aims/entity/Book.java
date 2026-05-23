@@ -21,7 +21,6 @@ public class Book extends PrintableProduct {
 
     @Column(name = "pages")
     private Integer pages;
-    private int pages;
 
     @Column(name = "genre")
     private String genre;
@@ -31,10 +30,6 @@ public class Book extends PrintableProduct {
                 String description, String dimensions, Integer quantityInStock,
                 String publisher, LocalDate publicationDate, String language,
                 String author, String coverType, Integer pages, String genre) {
-                long originalValue, long sellingPrice, double weight,
-                String description, String dimensions, int quantityInStock,
-                String publisher, LocalDate publicationDate, String language,
-                String author, String coverType, int pages, String genre) {
         super(title, category, barcode, image, originalValue, sellingPrice,
               weight, description, dimensions, quantityInStock,
               publisher, publicationDate, language);

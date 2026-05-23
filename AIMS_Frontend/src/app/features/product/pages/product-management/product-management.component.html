@@ -7,7 +7,6 @@
     </div>
 
     <div class="page-actions">
-      <!-- khi chưa vào selection mode -->
       <ng-container *ngIf="!selectionMode">
         <button class="btn btn-danger" (click)="enterSelectionMode()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -27,7 +26,6 @@
         </button>
       </ng-container>
 
-      <!-- khi đang trong selection mode -->
       <ng-container *ngIf="selectionMode">
         <button
           class="btn btn-danger"
@@ -61,12 +59,12 @@
   ></app-product-list>
 
 </div>
+
 <app-product-form
   *ngIf="showProductForm"
   [product]="selectedProduct"
   (submitted)="onFormSubmitted($event)"
-  (submitted)="onProductCreated($event)"
-  (cancelled)="onCreateCancelled()"
+  (cancelled)="onCancel()"
 />
 
 <app-manager-product-view-modal

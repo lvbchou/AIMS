@@ -21,8 +21,8 @@ public abstract class PrintableProduct extends Product {
     private String language;
 
     public PrintableProduct(String title, String category, String barcode, String image,
-                            long originalValue, long sellingPrice, double weight,
-                            String description, String dimensions, int quantityInStock,
+                            Long originalValue, Long sellingPrice, Double weight,
+                            String description, String dimensions, Integer quantityInStock,
                             String publisher, LocalDate publicationDate, String language) {
         super(title, category, barcode, image, originalValue, sellingPrice,
               weight, description, dimensions, quantityInStock);

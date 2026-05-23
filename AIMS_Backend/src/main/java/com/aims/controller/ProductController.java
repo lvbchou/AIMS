@@ -30,97 +30,56 @@ public class ProductController {
         List<ProductSummaryDTO> products = productService.getAllProducts();
         return ResponseEntity.ok(products);
     }
-    /**
-     * POST /api/products
-     * createProduct(product: Product): void
-    /**
-     * POST /api/products
-     */
+
+    /* CUD PRODUCTS */
     @PostMapping
     public ResponseEntity<Void> createProduct(@RequestBody ProductInfoDTO productInfo) {
         productService.saveProduct(productInfo);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    /**
-     * PUT /api/products/{productId}
-     * updateProduct(product: Product): void
-     * Note: re-validates and replaces the product record.
-     */
     @PutMapping("/{productId}")
     public ResponseEntity<Void> updateProduct(
-            @PathVariable int productId,
+            @PathVariable Integer productId,
             @RequestBody ProductInfoDTO productInfo) {
         productService.updateProduct(productId, productInfo);
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * DELETE /api/products/{productId}
-     * deleteProduct(product: Product): void
-     */
     @DeleteMapping("/{productId}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Integer productId) {
         productService.deleteProduct(productId);
-     */
-    @DeleteMapping("/{productId}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable String productId) {
-        Product product = productService.viewProduct(productId);
-        productService.deleteProduct(product);
+        return ResponseEntity.noContent().build();
+    }
+    
+    @DeleteMapping
+    public ResponseEntity<Void> deleteMany(@RequestBody List<Integer> productIds) {
+        productService.deleteManyProducts(productIds);
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * GET /api/products/{barcode}
-     * viewProduct(barcode: String): Product
-     */
-    @GetMapping("/{productId}")
+
+    /* VIEW PRODUCT DETAILS */
+     @GetMapping("/{productId}")
     public ResponseEntity<ProductInfoDTO> viewProduct(@PathVariable Integer productId) {
-        ProductInfoDTO product = productService.viewProduct(productId);
-     */
-    @GetMapping("/{barcode}")
-    public ResponseEntity<Product> viewProduct(@PathVariable String barcode) {
-        Product product = productService.viewProduct(barcode);
-        return ResponseEntity.ok(product);
+        ProductInfoDTO productDetails = productService.viewProduct(productId);
+        return ResponseEntity.ok(productDetails);
     }
 
-    /**
-     * GET /api/products/search?keyword=...&category=...
-     * searchProduct(keyword: String, category: String): List<Product>
-     */
+    /* SEARCH AND FILTER PRODUCTS */
     @GetMapping("/search")
-    public ResponseEntity<List<ProductInfoDTO>> searchProduct(
+    public ResponseEntity<List<ProductSummaryDTO>> searchProduct(
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) String priceRange) {
-
-        // 1. Search trước
-        List<ProductInfoDTO> results = productService.searchProduct(keyword, category);
-
-        // 2. Filter nếu có priceRange
-        if (priceRange != null && !priceRange.isBlank()) {
-            results = productService.filterProduct(results, priceRange);
-        }
-
-        return ResponseEntity.ok(results);
+            @RequestParam(required = false) String category) {
+ 
+        List<ProductSummaryDTO> productList = productService.searchProduct(keyword, category);
+        return ResponseEntity.ok(productList);
     }
-}
-     * GET /api/products/search?keyword=...
-     */
-    @GetMapping("/search")
-    public ResponseEntity<List<Product>> searchProduct(
-            @RequestParam(required = false) String keyword) {
-        List<Product> results = productService.searchProduct(keyword);
-        return ResponseEntity.ok(results);
-    }
+ 
 
-    /**
-     * GET /api/products/filter?priceRange=min-max
-     */
     @GetMapping("/filter")
-    public ResponseEntity<List<Product>> filterProduct(
+    public ResponseEntity<List<ProductSummaryDTO>> filterByPriceRange(
             @RequestParam String priceRange) {
-        List<Product> results = productService.filterProduct(null, priceRange);
-        return ResponseEntity.ok(results);
+        return ResponseEntity.ok(productService.filterByPriceRange(priceRange));
     }
 }

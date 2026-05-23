@@ -15,7 +15,6 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_id")
     private Integer productId;
-    private int productId;
 
     @Column(name = "title", nullable = false)
     private String title;
@@ -34,16 +33,12 @@ public class Product {
 
     @Column(name = "selling_price")
     private Long sellingPrice;
-    private long originalValue;
-
-    @Column(name = "selling_price")
-    private long sellingPrice;
 
     @Column(name = "status", nullable = false)
     private String status;
 
     @Column(name = "weight")
-    private double weight;
+    private Double weight;
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
@@ -57,11 +52,6 @@ public class Product {
     public Product(String title, String category, String barcode, String image,
                    Long originalValue, Long sellingPrice, Double weight,
                    String description, String dimensions, Integer quantityInStock) {
-    private int quantityInStock;
-
-    public Product(String title, String category, String barcode, String image,
-                   long originalValue, long sellingPrice, double weight,
-                   String description, String dimensions, int quantityInStock) {
         this.title = title;
         this.category = category;
         this.barcode = barcode;

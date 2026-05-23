@@ -17,14 +17,11 @@ export interface ProductBase {
   category: string;
   barcode: string;
   image: string;
-  originalValue: number;
-  sellingPrice: number;
-  weight: number;
-  status: string;
   imageUrl: string;
   originalValue: number;
   sellingPrice: number;
   weight: number;
+  status: string;
   dimensions: string;
   description: string;
   quantityInStock?: number;
