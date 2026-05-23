@@ -29,6 +29,8 @@ export class ProductService {
   }
 
   // ── Update ────────────────────────────────────────────────────────
+  update(product: Partial<Product>): Observable<Product> {
+    return this.http.put<Product>(`${this.BASE_URL}/${product.productId}`, product);
   update(id: number, product: Partial<Product>): Observable<Product> {
     return this.http.put<Product>(`${this.BASE_URL}/${id}`, product);
   }

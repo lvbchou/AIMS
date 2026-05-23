@@ -24,6 +24,8 @@
     </div>
 
     <div class="form-field">
+      <label>ISSN</label>
+      <input type="text" formControlName="ISSN" />
       <label>ISBN</label>
       <input type="text" formControlName="isbn" />
     </div>
@@ -54,6 +56,29 @@
     </div>
 
     <div class="form-field full-width">
+      <label>Sections</label>
+      <div formArrayName="sections" class="dynamic-list">
+        <div
+          *ngFor="let section of sections.controls; let i = index"
+          class="dynamic-list-item"
+        >
+          <input
+            type="text"
+            [formControlName]="i"
+            placeholder="Section"
+            [class.invalid]="section.invalid && section.touched"
+          />
+          <button
+            type="button"
+            class="btn-remove"
+            (click)="removeSection(i)"
+            [disabled]="sections.length === 1"
+          >✕</button>
+        </div>
+        <button type="button" class="btn-add" (click)="addSection()">
+          + Add Section
+        </button>
+      </div>
       <label>Sections (comma separated)</label>
       <input type="text" formControlName="sections"
         placeholder="e.g. Politics, Sports, Economy" />

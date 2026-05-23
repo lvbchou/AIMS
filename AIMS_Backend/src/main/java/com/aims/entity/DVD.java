@@ -20,6 +20,7 @@ public class DVD extends DiscProduct {
     private String director;
 
     @Column(name = "runtime")
+    private Integer runtime;
     private int runtime;
 
     @Column(name = "studio")
@@ -32,6 +33,10 @@ public class DVD extends DiscProduct {
     private String subtitles;
 
     public DVD(String title, String category, String barcode, String image,
+               Long originalValue, Long sellingPrice, Double weight,
+               String description, String dimensions, Integer quantityInStock,
+               String genre, LocalDate releaseDate,
+               String discType, String director, Integer runtime,
                long originalValue, long sellingPrice, double weight,
                String description, String dimensions, int quantityInStock,
                String genre, LocalDate releaseDate,

@@ -5,6 +5,7 @@ export interface ProductSummary {
   title: string;
   productType: ProductType;
   sellingPrice: number;
+  image?: string;
   imageUrl?: string;
 }
 
@@ -15,6 +16,11 @@ export interface ProductBase {
   title: string;
   category: string;
   barcode: string;
+  image: string;
+  originalValue: number;
+  sellingPrice: number;
+  weight: number;
+  status: string;
   imageUrl: string;
   originalValue: number;
   sellingPrice: number;
@@ -63,6 +69,7 @@ export interface NewspaperDetails {
   editorInChief: string;
   issueNumber?: string;
   publicationFrequency?: string;
+  ISSN?: string;
   issn?: string;
   publisher: string;
   publicationDate: string;

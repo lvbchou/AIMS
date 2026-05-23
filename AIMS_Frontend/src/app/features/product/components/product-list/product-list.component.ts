@@ -23,6 +23,7 @@ export class ProductListComponent {
 
   @Output() toggleSelect = new EventEmitter<number>();
   @Output() onUpdate = new EventEmitter<number>();
+  @Output() onDelete = new EventEmitter<ProductSummary>();
   @Output() onDelete = new EventEmitter<number>();
   @Output() onViewDetail = new EventEmitter<number>();
 

@@ -64,6 +64,7 @@
 <app-product-form
   *ngIf="showProductForm"
   [product]="selectedProduct"
+  (submitted)="onFormSubmitted($event)"
   (submitted)="onProductCreated($event)"
   (cancelled)="onCreateCancelled()"
 />

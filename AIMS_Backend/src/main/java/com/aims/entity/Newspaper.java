@@ -37,6 +37,8 @@ public class Newspaper extends PrintableProduct {
     private List<String> sections = new ArrayList<>();
 
     public Newspaper(String title, String category, String barcode, String image,
+                     Long originalValue, Long sellingPrice, Double weight,
+                     String description, String dimensions, Integer quantityInStock,
                      long originalValue, long sellingPrice, double weight,
                      String description, String dimensions, int quantityInStock,
                      String publisher, LocalDate publicationDate, String language,

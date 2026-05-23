@@ -90,6 +90,7 @@ export class ProductFormComponent implements OnInit {
         title:         ['', Validators.required],
         category:      ['', Validators.required],
         barcode:       ['', Validators.required],
+        image:      ['', Validators.required],
         imageUrl:      ['', Validators.required],
         originalValue: [0, [Validators.required, Validators.min(0)]],
         sellingPrice:  [0, [Validators.required, Validators.min(0)]],
@@ -103,6 +104,22 @@ export class ProductFormComponent implements OnInit {
 
   // ── Patch data vào form khi update ────────────────────────────────────────
   private patchForm(product: Product): void {
+    this.form.patchValue({ productType: product.productType });
+
+    // Patch general — map image → imageUrl
+    this.generalForm.patchValue({
+      title:         product.title,
+      category:      product.category,
+      barcode:       product.barcode,
+      image:      product.image,      // ← backend trả về 'image', form dùng 'imageUrl'
+      originalValue: product.originalValue,
+      sellingPrice:  product.sellingPrice,
+      weight:        product.weight,
+      dimensions:    product.dimensions,
+      description:   product.description,
+    });
+    // Truyền thẳng product (flat) vào patchCategoryDetails
+    this.patchCategoryDetails(product.productType, product);
     const { productType, categoryDetails, ...general } = product as any;
 
     this.form.patchValue({
@@ -131,6 +148,10 @@ export class ProductFormComponent implements OnInit {
         // Patch tracklist FormArray
         const tracklistArray = group.get('tracklist') as FormArray;
         tracklistArray.clear();
+        (details.tracks ?? []).forEach((t: any) => {
+          tracklistArray.push(this.fb.group({
+            title:  [t.trackTitle  ?? '', Validators.required],
+            length: [t.trackLength ?? '', Validators.required],
         (details.tracklist ?? []).forEach((t: any) => {
           tracklistArray.push(this.fb.group({
             title:  [t.title  ?? '', Validators.required],
@@ -158,6 +179,7 @@ export class ProductFormComponent implements OnInit {
           editorInChief:        details.editorInChief        ?? '',
           issueNumber:          details.issueNumber          ?? '',
           publicationFrequency: details.publicationFrequency ?? '',
+          ISSN:                 details.ISSN                 ?? '',
           isbn:                 details.isbn                 ?? '',
           publisher:            details.publisher            ?? '',
           publicationDate:      details.publicationDate      ?? '',
@@ -165,6 +187,28 @@ export class ProductFormComponent implements OnInit {
         });
         break;
       }
+      case ProductType.BOOK:
+        group.patchValue({
+          author:          details.author          ?? '',
+          coverType:       details.coverType       ?? '',
+          pages:           details.pages           ?? null,
+          genre:           details.genre           ?? '',
+          publisher:       details.publisher       ?? '',
+          publicationDate: details.publicationDate ?? '',
+          language:        details.language        ?? '',
+        });
+        break;
+      case ProductType.DVD:
+        group.patchValue({
+          discType:    details.discType    ?? '',
+          director:    details.director    ?? '',
+          runtime:     details.runtime     ?? null,
+          studio:      details.studio      ?? '',
+          language:    details.language    ?? '',
+          subtitles:   details.subtitles   ?? '',
+          genre:       details.genre       ?? '',
+          releaseDate: details.releaseDate ?? '',
+        });
 
       default:
         // DVD và Book không có FormArray → patchValue thẳng
@@ -212,6 +256,7 @@ export class ProductFormComponent implements OnInit {
           editorInChief:        ['', Validators.required],
           issueNumber:          [''],
           publicationFrequency: [''],
+          ISSN:                 [''],
           isbn:                 [''],
           publisher:            ['', Validators.required],
           publicationDate:      ['', Validators.required],
@@ -234,6 +279,16 @@ export class ProductFormComponent implements OnInit {
       return;
     }
     const { productType, general, categoryDetails } = this.form.value;
+    const payload: Product = {
+      productType,
+      ...general,
+      ...categoryDetails,
+      // Giữ lại productId nếu là update mode
+      ...(this.product?.productId ? { productId: this.product.productId } : {}),
+    }
+
+    // document.body.style.overflow = '';
+    this.submitted.emit(payload);
     const product = {
       ...general,
       productType,

@@ -20,6 +20,7 @@ export class ProductCardComponent {
   @Output() viewDetail   = new EventEmitter<number>();
   @Output() addToCart    = new EventEmitter<number>();
   @Output() update = new EventEmitter<number>();
+  @Output() delete = new EventEmitter<ProductSummary>();
   @Output() delete = new EventEmitter<number>();
   @Output() toggleSelect = new EventEmitter<number>();
 
@@ -32,6 +33,7 @@ export class ProductCardComponent {
   }
 
   onDelete() {
+    this.delete.emit(this.product);
     this.delete.emit(this.product.productId);
   }
 
