@@ -184,7 +184,7 @@ export class ProductManagementComponent implements OnInit {
     });
   }
 
-  onViewDetail(productId: number): void {
+  /* onViewDetail(productId: number): void {
     const s = this.products.find(p => p.productId === productId);
     if (!s) return;
     this.viewDetailProduct = this.buildMockFullProduct(s);
@@ -193,8 +193,29 @@ export class ProductManagementComponent implements OnInit {
   closeViewDetail(): void {
     this.viewDetailProduct = null;
   }
+  */
 
-  private buildMockFullProduct(s: ProductSummary): any {
+   // Thêm field loading/error cho modal
+  // XÓA buildMockFullProduct() và sửa lại 2 hàm này:
+
+  onViewDetail(productId: number): void {
+    this.productService.getById(productId).subscribe({
+      next: (product) => {
+        this.viewDetailProduct = product;
+      },
+      error: () => {
+        this.toastService.show('Failed to load product details. Please try again.');
+      }
+    });
+  }
+
+  closeViewDetail(): void {
+    this.viewDetailProduct = null;
+  }
+
+
+
+  /* private buildMockFullProduct(s: ProductSummary): any {
     const base = {
       productId: s.productId,
       productType: s.productType,
@@ -221,4 +242,5 @@ export class ProductManagementComponent implements OnInit {
         return base;
     }
   }
+  */
 }

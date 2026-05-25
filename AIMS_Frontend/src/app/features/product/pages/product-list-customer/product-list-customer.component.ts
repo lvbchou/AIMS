@@ -20,8 +20,9 @@ type Mode = 'all' | 'search' | 'filter';
 })
 export class ProductListCustomerComponent implements OnInit, OnDestroy {
   products: ProductSummary[] = [];
+  private searchResults: ProductSummary[] = [];  // SD: productList — lưu để filter client-side
   loading = false;
-  errorMessage = '';           // SD 1.1.2 empty input / SD 1.1.4 no product found
+  errorMessage = '';
   mode: Mode = 'all';
   keyword = '';
   activeFilter: PriceRange | null = null;
@@ -35,13 +36,14 @@ export class ProductListCustomerComponent implements OnInit, OnDestroy {
     this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
       const q = (params['q'] ?? '') as string;
       this.keyword = q;
-      this.activeFilter = null;     // reset filter khi keyword thay đổi
+      this.activeFilter = null;
       if (q) {
         this.mode = 'search';
-        this.doSearch(q, undefined, undefined);
+        this.doSearch(q);
       } else {
         this.mode = 'all';
         this.products = MOCK_SUMMARIES;
+        this.searchResults = [];
         this.errorMessage = '';
       }
     });
@@ -50,25 +52,26 @@ export class ProductListCustomerComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
 
   /**
-   * SD step 2 (opt block): User tích checkbox rồi nhấn FILTER
-   * hoặc nhấn CLEAR để bỏ filter.
-   *
-   * - range != null → filter trên kết quả search hiện tại (keyword + priceRange)
-   * - range == null → quay về kết quả search ban đầu (chỉ keyword)
+   * SD step 2 (opt block): User chọn price range → filter client-side trên searchResults
+   * Không gọi lại API — đúng với SD 2.1.1: filterByPriceRange(productList, priceRange)
    */
   onFilterApplied(range: PriceRange | null): void {
     this.activeFilter = range;
 
     if (range) {
+      // SD 2.1.1: filterByPriceRange(productList, priceRange)
       this.mode = 'filter';
-      const priceRange = `${range.min}-${range.max}`;
-      // SD 2.1: gửi keyword + priceRange → backend filter trên search result
-      this.doSearch(this.keyword || undefined, undefined, priceRange);
+      this.products = this.searchResults.filter(
+        p => p.sellingPrice >= range.min && p.sellingPrice <= range.max
+      );
+      // SD 2.1.2: displayFilteredProductList
+      this.errorMessage = this.products.length === 0 ? 'No product found.' : '';
     } else {
-      // User nhấn CLEAR hoặc bỏ tích checkbox rồi FILTER
+      // User nhấn CLEAR → quay về search result ban đầu
       if (this.keyword) {
         this.mode = 'search';
-        this.doSearch(this.keyword, undefined, undefined);
+        this.products = this.searchResults;
+        this.errorMessage = '';
       } else {
         this.mode = 'all';
         this.products = MOCK_SUMMARIES;
@@ -78,26 +81,28 @@ export class ProductListCustomerComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Gọi API search/filter kết hợp — 1 endpoint duy nhất.
-   * keyword + category        → SD step 1: searchProduct
-   * keyword + category + priceRange → SD step 2: filterByPriceRange(on search result)
+   * SD step 1.1: searchProduct(keyword, category)
+   * Chỉ gọi API search — filter giá xử lý client-side sau
    */
-  private doSearch(keyword?: string, category?: string, priceRange?: string): void {
+  private doSearch(keyword?: string, category?: string): void {
     this.loading = true;
     this.errorMessage = '';
 
-    // Optimistic UI: client-side filter ngay lập tức
-    this.applyClientSideFilter(keyword, priceRange);
+    // Optimistic UI: hiện mock ngay trong lúc chờ API
+    this.applyClientSideSearch(keyword);
 
-    this.api.search(keyword, category, priceRange).subscribe({
+    this.api.search(keyword, category).subscribe({
       next: (results) => {
         this.loading = false;
         if (!results || results.length === 0) {
           // SD step 1.1.4: displayNoProductFoundNotification
           this.products = [];
+          this.searchResults = [];
           this.errorMessage = 'No product found.';
         } else {
+          // SD step 1.1.5/1.1.6: showSearchingResult
           this.products = results;
+          this.searchResults = results;  // lưu lại để filter sau
           this.errorMessage = '';
         }
       },
@@ -107,30 +112,30 @@ export class ProductListCustomerComponent implements OnInit, OnDestroy {
           // SD step 1.1.2: displayEmptyInputNotification
           this.errorMessage = err.error?.error ?? 'Please enter a product title or category.';
           this.products = [];
+          this.searchResults = [];
         } else {
-          this.errorMessage = 'Something went wrong. Please try again.';
+          // API lỗi (BE chưa chạy, network lỗi...) → fallback về mock để filter vẫn hoạt động
+          this.applyClientSideSearch(keyword);
+          this.searchResults = [...this.products];
+          this.errorMessage = '';
         }
       }
     });
   }
 
-  /** Optimistic client-side — dùng MOCK khi chờ API trả về */
-  private applyClientSideFilter(keyword?: string, priceRange?: string): void {
-    let result = [...MOCK_SUMMARIES];
-    if (keyword) {
-      const k = keyword.toLowerCase();
-      result = result.filter(p =>
-        p.title.toLowerCase().includes(k) ||
-        String(p.productType).toLowerCase().includes(k));
+  /** Optimistic UI + fallback khi API lỗi — lọc MOCK theo keyword */
+  private applyClientSideSearch(keyword?: string): void {
+    if (!keyword) {
+      this.products = [...MOCK_SUMMARIES];
+      return;
     }
-    if (priceRange) {
-      const [min, max] = priceRange.split('-').map(Number);
-      result = result.filter(p => p.sellingPrice >= min && p.sellingPrice <= max);
-    }
-    this.products = result;
+    const k = keyword.toLowerCase();
+    this.products = MOCK_SUMMARIES.filter(p =>
+      p.title.toLowerCase().includes(k) ||
+      String(p.productType).toLowerCase().includes(k)
+    );
   }
 
-  /** Filter panel chỉ hiện khi đang ở mode search hoặc filter */
   get showFilter(): boolean { return this.mode === 'search' || this.mode === 'filter'; }
 
   get pageTitle(): string {

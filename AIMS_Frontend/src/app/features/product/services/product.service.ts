@@ -51,11 +51,12 @@ export class ProductService {
     return this.http.get<ProductSummary[]>(`${this.BASE_URL}/search`, { params });
   }
 
-  // ── Filter by price range (SD step 2.1.1) ────────────────────────
+  /*  // ── Filter by price range (SD step 2.1.1) ────────────────────────
   // Độc lập — không cần search trước, query thẳng DB theo giá
   // priceRange format: "min-max" e.g. "100000-200000"
   filterByPrice(min: number, max: number): Observable<ProductSummary[]> {
     const params = new HttpParams().set('priceRange', `${min}-${max}`);
     return this.http.get<ProductSummary[]>(`${this.BASE_URL}/filter`, { params });
   }
+  */
 }

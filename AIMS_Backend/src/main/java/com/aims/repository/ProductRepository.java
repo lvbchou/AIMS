@@ -12,10 +12,6 @@ import java.util.Optional;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Integer> {
 
-    // Dùng cho ViewProductDetails (barcode lookup)
-    @Query("SELECT p FROM Product p WHERE p.barcode = :barcode AND p.status = 'active'")
-    Optional<Product> findByBarcode(@Param("barcode") String barcode);
-
     // Dùng cho ViewProductDetails (productId lookup) - SD step 1.1.1
     @Query("SELECT p FROM Product p WHERE p.productId = :productId AND p.status = 'active'")
     Optional<Product> findActiveById(@Param("productId") Integer productId);

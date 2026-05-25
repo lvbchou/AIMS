@@ -21,12 +21,12 @@ export class HomeComponent implements OnInit {
   constructor(private api: ProductService, private router: Router) {}
 
   ngOnInit(): void {
-    this.products = MOCK_SUMMARIES;
-    this.api.search('').subscribe({
-      next: (res) => { if (res?.length) this.products = res; },
-      error: () => {}
-    });
-  }
+  this.products = MOCK_SUMMARIES;
+  this.api.getAll().subscribe({
+    next: (res) => { if (res?.length) this.products = res.slice(0, 20); },
+    error: () => {}
+  });
+}
 
   onViewDetail(id: number): void  { this.selectedProductId = id; }
   onAddToCart(id: number): void   { console.log('Add to cart id:', id); }
