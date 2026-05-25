@@ -25,9 +25,7 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
-    // ----------------------------------------------------------------
-    // CREATE PRODUCTS
-    // ----------------------------------------------------------------
+    // CREATE PRODUCT
     public void saveProduct(ProductInfoDTO productInfo) {
         validateProductInfo(productInfo);
 
@@ -39,9 +37,7 @@ public class ProductService {
         productRepository.save(product);
     }
 
-    // ----------------------------------------------------------------
-    // UPDATE PRODUCTS
-    // ----------------------------------------------------------------
+    // UPDATE PRODUCT
     public void updateProduct(Integer productId, ProductInfoDTO dto) {
         validateProductInfo(dto);
         Product existing = productRepository.findById(productId)
@@ -106,9 +102,7 @@ public class ProductService {
         productRepository.save(existing);
     }
 
-    // ----------------------------------------------------------------
     // DELETE PRODUCT
-    // ----------------------------------------------------------------
     public void deleteProduct(Integer productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException(productId));
@@ -127,9 +121,7 @@ public class ProductService {
         }
     }
 
-    // ----------------------------------------------------------------
-    // VIEW PRODUCTS
-    // ----------------------------------------------------------------
+    // VIEW PRODUCT DETAILS
     @Transactional(readOnly = true)
     public List<ProductSummaryDTO> getAllProducts() {
         return productRepository.findAllActive()
@@ -151,40 +143,19 @@ public class ProductService {
         return ProductMapper.toDTO(product);
     }
 
-    // ----------------------------------------------------------------
-    // SEARCH PRODUCTS
-    // ----------------------------------------------------------------
-    // ----------------------------------------------------------------
-    // SEARCH PRODUCTS  (SD SearchProduct step 1.1.1 → 1.1.3)
-    // ----------------------------------------------------------------
-
-    /**
-     * Validate rằng ít nhất một trong hai tham số không rỗng.
-     * SD step 1.1.1 – isValidInput(keyword, category)
-     * Nếu cả hai rỗng → throw EmptySearchInputException
-     *   → GlobalExceptionHandler trả 400 + message "displayEmptyInputNotification"
-     */
+    // SEARCH AND FILTER PRODUCTS
     private void isValidInput(String keyword, String category) {
-        boolean keywordEmpty  = (keyword  == null || keyword.isBlank());
+        boolean keywordEmpty = (keyword == null || keyword.isBlank());
         boolean categoryEmpty = (category == null || category.isBlank());
         if (keywordEmpty && categoryEmpty) {
             throw new EmptySearchInputException();
         }
     }
 
-    /**
-     * SD step 1.1.3 – searchProduct(keyword, category) trên Product entity.
-     * Trả về danh sách sản phẩm khớp; nếu rỗng → controller trả [] và
-     * frontend hiển thị "No product found" (SD step 1.1.4).
-     *
-     * Không nhận priceRange ở đây — filter là bước opt tiếp theo (SD step 2).
-     */
     @Transactional(readOnly = true)
     public List<ProductSummaryDTO> searchProduct(String keyword, String category) {
-        // SD step 1.1.1
         isValidInput(keyword, category);
 
-        // SD step 1.1.3 – query không filter giá (minPrice=0, maxPrice=MAX)
         return productRepository
                 .searchAndFilter(keyword, category, 0L, Long.MAX_VALUE)
                 .stream()
@@ -197,37 +168,14 @@ public class ProductService {
                 .toList();
     }
 
-    // ----------------------------------------------------------------
-    // FILTER PRODUCTS  (SD SearchProduct step 2.1 – opt block)
-    // ----------------------------------------------------------------
-
-    /**
-     * SD step 2.1 – filterProductsByPriceRange(productList, priceRange).
-     *
-     * QUAN TRỌNG: Filter luôn áp dụng trên tập kết quả search đã có,
-     * KHÔNG query độc lập toàn bộ catalog.
-     * Đúng với Sequence Diagram:
-     *   SearchResultScreen → SearchProductController:
-     *     filterProductsByPriceRange(productList, priceRange)
-     *   SearchProductController → Product:
-     *     filterByPriceRange(productList, priceRange)
-     *
-     * Endpoint nhận lại keyword + category + priceRange để tái hiện đúng
-     * "productList" bằng cách chạy lại query kết hợp — thay vì client
-     * gửi cả danh sách lên (không phù hợp REST).
-     *
-     * Nếu keyword và category đều null/blank → filter trên toàn catalog
-     * (trường hợp user chưa search mà chỉ filter).
-     */
     @Transactional(readOnly = true)
     public List<ProductSummaryDTO> filterProductsByPriceRange(
             String keyword, String category, String priceRange) {
 
         long[] range = parsePriceRange(priceRange);
 
-        // Nếu chưa có context search → filter toàn catalog theo giá
         boolean noSearchContext = (keyword == null || keyword.isBlank())
-                               && (category == null || category.isBlank());
+                && (category == null || category.isBlank());
 
         return productRepository
                 .searchAndFilter(
@@ -249,25 +197,23 @@ public class ProductService {
         String[] parts = priceRange.split("-");
         if (parts.length != 2) {
             throw new InvalidProductInfoException(
-                "Invalid price range format. Expected: min-max (e.g. 100000-200000)");
+                    "Invalid price range format. Expected: min-max (e.g. 100000-200000)");
         }
         try {
             long min = Long.parseLong(parts[0].trim());
             long max = Long.parseLong(parts[1].trim());
             if (min < 0 || max < min) {
                 throw new InvalidProductInfoException(
-                    "Price range invalid: min must be >= 0 and max >= min");
+                        "Price range invalid: min must be >= 0 and max >= min");
             }
-            return new long[]{ min, max };
+            return new long[] { min, max };
         } catch (NumberFormatException e) {
             throw new InvalidProductInfoException(
-                "Price range must contain valid numbers. Expected: min-max");
+                    "Price range must contain valid numbers. Expected: min-max");
         }
     }
 
-    // ----------------------------------------------------------------
     // STOCK UTILITIES
-    // ----------------------------------------------------------------
     @Transactional(readOnly = true)
     public boolean validateQuantityOfSelectedProducts() {
         return productRepository.findAll()
@@ -282,9 +228,7 @@ public class ProductService {
         return product.getQuantityInStock() > 0;
     }
 
-    // ----------------------------------------------------------------
-    // VALIDATION (private - used by saveProduct / updateProduct)
-    // ----------------------------------------------------------------
+    // VALIDATION
 
     private boolean validateProductInfo(ProductInfoDTO productInfo) {
         if (productInfo.getTitle() == null || productInfo.getTitle().isBlank()) {
@@ -426,9 +370,7 @@ public class ProductService {
         return true;
     }
 
-    // ----------------------------------------------------------------
-    // FACTORY METHOD - builds correct subtype from DTO
-    // ----------------------------------------------------------------
+    // BUILD PRODUCT ENTITY FROM DTO
     private Product buildProductFromDTO(ProductInfoDTO dto) {
         return switch (dto.getProductType().toUpperCase()) {
             case "BOOK" -> {
