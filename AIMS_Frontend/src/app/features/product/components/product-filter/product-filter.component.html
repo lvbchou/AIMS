@@ -1,10 +1,29 @@
 <div class="filter-panel">
-    <p class="filter-heading">PRICE RANGE</p>
-    <div class="range-list">
-        <label class="range-item" *ngFor="let r of ranges">
-            <input type="checkbox" [checked]="selected===r" (change)="select(r)" />
-            <span>{{ r.label }}</span>
-        </label>
-    </div>
+  <p class="filter-heading">PRICE RANGE</p>
+
+  <div class="range-list">
+    <label class="range-item" *ngFor="let r of ranges">
+      <!--
+        [checked]   : dùng isSelected() thay vì so sánh trực tiếp để rõ ràng hơn
+        (change)    : toggle chọn/bỏ chọn — chỉ 1 range được chọn tại 1 thời điểm
+                      (Activity Diagram: "Select price range" → 1 lựa chọn)
+      -->
+      <input
+        type="checkbox"
+        [checked]="isSelected(r)"
+        (change)="select(r)"
+      />
+      <span>{{ r.label }}</span>
+    </label>
+  </div>
+
+  <div class="filter-actions">
     <button class="btn-filter" (click)="apply()">FILTER</button>
+    <!-- Hiển thị nút Clear khi đang có filter active -->
+    <button
+      *ngIf="selected"
+      class="btn-clear"
+      (click)="clear()"
+    >CLEAR</button>
+  </div>
 </div>

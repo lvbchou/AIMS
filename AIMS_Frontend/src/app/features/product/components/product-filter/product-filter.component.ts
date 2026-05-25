@@ -19,8 +19,31 @@ export const PRICE_RANGES: PriceRange[] = [
 })
 export class ProductFilterComponent {
   @Output() filterApplied = new EventEmitter<PriceRange | null>();
+
   ranges = PRICE_RANGES;
   selected: PriceRange | null = null;
-  select(r: PriceRange): void { this.selected = this.selected === r ? null : r; }
-  apply(): void { this.filterApplied.emit(this.selected); }
+
+  /**
+   * Checkbox toggle: chọn range → selected = range
+   * Uncheck cùng range → selected = null (bỏ filter)
+   * Đúng với Activity Diagram: user "select price range" → 1 lựa chọn tại 1 thời điểm
+   */
+  select(r: PriceRange): void {
+    this.selected = this.selected === r ? null : r;
+  }
+
+  isSelected(r: PriceRange): boolean {
+    return this.selected === r;
+  }
+
+  /** SD step 2: emit range đã chọn (hoặc null nếu đã bỏ chọn tất cả) */
+  apply(): void {
+    this.filterApplied.emit(this.selected);
+  }
+
+  /** Xóa filter, reset về search result ban đầu */
+  clear(): void {
+    this.selected = null;
+    this.filterApplied.emit(null);
+  }
 }

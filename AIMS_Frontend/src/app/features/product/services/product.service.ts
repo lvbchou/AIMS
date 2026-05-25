@@ -44,7 +44,7 @@ export class ProductService {
   }
 
   // ── Search (SD step 1.1.3) ────────────────────────────────────────
-  search(keyword?: string, category?: string): Observable<ProductSummary[]> {
+  search(keyword?: string, category?: string, p?: any): Observable<ProductSummary[]> {
     let params = new HttpParams();
     if (keyword)  params = params.set('keyword', keyword);
     if (category) params = params.set('category', category);

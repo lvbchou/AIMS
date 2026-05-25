@@ -154,21 +154,39 @@ public class ProductService {
     // ----------------------------------------------------------------
     // SEARCH PRODUCTS
     // ----------------------------------------------------------------
+    // ----------------------------------------------------------------
+    // SEARCH PRODUCTS  (SD SearchProduct step 1.1.1 → 1.1.3)
+    // ----------------------------------------------------------------
+
+    /**
+     * Validate rằng ít nhất một trong hai tham số không rỗng.
+     * SD step 1.1.1 – isValidInput(keyword, category)
+     * Nếu cả hai rỗng → throw EmptySearchInputException
+     *   → GlobalExceptionHandler trả 400 + message "displayEmptyInputNotification"
+     */
     private void isValidInput(String keyword, String category) {
-        boolean keywordEmpty = (keyword == null || keyword.isBlank());
+        boolean keywordEmpty  = (keyword  == null || keyword.isBlank());
         boolean categoryEmpty = (category == null || category.isBlank());
         if (keywordEmpty && categoryEmpty) {
             throw new EmptySearchInputException();
         }
     }
 
+    /**
+     * SD step 1.1.3 – searchProduct(keyword, category) trên Product entity.
+     * Trả về danh sách sản phẩm khớp; nếu rỗng → controller trả [] và
+     * frontend hiển thị "No product found" (SD step 1.1.4).
+     *
+     * Không nhận priceRange ở đây — filter là bước opt tiếp theo (SD step 2).
+     */
     @Transactional(readOnly = true)
     public List<ProductSummaryDTO> searchProduct(String keyword, String category) {
-        // SD step 1.1.1 – isValidInput (self-call on controller delegates here)
+        // SD step 1.1.1
         isValidInput(keyword, category);
 
-        // SD step 1.1.3 – searchProduct(keyword, category) on Product entity
-        return productRepository.searchByKeywordAndCategory(keyword, category)
+        // SD step 1.1.3 – query không filter giá (minPrice=0, maxPrice=MAX)
+        return productRepository
+                .searchAndFilter(keyword, category, 0L, Long.MAX_VALUE)
                 .stream()
                 .map(p -> new ProductSummaryDTO(
                         p.getProductId(),
@@ -179,18 +197,44 @@ public class ProductService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
-    public List<ProductSummaryDTO> filterProduct(List<ProductSummaryDTO> products, String priceRange) {
-        long[] range = parsePriceRange(priceRange);
-        return products.stream()
-                .filter(p -> p.sellingPrice() >= range[0] && p.sellingPrice() <= range[1])
-                .toList();
-    }
+    // ----------------------------------------------------------------
+    // FILTER PRODUCTS  (SD SearchProduct step 2.1 – opt block)
+    // ----------------------------------------------------------------
 
+    /**
+     * SD step 2.1 – filterProductsByPriceRange(productList, priceRange).
+     *
+     * QUAN TRỌNG: Filter luôn áp dụng trên tập kết quả search đã có,
+     * KHÔNG query độc lập toàn bộ catalog.
+     * Đúng với Sequence Diagram:
+     *   SearchResultScreen → SearchProductController:
+     *     filterProductsByPriceRange(productList, priceRange)
+     *   SearchProductController → Product:
+     *     filterByPriceRange(productList, priceRange)
+     *
+     * Endpoint nhận lại keyword + category + priceRange để tái hiện đúng
+     * "productList" bằng cách chạy lại query kết hợp — thay vì client
+     * gửi cả danh sách lên (không phù hợp REST).
+     *
+     * Nếu keyword và category đều null/blank → filter trên toàn catalog
+     * (trường hợp user chưa search mà chỉ filter).
+     */
     @Transactional(readOnly = true)
-    public List<ProductSummaryDTO> filterByPriceRange(String priceRange) {
+    public List<ProductSummaryDTO> filterProductsByPriceRange(
+            String keyword, String category, String priceRange) {
+
         long[] range = parsePriceRange(priceRange);
-        return productRepository.findByPriceRange(range[0], range[1])
+
+        // Nếu chưa có context search → filter toàn catalog theo giá
+        boolean noSearchContext = (keyword == null || keyword.isBlank())
+                               && (category == null || category.isBlank());
+
+        return productRepository
+                .searchAndFilter(
+                        noSearchContext ? null : keyword,
+                        noSearchContext ? null : category,
+                        range[0],
+                        range[1])
                 .stream()
                 .map(p -> new ProductSummaryDTO(
                         p.getProductId(),
@@ -204,17 +248,20 @@ public class ProductService {
     private long[] parsePriceRange(String priceRange) {
         String[] parts = priceRange.split("-");
         if (parts.length != 2) {
-            throw new InvalidProductInfoException("Invalid price range format. Expected: min-max (e.g. 100000-200000)");
+            throw new InvalidProductInfoException(
+                "Invalid price range format. Expected: min-max (e.g. 100000-200000)");
         }
         try {
             long min = Long.parseLong(parts[0].trim());
             long max = Long.parseLong(parts[1].trim());
             if (min < 0 || max < min) {
-                throw new InvalidProductInfoException("Price range invalid: min must be >= 0 and max >= min");
+                throw new InvalidProductInfoException(
+                    "Price range invalid: min must be >= 0 and max >= min");
             }
-            return new long[] { min, max };
+            return new long[]{ min, max };
         } catch (NumberFormatException e) {
-            throw new InvalidProductInfoException("Price range must contain valid numbers. Expected: min-max");
+            throw new InvalidProductInfoException(
+                "Price range must contain valid numbers. Expected: min-max");
         }
     }
 
