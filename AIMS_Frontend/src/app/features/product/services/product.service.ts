@@ -1,36 +1,46 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { Product, ProductSummary } from '../models/product.model';
+import { mapToProduct, mapToPayload } from '../models/product.mapper';
 import { environment } from '../../../../environments/environment';
+import { Page } from '../../../shared/models/page.model';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class ProductService {
 
   private readonly BASE_URL = `${environment.apiUrl}/products`;
 
   constructor(private http: HttpClient) {}
 
-  // ── Get all ───────────────────────────────────────────────────────
-  getAll(): Observable<ProductSummary[]> {
-    return this.http.get<ProductSummary[]>(this.BASE_URL);
+  // ── Get all (summary) ─────────────────────────────────────────────
+  getAll(page = 0, size = 10): Observable<Page<ProductSummary>> {
+    return this.http.get<Page<ProductSummary>>(
+      `${this.BASE_URL}?page=${page}&size=${size}`
+    );
   }
 
-  // ── Get by id ─────────────────────────────────────────────────────
+  // ── Get by id (full detail) ───────────────────────────────────────
   getById(id: number): Observable<Product> {
-    return this.http.get<Product>(`${this.BASE_URL}/${id}`);
+    return this.http.get<any>(`${this.BASE_URL}/${id}`).pipe(
+      map(mapToProduct)  // ← flat → nested
+    );
   }
 
   // ── Add ───────────────────────────────────────────────────────────
-  add(product: Omit<Product, 'id'>): Observable<Product> {
-    return this.http.post<Product>(this.BASE_URL, product);
+  add(product: Product): Observable<Product> {
+    return this.http.post<any>(this.BASE_URL, mapToPayload(product)).pipe(
+      map(mapToProduct)  // ← response flat → nested
+    );
   }
 
   // ── Update ────────────────────────────────────────────────────────
-  update(id: number, product: Partial<Product>): Observable<Product> {
-    return this.http.put<Product>(`${this.BASE_URL}/${id}`, product);
+  update(product: Product): Observable<void> {
+    return this.http.put<void>(
+      `${this.BASE_URL}/${product.productId}`,
+      mapToPayload(product)  // ← nested → flat
+    );
   }
 
   // ── Delete single ─────────────────────────────────────────────────
@@ -43,20 +53,24 @@ export class ProductService {
     return this.http.delete<void>(this.BASE_URL, { body: ids });
   }
 
-  // ── Search (SD step 1.1.3) ────────────────────────────────────────
-  search(keyword?: string, category?: string, p?: any): Observable<ProductSummary[]> {
-    let params = new HttpParams();
-    if (keyword)  params = params.set('keyword', keyword);
+  // ── Search ────────────────────────────────────────────────────────
+  search(keyword: string, category?: string, page = 0, size = 10): Observable<Page<ProductSummary>> {
+    let params = new HttpParams()
+      .set('keyword', keyword)
+      .set('page', page)
+      .set('size', size);
     if (category) params = params.set('category', category);
-    return this.http.get<ProductSummary[]>(`${this.BASE_URL}/search`, { params });
+    return this.http.get<Page<ProductSummary>>(`${this.BASE_URL}/search`, { params });
   }
 
-  /*  // ── Filter by price range (SD step 2.1.1) ────────────────────────
-  // Độc lập — không cần search trước, query thẳng DB theo giá
-  // priceRange format: "min-max" e.g. "100000-200000"
-  filterByPrice(min: number, max: number): Observable<ProductSummary[]> {
-    const params = new HttpParams().set('priceRange', `${min}-${max}`);
-    return this.http.get<ProductSummary[]>(`${this.BASE_URL}/filter`, { params });
+  // ── Filter by price ───────────────────────────────────────────────
+  filterByPrice(min: number, max: number, keyword?: string, category?: string, page = 0, size = 10): Observable<Page<ProductSummary>> {
+    let params = new HttpParams()
+      .set('priceRange', `${min}-${max}`)
+      .set('page', page)
+      .set('size', size);
+    if (keyword)  params = params.set('keyword',  keyword);
+    if (category) params = params.set('category', category);
+    return this.http.get<Page<ProductSummary>>(`${this.BASE_URL}/search`, { params });
   }
-  */
 }

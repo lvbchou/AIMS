@@ -19,15 +19,24 @@ export class ProductCardComponent {
 
   @Output() viewDetail   = new EventEmitter<number>();
   @Output() addToCart    = new EventEmitter<number>();
-  @Output() update       = new EventEmitter<number>();
-  @Output() delete       = new EventEmitter<number>();
+  @Output() update = new EventEmitter<number>();
+  @Output() delete = new EventEmitter<ProductSummary>();
   @Output() toggleSelect = new EventEmitter<number>();
 
-  onToggle()     { this.toggleSelect.emit(this.product.productId); }
-  onUpdate()     { this.update.emit(this.product.productId); }
-  onDelete()     { this.delete.emit(this.product.productId); }
-  onImageClick() { this.viewDetail.emit(this.product.productId); }
-  onAddToCart()  { this.addToCart.emit(this.product.productId); }
+  onToggle() {
+    this.toggleSelect.emit(this.product.productId);
+  }
+
+  onUpdate() {
+    this.update.emit(this.product.productId);
+  }
+
+  onDelete() {
+    this.delete.emit(this.product);
+  }
+
+  onImageClick()  { this.viewDetail.emit(this.product.productId); }
+  onAddToCart()   { this.addToCart.emit(this.product.productId); }
 
   get isCustomer(): boolean { return this.mode === 'customer'; }
   get isManager():  boolean { return this.mode === 'manager'; }

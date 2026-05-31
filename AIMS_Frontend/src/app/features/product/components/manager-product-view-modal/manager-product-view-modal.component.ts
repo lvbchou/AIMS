@@ -15,7 +15,7 @@ export class ManagerProductViewModalComponent implements OnInit, OnDestroy {
    * Pass either a full Product or a ProductSummary.
    * If only summary is available some fields will be missing – that's fine.
    */
-  @Input() product!: Product | ProductSummary;
+  @Input() product!: Product;
   @Output() close = new EventEmitter<void>();
 
   readonly ProductType = ProductType;

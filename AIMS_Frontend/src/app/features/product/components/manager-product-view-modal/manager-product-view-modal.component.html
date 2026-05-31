@@ -154,6 +154,10 @@
             <span class="detail-label">Editor in Chief</span>
             <span class="detail-value">{{ npDetails.editorInChief }}</span>
           </div>
+          <div class="detail-row" *ngIf="npDetails.publisher">
+            <span class="detail-label">Publisher</span>
+            <span class="detail-value">{{ npDetails.publisher }}</span>
+          </div>
           <div class="detail-row" *ngIf="npDetails.issueNumber">
             <span class="detail-label">Issue Number</span>
             <span class="detail-value">{{ npDetails.issueNumber }}</span>
@@ -183,10 +187,10 @@
       </div>
 
       <!-- ── CD Tracklist ───────────────────────────────────────── -->
-      <ng-container *ngIf="isCd && cdDetails && cdDetails.tracklist && cdDetails.tracklist.length">
+      <ng-container *ngIf="isCd && cdDetails && cdDetails.tracks && cdDetails.tracks.length">
         <div class="tracklist">
           <h4 class="tracklist-title">Tracklist</h4>
-          <div class="track-row" *ngFor="let track of cdDetails!.tracklist; let i = index">
+          <div class="track-row" *ngFor="let track of cdDetails!.tracks; let i = index">
             <span class="track-num">T{{ i + 1 }}.</span>
             <span class="track-name">{{ track.title }}</span>
             <span class="track-length">{{ track.length }}</span>

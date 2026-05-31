@@ -4,6 +4,10 @@ import lombok.*;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * ProductInfo - form DTO used for Create/Update operations.
+ * Maps to the ProductInfo form class in the class diagram.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -31,7 +35,7 @@ public class ProductInfoDTO {
     private String author;
     private String publisher;
     private LocalDate publicationDate;
-    private Integer pages;
+    private Integer pages;           // ✅ Integer thay vì int
     private String coverType;
     private String language;
     private String genre;
@@ -46,7 +50,7 @@ public class ProductInfoDTO {
     // DVD fields
     private String discType;
     private String director;
-    private Integer runtime;
+    private Integer runtime;         // ✅ Integer thay vì int
     private String studio;
     private String subtitles;
     private LocalDate releaseDate;

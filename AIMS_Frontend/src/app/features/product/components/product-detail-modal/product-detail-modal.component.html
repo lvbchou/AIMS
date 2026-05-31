@@ -6,7 +6,7 @@
     <button class="btn-close" (click)="onClose()">✕</button>
     <div class="modal-body">
       <div class="modal-image-wrap">
-        <img [src]="product.imageUrl || 'https://picsum.photos/seed/'+product.productId+'/600/600'"
+        <img [src]="product.image || 'https://picsum.photos/seed/'+product.productId+'/600/600'"
              [alt]="product.title" class="modal-image" />
       </div>
       <div class="modal-info">
@@ -16,6 +16,9 @@
         <p class="description" *ngIf="product.description">{{ product.description }}</p>
 
         <div class="detail-table">
+          <div class="detail-row" *ngIf="product.category">
+            <span class="lbl">Category</span><span class="val">{{ product.category }}</span>
+          </div>
           <div class="detail-row" *ngIf="product.barcode">
             <span class="lbl">Barcode</span><span class="val">{{ product.barcode }}</span>
           </div>
@@ -56,6 +59,7 @@
 
           <ng-container *ngIf="isNewspaper && d">
             <div class="detail-row" *ngIf="d.editorInChief"><span class="lbl">Editor in Chief</span><span class="val">{{ d.editorInChief }}</span></div>
+            <div class="detail-row" *ngIf="d.publisher"><span class="lbl">Publisher</span><span class="val">{{ d.publisher }}</span></div>
             <div class="detail-row" *ngIf="d.issueNumber"><span class="lbl">Issue Number</span><span class="val">{{ d.issueNumber }}</span></div>
             <div class="detail-row" *ngIf="d.publicationFrequency"><span class="lbl">Publication Frequently</span><span class="val">{{ d.publicationFrequency }}</span></div>
             <div class="detail-row" *ngIf="d.issn"><span class="lbl">ISSN</span><span class="val">{{ d.issn }}</span></div>
@@ -65,10 +69,10 @@
           </ng-container>
         </div>
 
-        <ng-container *ngIf="isCd && d?.tracklist && d.tracklist.length">
+        <ng-container *ngIf="isCd && d?.tracks && d.tracks.length">
           <div class="tracklist">
             <h4 class="tracklist-title">Tracklist</h4>
-            <div class="track-row" *ngFor="let t of d.tracklist; let i=index">
+            <div class="track-row" *ngFor="let t of d.tracks; let i=index">
               <span class="track-num">T{{ i+1 }}.</span>
               <span class="track-name">{{ t.title }}</span>
               <span class="track-len">{{ t.length }}</span>

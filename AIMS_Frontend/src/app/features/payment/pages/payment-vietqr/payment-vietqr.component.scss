@@ -1,0 +1,418 @@
+// ============================================================
+// FILE: src/app/features/payment/pages/payment-vietqr/payment-vietqr.component.scss
+// ============================================================
+
+// ── Variables (tuân thủ screen standardization) ──────────────
+$red: #D32F2F;
+$red-dark: #AF101A;
+$teal: #005F7B;
+$bg: #F9F9F9;
+$surface: #FFFFFF;
+$text: #000000;
+$text-muted: #888888;
+$border: #EEEEEE;
+
+// ── Page wrapper ─────────────────────────────────────────────
+.payment-page {
+  padding: 28px 48px 56px;
+  background: $bg;
+  min-height: calc(100vh - 64px);
+  font-family: 'Manrope', 'Inter', 'Roboto', sans-serif;
+}
+
+// ── Stepper ──────────────────────────────────────────────────
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 36px;
+
+  &__step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &--done .stepper__circle {
+      background: #e0e0e0;
+      color: #aaa;
+    }
+
+    &--done .stepper__label {
+      color: #aaa;
+    }
+
+    &--active .stepper__label {
+      color: $red;
+    }
+  }
+
+  &__circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e0e0e0;
+    color: #aaa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+
+    &--active {
+      background: $red;
+      color: #fff;
+    }
+  }
+
+  &__label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    color: #aaa;
+    text-transform: uppercase;
+
+    &--active {
+      color: $red;
+    }
+  }
+
+  &__line {
+    width: 72px;
+    height: 1px;
+    background: #e0e0e0;
+    margin: 0 14px;
+  }
+}
+
+// ── Layout grid ──────────────────────────────────────────────
+// Spec: QR panel = column-span 6 of 12-col grid → ~698px wide
+.payment-grid {
+  display: grid;
+  grid-template-columns: 698px 1fr; // spec: width 698px cho QR panel
+  gap: 48px; // spec: gap 48px
+  max-width: 1200px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+
+// ── §1 Left Column + §2 VietQR Payment Card ──────────────────
+// Spec: 698×706, padding 48px, border-radius 2px, border #EEEEEE
+.qr-panel {
+  width: 698px;
+  height: 706px;
+  background: #FFFFFF; // §2 Color
+  border-radius: 2px; // §2 border-radius
+  border: 1px solid #EEEEEE; // §2 Border
+  padding: 48px; // §2 padding
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 20px; // §2 gap between children
+
+  // ── §3.1 Heading Group ─────────────────────────────────────
+  // Layout: gap 16px giữa title và description
+  &__heading-group {
+    display: flex;
+    flex-direction: column;
+    gap: 16px; // §3.1 gap
+    width: 598.69px;
+    // height: 112px — managed by content
+  }
+
+  // ── §3.1.1 Heading 2 ───────────────────────────────────────
+  &__title {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 800; // ExtraBold
+    font-size: 36px;
+    line-height: 40px;
+    letter-spacing: -0.9px;
+    color: #1A1C1C;
+    margin: 0;
+    vertical-align: middle;
+  }
+
+  // ── §3.1.2 Description container ──────────────────────────
+  &__desc-wrap {
+    width: 598.69px;
+  }
+
+  &__subtitle {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 400;
+    font-size: 18px;
+    line-height: 28px;
+    letter-spacing: 0px;
+    color: #5B403D;
+    margin: 0;
+  }
+
+  // Content area for centering everything below the heading
+  &__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    justify-content: center;
+    gap: 24px;
+  }
+
+  // ── Loading placeholder ─────────────────────────────────────
+  &__loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    color: #888;
+    font-size: 13px;
+  }
+
+  // ── QR body (QR image, centered) ────────────────────
+  &__body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  // ── QR border box (Logo + QR code) ─────────────────────────
+  &__code-wrapper {
+    width: 340px;
+    border: 1.5px solid #E8E8E8;
+    padding: 20px;
+    border-radius: 12px;
+    background: #fff;
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+
+  // Logo từ assets
+  &__logo {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .vietqr-logo-img {
+    height: 40px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+  }
+
+  // ── QR image: 300×300 (nằm bên trong border box) ─────────
+  &__qr-image {
+    width: 300px;
+    height: 300px;
+    object-fit: contain;
+    display: block;
+  }
+
+  // Fallback khi QR không load được
+  .qr-error {
+    width: 280px;
+    height: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: #888;
+    font-size: 13px;
+    text-align: center;
+
+    .material-icons {
+      font-size: 48px;
+      color: #ccc;
+    }
+  }
+}
+
+
+// ── Spinner ──────────────────────────────────────────────────
+.spinner {
+  width: 38px;
+  height: 38px;
+  border: 3px solid #f0f0f0;
+  border-top-color: $red;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ── Info column (right) ──────────────────────────────────────
+.info-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+// ── Info card ────────────────────────────────────────────────
+.info-card {
+  background: $surface;
+  border-radius: 12px;
+  padding: 28px 28px 24px;
+
+  &__heading {
+font-family: 'Manrope', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #000000;
+    margin: 0 0 18px;
+  }
+
+  &__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 13px 0;
+    border-bottom: 1px solid $border;
+
+    &--last {
+      border-bottom: none;
+    }
+  }
+
+  &__label {
+    font-size: 13px;
+    color: $text-muted;
+  }
+
+  &__value {
+    font-size: 13px;
+    font-weight: 400; // explicit — không inherit từ parent
+    color: $text;
+
+    &--bold {
+      font-size: 14px; // lớn hơn 1px để nhìn rõ hơn
+      font-weight: 800 !important; // force bolder
+      color: $text;
+    }
+  }
+
+  // Timer row
+  &__timer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 0 20px;
+    border-top: 1px solid $border;
+    margin-top: 4px;
+  }
+
+  &__timer-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: $text;
+  }
+
+  &__timer {
+    font-size: 26px;
+    font-weight: 800;
+    color: $red;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    transition: color 0.3s;
+
+    &--urgent {
+      animation: pulse-urgent 0.8s ease-in-out infinite;
+    }
+  }
+}
+
+@keyframes pulse-urgent {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
+}
+
+// ── Confirm button ───────────────────────────────────────────
+.confirm-btn {
+  display: block;
+  width: 100%;
+  background: $red;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 15px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.18s ease;
+  text-align: center;
+  letter-spacing: 0.01em;
+
+  &:hover:not(:disabled) {
+    background: $red-dark;
+  }
+
+  &:disabled {
+    background: #d5d5d5;
+    color: #aaa;
+    cursor: not-allowed;
+  }
+}
+
+// ── PayPal card ──────────────────────────────────────────────
+.paypal-card {
+  background: $teal;
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: background 0.18s ease;
+  outline: none;
+
+  &:hover,
+  &:focus-visible {
+    background: #004d63;
+  }
+
+  &__icon {
+    color: #fff;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__title {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  &__sub {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.4;
+  }
+}

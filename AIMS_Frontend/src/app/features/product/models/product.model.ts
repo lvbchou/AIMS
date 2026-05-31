@@ -6,7 +6,6 @@ export interface ProductSummary {
   productType: ProductType;
   sellingPrice: number;
   image?: string;
-  imageUrl?: string;
 }
 
 // ── Base ──────────────────────────────────────────────────────────────────────
@@ -17,7 +16,6 @@ export interface ProductBase {
   category: string;
   barcode: string;
   image: string;
-  imageUrl: string;
   originalValue: number;
   sellingPrice: number;
   weight: number;
@@ -49,7 +47,7 @@ export interface CdDetails {
   recordLabel: string;
   genre: string;
   releaseDate?: string;
-  tracklist: Track[];
+  tracks: Track[];
 }
 
 export interface BookDetails {
@@ -66,7 +64,6 @@ export interface NewspaperDetails {
   editorInChief: string;
   issueNumber?: string;
   publicationFrequency?: string;
-  ISSN?: string;
   issn?: string;
   publisher: string;
   publicationDate: string;

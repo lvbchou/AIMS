@@ -1,10 +1,14 @@
 package com.aims.service.product;
 
-import com.aims.dto.ProductInfoDTO;
-import com.aims.entity.Product;
+import com.aims.dto.product.BookInfoDTO;
+import com.aims.dto.product.CDInfoDTO;
+import com.aims.dto.product.ProductInfoDTO;
+import com.aims.entity.product.Product;
 import com.aims.exception.ProductAlreadyExistsException;
 import com.aims.repository.ProductRepository;
 import com.aims.service.ProductService;
+import com.aims.service.creator.*;
+import com.aims.service.validator.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -40,16 +44,40 @@ class SaveProductTest {
 
     @BeforeEach
     void setUp() {
+
         MockitoAnnotations.openMocks(this);
-        productService = new ProductService(productRepository);
+
+        ProductValidatorRegistry validatorRegistry =
+                new ProductValidatorRegistry(
+                        new BookValidator(),
+                        new CDValidator(),
+                        new DVDValidator(),
+                        new NewspaperValidator()
+                );
+
+        ProductCreatorRegistry creatorRegistry =
+                new ProductCreatorRegistry(
+                        new BookCreator(),
+                        new CDCreator(),
+                        new DVDCreator(),
+                        new NewspaperCreator()
+                );
+
+        productService = new ProductService(
+                productRepository,
+                validatorRegistry,
+                creatorRegistry
+        );
     }
 
     // =========================================================
     // FACTORY METHODS
     // =========================================================
 
-    private ProductInfoDTO buildValidBookDTO() {
-        ProductInfoDTO dto = new ProductInfoDTO();
+    private BookInfoDTO buildValidBookDTO() {
+        BookInfoDTO dto = new BookInfoDTO();
+
+        // Common required fields
         dto.setProductType("BOOK");
         dto.setTitle("Clean Code");
         dto.setCategory("Computer Science");
@@ -60,18 +88,23 @@ class SaveProductTest {
         dto.setWeight(0.5);
         dto.setDescription("Programming book");
         dto.setDimensions("20x15x3");
+
+        // Book-specific required fields
         dto.setAuthor("Robert C. Martin");
         dto.setCoverType("Paperback");
         dto.setPublisher("Prentice Hall");
         dto.setPublicationDate(LocalDate.of(2008, 8, 1));
+
+        // Optional fields — null by default
         dto.setPages(null);
         dto.setLanguage(null);
         dto.setGenre(null);
+
         return dto;
     }
 
-    private ProductInfoDTO buildValidCDDTO() {
-        ProductInfoDTO dto = new ProductInfoDTO();
+    private CDInfoDTO buildValidCDDTO() {
+        CDInfoDTO dto = new CDInfoDTO();
         dto.setProductType("CD");
         dto.setTitle("Abbey Road");
         dto.setCategory("Music");
@@ -86,7 +119,7 @@ class SaveProductTest {
         dto.setRecordLabel("Apple Records");
         dto.setGenre("Rock");
         dto.setTracks(new ArrayList<>(List.of(
-                new ProductInfoDTO.TrackDTO("Come Together", "4:19")
+                new CDInfoDTO.TrackDTO("Come Together", "4:19")
         )));
         dto.setReleaseDate(null);
         return dto;

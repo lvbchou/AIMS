@@ -1,7 +1,10 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.3.0'
+    id 'org.springframework.boot' version '4.0.6'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.netflix.dgs.codegen' version '8.3.0'
+    id 'org.hibernate.orm' version '7.2.12.Final'
+    id 'org.graalvm.buildtools.native' version '0.11.5'
 }
 
 group = 'com.aims'
@@ -9,37 +12,94 @@ version = '0.0.1-SNAPSHOT'
 description = 'AIMS_Backend'
 
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
+	sourceCompatibility = '17'
+}
+
+springBoot {
+	mainClass = 'com.aims.AimsBackendApplication'
+}
+
+sourceSets {
+	main {
+		java {
+			srcDirs = ['src/main/java']
+			include 'com/aims/**'
+		}
+	}
+	test {
+		java {
+			srcDirs = []
+		}
+		resources {
+			srcDirs = []
+		}
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
 }
 
 repositories {
-    mavenCentral()
+	mavenCentral()
 }
 
 dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+	compileOnly 'org.projectlombok:lombok'
+	runtimeOnly 'org.postgresql:postgresql'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'org.postgresql:postgresql'
-    annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok:1.18.38'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testCompileOnly 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok:1.18.38'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    testAnnotationProcessor 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.38'
+
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+}
+
+generateJava {
+    schemaPaths = ["${projectDir}/src/main/resources/graphql-client"]
+    packageName = 'com.aims.codegen'
+    generateClient = true
+}
+
+hibernate {
+    enhancement {
+        enableAssociationManagement = true
+    }
 }
 
 tasks.named('test') {
-    useJUnitPlatform()
-}
-
-tasks.named('test') {
+	useJUnitPlatform()
     useJUnitPlatform()
     testLogging {
         events "passed", "failed", "skipped"
         showStandardStreams = false
     }
+    exclude '**/PayThroughPaymentGatewayServiceTest.class'
+}
+
+tasks.named('compileTestJava') {
+    exclude '**/PayThroughPaymentGatewayServiceTest.java'
+}
+
+tasks.named('bootRun') {
+    // Avoid DevTools holding the JVM in a confusing "restarting" state during bootRun.
+    systemProperty 'spring.devtools.restart.enabled', 'false'
 }

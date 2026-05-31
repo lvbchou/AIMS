@@ -10,11 +10,14 @@ import { ConfirmDialogComponent } from '../../../../shared/components/dialog/con
 import { ToastComponent } from '../../../../shared/components/toast/toast/toast.component';
 import { ProductService } from '../../services/product.service';
 import { ManagerProductViewModalComponent } from '../../components/manager-product-view-modal/manager-product-view-modal.component';
+import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
+import { ActivatedRoute, Router } from '@angular/router';
+import { takeUntil } from 'rxjs/internal/operators/takeUntil';
 
 @Component({
   selector: 'app-product-management',
   standalone: true,
-  imports: [CommonModule, ProductListComponent, ProductFormComponent, ConfirmDialogComponent, ToastComponent, ManagerProductViewModalComponent],
+  imports: [CommonModule, ProductListComponent, ProductFormComponent, ConfirmDialogComponent, ToastComponent, ManagerProductViewModalComponent, PaginationComponent],
   templateUrl: './product-management.component.html',
   styleUrl: './product-management.component.scss'
 })
@@ -24,7 +27,9 @@ export class ProductManagementComponent implements OnInit {
     private dialogService: DialogService,
     private toastService: ToastService,
     private productService: ProductService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private route: ActivatedRoute,
+    private router: Router,
   ) {}
 
   products: ProductSummary[] = [];
@@ -34,20 +39,15 @@ export class ProductManagementComponent implements OnInit {
   selectedProduct: Product | null = null;
   isLoading = false;
   viewDetailProduct: Product | null = null;
+  currentPage = 0;
+  pageSize    = 10;
+  totalPages  = 0;
+  totalElements = 0;
 
   ngOnInit(): void {
-    this.isLoading = true;
-    this.productService.getAll().subscribe({
-      next: (data) => {
-        this.products = data;
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error(err);
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      }
+    this.route.queryParams.subscribe(params => {
+      this.currentPage = (params['page'] ?? 1) - 1;
+      this.loadProducts();
     });
   }
 
@@ -59,6 +59,34 @@ export class ProductManagementComponent implements OnInit {
     this.selectionMode = true;
   }
 
+  private loadProducts() {
+    this.isLoading = true;
+    this.productService.getAll(this.currentPage, this.pageSize).subscribe({
+      next: (data) => {
+        console.log('Data received:', data); //console log để kiểm tra dữ liệu nhận được từ API
+        this.products = data.content;
+        this.totalPages = data.totalPages;
+        this.totalElements = data.totalElements;
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error(err);
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  goToPage(page: number): void {
+    if (page < 0 || page >= this.totalPages) return;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: page + 1 },
+      queryParamsHandling: 'merge',
+    });
+  }
+
   cancelSelection() {
     this.selectionMode = false;
     this.selectedIds = new Set();
@@ -67,9 +95,11 @@ export class ProductManagementComponent implements OnInit {
   onToggle(productId: number) {
     if (this.selectedIds.has(productId)) {
       this.selectedIds.delete(productId);
-    } else {
+    }
+    else {
       this.selectedIds.add(productId);
       if (this.selectedIds.size == 10) {
+        console.log(this.selectedIds.size);
         this.toastService.show('Reach maximum selection of 10 products at once');
         return;
       }
@@ -84,17 +114,15 @@ export class ProductManagementComponent implements OnInit {
   }
 
   onFormSubmitted(product: Product) {
+    // TODO: gọi service save
     if (this.selectedProduct) {
-      this.productService.update(product.productId, product).subscribe({
+      console.log('Updating product with data:', product);
+      this.productService.update(product).subscribe({
         next: () => {
-          this.products = this.products.map(p =>
-            p.productId === product.productId
-              ? { ...p, title: product.title, sellingPrice: product.sellingPrice, imageUrl: (product as any).imageUrl }
-              : p
-          );
           this.showProductForm = false;
           this.selectedProduct = null;
           this.toastService.show('Product updated successfully');
+          this.loadProducts();
           this.cdr.detectChanges();
         },
         error: (err) => {
@@ -103,12 +131,14 @@ export class ProductManagementComponent implements OnInit {
           this.cdr.detectChanges();
         }
       });
-    } else {
+    }
+    else {
       this.productService.add(product).subscribe({
         next: (created) => {
-          this.products = [...this.products, created];
+          // this.products = [...this.products, created];
           this.showProductForm = false;
           this.toastService.show('Product created successfully');
+          this.loadProducts();
           this.cdr.detectChanges();
         },
         error: (err) => {
@@ -118,17 +148,18 @@ export class ProductManagementComponent implements OnInit {
         }
       });
     }
+
   }
 
-  onCancel(): void {
+  onCreateCancelled() {
     this.showProductForm = false;
-    this.selectedProduct = null;
   }
 
   onUpdate(productId: number) {
+    // TODO: navigate hoặc mở popup update
     this.productService.getById(productId).subscribe({
       next: (data) => {
-        this.selectedProduct = data;
+        this.selectedProduct = data;console.log('Selected product for update:', this.selectedProduct);
         this.showProductForm = true;
         this.cdr.detectChanges();
       },
@@ -139,18 +170,18 @@ export class ProductManagementComponent implements OnInit {
     });
   }
 
-  onDelete(productId: number) {
-    const product = this.products.find(p => p.productId === productId);
+  onDelete(product: ProductSummary) {
     this.dialogService.open({
       title: 'Confirm Delete',
       message: `Are you sure you want to delete "${product?.title}"?`,
       onConfirm: () => {
-        if (!product) return;
         this.productService.delete(product.productId).subscribe({
           next: () => {
-            this.products = this.products.filter(p => p.productId !== productId);
+            this.products = this.products.filter(p => p.productId !== p.productId);
             this.toastService.show('Delete product successfully');
+            this.loadProducts();
           },
+
           error: (err) => {
             console.error(err);
             this.toastService.show('Failed to delete product. Please try again later.');
@@ -172,6 +203,7 @@ export class ProductManagementComponent implements OnInit {
             this.selectedIds = new Set();
             this.selectionMode = false;
             this.toastService.show(`Deleted ${count} products`);
+            this.loadProducts();
           },
           error: (err) => {
             console.error(err);
@@ -184,63 +216,19 @@ export class ProductManagementComponent implements OnInit {
     });
   }
 
-  /* onViewDetail(productId: number): void {
-    const s = this.products.find(p => p.productId === productId);
-    if (!s) return;
-    this.viewDetailProduct = this.buildMockFullProduct(s);
-  }
-
-  closeViewDetail(): void {
-    this.viewDetailProduct = null;
-  }
-  */
-
-   // Thêm field loading/error cho modal
-  // XÓA buildMockFullProduct() và sửa lại 2 hàm này:
-
   onViewDetail(productId: number): void {
     this.productService.getById(productId).subscribe({
       next: (product) => {
+        console.log('Product detail:', product);
         this.viewDetailProduct = product;
+        this.cdr.detectChanges();
       },
-      error: () => {
-        this.toastService.show('Failed to load product details. Please try again.');
+      error: (err) => {
+        console.error(err);
+        this.toastService.show('Failed to load product detail');
       }
     });
   }
 
-  closeViewDetail(): void {
-    this.viewDetailProduct = null;
-  }
-
-
-
-  /* private buildMockFullProduct(s: ProductSummary): any {
-    const base = {
-      productId: s.productId,
-      productType: s.productType,
-      title: s.title,
-      category: String(s.productType),
-      barcode: '893000000' + String(s.productId).padStart(4, '0'),
-      imageUrl: s.imageUrl ?? s.image ?? '',
-      originalValue: Math.round(s.sellingPrice * 0.75),
-      sellingPrice: s.sellingPrice,
-      weight: 0.3,
-      dimensions: '20 × 15 × 2 cm',
-      description: "Quality media product from AIMS Store. Vietnam's best selection.",
-    };
-    switch (s.productType) {
-      case ProductType.DVD:
-        return { ...base, type: ProductType.DVD, typeDetails: { discType: 'DVD', director: 'John Carter', runtime: 142, studio: 'Warner Bros', language: 'English', subtitles: 'EN/VI', genre: 'Sci-fi', releaseDate: '2023-05-12' }};
-      case ProductType.CD:
-        return { ...base, type: ProductType.CD, typeDetails: { artists: ['The Artist'], recordLabel: 'Sony Music', genre: 'Indie', releaseDate: '2023-09-01', tracklist: [{ title: 'Silent Dawn', length: '3:24' }, { title: 'Echoes', length: '4:10' }, { title: 'Faded', length: '3:55' }] }};
-      case ProductType.BOOK:
-        return { ...base, type: ProductType.BOOK, typeDetails: { author: 'Author Name', coverType: 'Paperback', pages: 244, genre: 'Literary Fiction', publisher: 'NXB Tre', publicationDate: '2022-10-12', language: 'Vietnamese' }};
-      case ProductType.NEWSPAPER:
-        return { ...base, type: ProductType.NEWSPAPER, typeDetails: { editorInChief: 'Le The Chu', issueNumber: '18234', publicationFrequency: 'daily', issn: '1859-1207', publisher: 'Tuoi Tre', publicationDate: '2024-05-11', language: 'Vietnamese', sections: ['News', 'Sports'] }};
-      default:
-        return base;
-    }
-  }
-  */
+  closeViewDetail(): void { this.viewDetailProduct = null; }
 }

@@ -1,0 +1,107 @@
+<!-- Loading Screen -->
+<div class="result-page loading-state" *ngIf="loading">
+  <div class="validation-card">
+    <!-- Top red stripe -->
+    <div class="top-red-stripe"></div>
+
+    <!-- Icon Container -->
+    <div class="icon-container">
+      <div class="shield-box">
+        <!-- Shield SVG -->
+        <svg class="shield-icon" viewBox="0 0 24 24" width="36" height="36" fill="#B31F24">
+          <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z"/>
+          <!-- Heart inside Shield -->
+          <path d="M12 15.6l-.8-.73C8.4 12.3 6.5 10.3 6.5 7.8c0-1.65 1.35-3 3-3 .9 0 1.76.42 2.5 1.08.74-.66 1.6-1.08 2.5-1.08 1.65 0 3 1.35 3 3 0 2.5-1.9 4.5-4.7 7.07l-.8.73z" fill="#FFFFFF"/>
+        </svg>
+      </div>
+      <!-- Padlock badge -->
+      <div class="lock-badge">
+        <svg class="lock-icon" viewBox="0 0 24 24" width="12" height="12" fill="#0284c7">
+          <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Title and Description -->
+    <h1 class="validation-title">Validating Payment Results...</h1>
+    <p class="validation-desc">
+      Our system is securely communicating with PayPal to confirm your transaction details. Please do not refresh this page.
+    </p>
+  </div>
+</div>
+
+<!-- Main Result Sections -->
+<div class="result-page" *ngIf="!loading">
+  
+  <!-- 1. PAYMENT SUCCESSFUL SCREEN -->
+  <div class="success-container" *ngIf="success">
+    <div class="success-icon-wrapper">
+      <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
+        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+      </svg>
+    </div>
+
+    <h1>Payment Successful</h1>
+    <p class="description">Thank you for your purchase. Your order has been confirmed and is being processed by our curation team.</p>
+
+    <!-- Order Reference Card -->
+    <div class="order-ref-card">
+      <span class="ref-label">ORDER REFERENCE</span>
+      <span class="ref-value">{{ orderReference }}</span>
+    </div>
+
+    <a class="back-link" routerLink="/">
+      Back to Shop
+      <svg class="arrow-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+        <polyline points="12 5 19 12 12 19"></polyline>
+      </svg>
+    </a>
+  </div>
+
+  <!-- 2. PAYMENT FAILED SCREEN -->
+  <div class="failed-container" *ngIf="!success">
+    <!-- Left Section: Error Icon and Title -->
+    <div class="failed-left">
+      <div class="error-card">
+        <div class="error-icon-wrapper">
+          <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+          </svg>
+        </div>
+      </div>
+      
+      <div class="failed-text-box">
+        <h1 class="failed-title">Payment Failed</h1>
+        <div class="red-underline"></div>
+        <span class="ref-text">REF: {{ orderReference }}</span>
+      </div>
+    </div>
+
+    <!-- Right Section: Error Card Description -->
+    <div class="failed-right">
+      <div class="error-desc-card">
+        <span class="desc-header">ERROR DESCRIPTION</span>
+        
+        <div class="error-quote-box">
+          <p>"{{ errorMessage }}"</p>
+        </div>
+
+        <p class="error-details">
+          Please ensure your card or your account has sufficient funds and is authorized for international e-commerce transactions. If the problem persists, contact your financial institution.
+        </p>
+
+        <div class="action-footer">
+          <button class="btn btn-retry" (click)="onRetry()">
+            <svg class="icon-refresh" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+            Retry Payment
+          </button>
+          <a class="link-home" routerLink="/">Go home</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

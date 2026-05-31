@@ -1,14 +1,11 @@
 package com.aims.service.product.validation;
 
-import com.aims.dto.ProductInfoDTO;
+import com.aims.dto.product.BookInfoDTO;
 import com.aims.exception.InvalidProductInfoException;
-import com.aims.repository.ProductRepository;
-import com.aims.service.ProductService;
+import com.aims.service.validator.BookValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDate;
 
@@ -16,19 +13,21 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class CommonValidationTest {
 
-    @Mock
-    private ProductRepository productRepository;
-
-    private ProductService productService;
+    private BookValidator bookValidator;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-        productService = new ProductService(productRepository);
+        bookValidator = new BookValidator();
     }
 
-    private ProductInfoDTO buildValidCommonDTO() {
-        ProductInfoDTO dto = new ProductInfoDTO();
+    // =========================================================
+    // FACTORY METHOD
+    // =========================================================
+
+    private BookInfoDTO buildValidCommonDTO() {
+
+        BookInfoDTO dto = new BookInfoDTO();
+
         dto.setProductType("BOOK");
         dto.setTitle("Clean Code");
         dto.setCategory("Computer Science");
@@ -39,13 +38,13 @@ class CommonValidationTest {
         dto.setWeight(0.5);
         dto.setDescription("Programming book");
         dto.setDimensions("20x15x3");
+
+        // required Book fields
         dto.setAuthor("Robert C. Martin");
         dto.setCoverType("Paperback");
         dto.setPublisher("Prentice Hall");
         dto.setPublicationDate(LocalDate.of(2008, 8, 1));
-        dto.setPages(null);
-        dto.setLanguage(null);
-        dto.setGenre(null);
+
         return dto;
     }
 
@@ -57,10 +56,11 @@ class CommonValidationTest {
         // -----------------------------------------------------
 
         @Test
-        void validProductInfo_shouldReturnTrue() {
-            ProductInfoDTO dto = buildValidCommonDTO();
-            boolean result = productService.validateProductInfo(dto);
-            assertTrue(result);
+        void validProductInfo_shouldNotThrow() {
+
+            BookInfoDTO dto = buildValidCommonDTO();
+
+            assertDoesNotThrow(() -> bookValidator.validate(dto));
         }
 
         // -----------------------------------------------------
@@ -69,21 +69,29 @@ class CommonValidationTest {
 
         @Test
         void nullTitle_shouldThrowException() {
-            ProductInfoDTO dto = buildValidCommonDTO();
+
+            BookInfoDTO dto = buildValidCommonDTO();
+
             dto.setTitle(null);
+
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> bookValidator.validate(dto));
+
             assertEquals("Title must not be empty", ex.getMessage());
         }
 
         @Test
         void emptyTitle_shouldThrowException() {
-            ProductInfoDTO dto = buildValidCommonDTO();
+
+            BookInfoDTO dto = buildValidCommonDTO();
+
             dto.setTitle("");
+
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> bookValidator.validate(dto));
+
             assertEquals("Title must not be empty", ex.getMessage());
         }
 
@@ -93,18 +101,30 @@ class CommonValidationTest {
 
         @Test
         void nullCategory_shouldThrowException() {
-            ProductInfoDTO dto = buildValidCommonDTO();
+
+            BookInfoDTO dto = buildValidCommonDTO();
+
             dto.setCategory(null);
-            assertThrows(InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+
+            InvalidProductInfoException ex = assertThrows(
+                    InvalidProductInfoException.class,
+                    () -> bookValidator.validate(dto));
+
+            assertEquals("Category must not be empty", ex.getMessage());
         }
 
         @Test
         void emptyCategory_shouldThrowException() {
-            ProductInfoDTO dto = buildValidCommonDTO();
+
+            BookInfoDTO dto = buildValidCommonDTO();
+
             dto.setCategory("");
-            assertThrows(InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+
+            InvalidProductInfoException ex = assertThrows(
+                    InvalidProductInfoException.class,
+                    () -> bookValidator.validate(dto));
+
+            assertEquals("Category must not be empty", ex.getMessage());
         }
 
         // -----------------------------------------------------
@@ -113,21 +133,29 @@ class CommonValidationTest {
 
         @Test
         void nullBarcode_shouldThrowException() {
-            ProductInfoDTO dto = buildValidCommonDTO();
+
+            BookInfoDTO dto = buildValidCommonDTO();
+
             dto.setBarcode(null);
+
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> bookValidator.validate(dto));
+
             assertEquals("Barcode must not be empty", ex.getMessage());
         }
 
         @Test
         void emptyBarcode_shouldThrowException() {
-            ProductInfoDTO dto = buildValidCommonDTO();
+
+            BookInfoDTO dto = buildValidCommonDTO();
+
             dto.setBarcode("");
+
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> bookValidator.validate(dto));
+
             assertEquals("Barcode must not be empty", ex.getMessage());
         }
 
@@ -137,21 +165,29 @@ class CommonValidationTest {
 
         @Test
         void nullImage_shouldThrowException() {
-            ProductInfoDTO dto = buildValidCommonDTO();
+
+            BookInfoDTO dto = buildValidCommonDTO();
+
             dto.setImage(null);
+
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> bookValidator.validate(dto));
+
             assertEquals("Image must not be empty", ex.getMessage());
         }
 
         @Test
         void emptyImage_shouldThrowException() {
-            ProductInfoDTO dto = buildValidCommonDTO();
+
+            BookInfoDTO dto = buildValidCommonDTO();
+
             dto.setImage("");
+
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> bookValidator.validate(dto));
+
             assertEquals("Image must not be empty", ex.getMessage());
         }
 
@@ -161,21 +197,29 @@ class CommonValidationTest {
 
         @Test
         void negativeOriginalValue_shouldThrowException() {
-            ProductInfoDTO dto = buildValidCommonDTO();
+
+            BookInfoDTO dto = buildValidCommonDTO();
+
             dto.setOriginalValue(-1L);
+
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> bookValidator.validate(dto));
+
             assertEquals("Original value must be positive", ex.getMessage());
         }
 
         @Test
         void zeroOriginalValue_shouldThrowException() {
-            ProductInfoDTO dto = buildValidCommonDTO();
+
+            BookInfoDTO dto = buildValidCommonDTO();
+
             dto.setOriginalValue(0L);
+
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> bookValidator.validate(dto));
+
             assertEquals("Original value must be positive", ex.getMessage());
         }
 
@@ -185,44 +229,58 @@ class CommonValidationTest {
 
         @Test
         void sellingPriceBelow30Percent_shouldThrowException() {
-            ProductInfoDTO dto = buildValidCommonDTO();
+
+            BookInfoDTO dto = buildValidCommonDTO();
+
             dto.setOriginalValue(100000L);
             dto.setSellingPrice(29999L);
+
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> bookValidator.validate(dto));
+
             assertEquals(
                     "Selling price must not smaller than 30% of original value",
                     ex.getMessage());
         }
 
         @Test
-        void sellingPriceExactly30Percent_shouldPass() {
-            ProductInfoDTO dto = buildValidCommonDTO();
+        void sellingPriceExactly30Percent_shouldNotThrow() {
+
+            BookInfoDTO dto = buildValidCommonDTO();
+
             dto.setOriginalValue(100000L);
             dto.setSellingPrice(30000L);
-            assertTrue(productService.validateProductInfo(dto));
+
+            assertDoesNotThrow(() -> bookValidator.validate(dto));
         }
 
         @Test
         void sellingPriceAbove150Percent_shouldThrowException() {
-            ProductInfoDTO dto = buildValidCommonDTO();
+
+            BookInfoDTO dto = buildValidCommonDTO();
+
             dto.setOriginalValue(100000L);
             dto.setSellingPrice(150001L);
+
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> bookValidator.validate(dto));
+
             assertEquals(
                     "Selling price must not exceed 150% of original value",
                     ex.getMessage());
         }
 
         @Test
-        void sellingPriceExactly150Percent_shouldPass() {
-            ProductInfoDTO dto = buildValidCommonDTO();
+        void sellingPriceExactly150Percent_shouldNotThrow() {
+
+            BookInfoDTO dto = buildValidCommonDTO();
+
             dto.setOriginalValue(100000L);
             dto.setSellingPrice(150000L);
-            assertTrue(productService.validateProductInfo(dto));
+
+            assertDoesNotThrow(() -> bookValidator.validate(dto));
         }
 
         // -----------------------------------------------------
@@ -231,18 +289,30 @@ class CommonValidationTest {
 
         @Test
         void negativeWeight_shouldThrowException() {
-            ProductInfoDTO dto = buildValidCommonDTO();
+
+            BookInfoDTO dto = buildValidCommonDTO();
+
             dto.setWeight(-1.0);
-            assertThrows(InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+
+            InvalidProductInfoException ex = assertThrows(
+                    InvalidProductInfoException.class,
+                    () -> bookValidator.validate(dto));
+
+            assertEquals("Weight must be positive", ex.getMessage());
         }
 
         @Test
         void zeroWeight_shouldThrowException() {
-            ProductInfoDTO dto = buildValidCommonDTO();
+
+            BookInfoDTO dto = buildValidCommonDTO();
+
             dto.setWeight(0.0);
-            assertThrows(InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+
+            InvalidProductInfoException ex = assertThrows(
+                    InvalidProductInfoException.class,
+                    () -> bookValidator.validate(dto));
+
+            assertEquals("Weight must be positive", ex.getMessage());
         }
 
         // -----------------------------------------------------
@@ -251,18 +321,30 @@ class CommonValidationTest {
 
         @Test
         void nullDescription_shouldThrowException() {
-            ProductInfoDTO dto = buildValidCommonDTO();
+
+            BookInfoDTO dto = buildValidCommonDTO();
+
             dto.setDescription(null);
-            assertThrows(InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+
+            InvalidProductInfoException ex = assertThrows(
+                    InvalidProductInfoException.class,
+                    () -> bookValidator.validate(dto));
+
+            assertEquals("Description must not be empty", ex.getMessage());
         }
 
         @Test
         void emptyDescription_shouldThrowException() {
-            ProductInfoDTO dto = buildValidCommonDTO();
+
+            BookInfoDTO dto = buildValidCommonDTO();
+
             dto.setDescription("");
-            assertThrows(InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+
+            InvalidProductInfoException ex = assertThrows(
+                    InvalidProductInfoException.class,
+                    () -> bookValidator.validate(dto));
+
+            assertEquals("Description must not be empty", ex.getMessage());
         }
 
         // -----------------------------------------------------
@@ -271,18 +353,30 @@ class CommonValidationTest {
 
         @Test
         void nullDimensions_shouldThrowException() {
-            ProductInfoDTO dto = buildValidCommonDTO();
+
+            BookInfoDTO dto = buildValidCommonDTO();
+
             dto.setDimensions(null);
-            assertThrows(InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+
+            InvalidProductInfoException ex = assertThrows(
+                    InvalidProductInfoException.class,
+                    () -> bookValidator.validate(dto));
+
+            assertEquals("Dimensions must not be empty", ex.getMessage());
         }
 
         @Test
         void emptyDimensions_shouldThrowException() {
-            ProductInfoDTO dto = buildValidCommonDTO();
+
+            BookInfoDTO dto = buildValidCommonDTO();
+
             dto.setDimensions("");
-            assertThrows(InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+
+            InvalidProductInfoException ex = assertThrows(
+                    InvalidProductInfoException.class,
+                    () -> bookValidator.validate(dto));
+
+            assertEquals("Dimensions must not be empty", ex.getMessage());
         }
 
         // -----------------------------------------------------
@@ -291,24 +385,16 @@ class CommonValidationTest {
 
         @Test
         void nullProductType_shouldThrowException() {
-            ProductInfoDTO dto = buildValidCommonDTO();
-            dto.setProductType(null);
-            InvalidProductInfoException ex = assertThrows(
-                    InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
-            assertEquals("Product type is required", ex.getMessage());
-        }
 
-        @Test
-        void invalidProductType_shouldThrowException() {
-            ProductInfoDTO dto = buildValidCommonDTO();
-            dto.setProductType("MAGAZINE"); // ❌ không nằm trong 4 loại
+            BookInfoDTO dto = buildValidCommonDTO();
+
+            dto.setProductType(null);
+
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
-            assertEquals(
-                    "Product type must be one of: BOOK, CD, NEWSPAPER, DVD",
-                    ex.getMessage());
+                    () -> bookValidator.validate(dto));
+
+            assertEquals("Product type is required", ex.getMessage());
         }
     }
 }

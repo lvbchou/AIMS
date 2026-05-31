@@ -25,24 +25,24 @@
 <section class="arrivals">
   <div class="arrivals-inner">
     <h2 class="section-title">New Arrivals</h2>
-    <div class="product-grid">
-      <app-product-card
-        *ngFor="let p of products"
-        [product]="p"
-        [mode]="'customer'"
-        (viewDetail)="onViewDetail($event)"
-        (addToCart)="onAddToCart($event)">
-      </app-product-card>
-    </div>
+    <app-product-list
+      [products]="products"
+      [isLoading]="isLoading"
+      [skeletonCount]="10"
+      [mode]="'customer'"
+      (onViewDetail)="onViewDetail($event)"
+      (onAddToCart)="onAddToCart($event)"
+    ></app-product-list>
     <div class="view-all-wrap">
-      <button class="btn-view-all" (click)="viewAll()">VIEW ALL PRODUCTS →</button>
+      <button class="btn-view-all" (click)="viewAll()">VIEW ALL PRODUCTS</button>
     </div>
   </div>
 </section>
 
 <app-product-detail-modal
-  *ngIf="selectedProductId !== null"
-  [productId]="selectedProductId!"
+  *ngIf="viewProductDetail !== null"
+  [product]="viewProductDetail"
   (close)="closeModal()"
   (addToCart)="onAddToCart($event.product.productId)">
 </app-product-detail-modal>
+<app-toast />

@@ -1,38 +1,33 @@
 package com.aims.service.product.validation;
 
-import com.aims.dto.ProductInfoDTO;
+import com.aims.dto.product.NewspaperInfoDTO;
 import com.aims.exception.InvalidProductInfoException;
-import com.aims.repository.ProductRepository;
-import com.aims.service.ProductService;
+import com.aims.service.validator.NewspaperValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class NewspaperValidationTest {
 
-    @Mock
-    private ProductRepository productRepository;
-
-    private ProductService productService;
+    private NewspaperValidator newspaperValidator;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-        productService = new ProductService(productRepository);
+        newspaperValidator = new NewspaperValidator();
     }
 
     // =========================================================
     // FACTORY METHOD
     // =========================================================
 
-    private ProductInfoDTO buildValidNewspaperDTO() {
-        ProductInfoDTO dto = new ProductInfoDTO();
+    private NewspaperInfoDTO buildValidNewspaperDTO() {
+
+        NewspaperInfoDTO dto = new NewspaperInfoDTO();
 
         // Common required fields
         dto.setProductType("NEWSPAPER");
@@ -51,7 +46,7 @@ class NewspaperValidationTest {
         dto.setPublisher("Tuoi Tre Publisher");
         dto.setPublicationDate(LocalDate.of(2024, 1, 7));
 
-        // Optional fields — null by default
+        // Optional fields
         dto.setIssueNumber(null);
         dto.setPublicationFrequency(null);
         dto.setISSN(null);
@@ -74,23 +69,29 @@ class NewspaperValidationTest {
         // -----------------------------------------------------
 
         @Test
-        void validNewspaper_shouldReturnTrue() {
-            ProductInfoDTO dto = buildValidNewspaperDTO();
+        void validNewspaper_shouldNotThrow() {
 
-            boolean result = productService.validateProductInfo(dto);
+            NewspaperInfoDTO dto = buildValidNewspaperDTO();
 
-            assertTrue(result);
+            assertDoesNotThrow(() -> newspaperValidator.validate(dto));
         }
 
-        // covers: optional fields provided — issueNumber, publicationFrequency, ISSN, language, sections
+        // covers: optional fields provided
         @Test
-        void validNewspaper_withOptionalFields_shouldReturnTrue() {
-            ProductInfoDTO dto = buildValidNewspaperDTO();
+        void validNewspaper_withOptionalFields_shouldNotThrow() {
+
+            NewspaperInfoDTO dto = buildValidNewspaperDTO();
+
             dto.setIssueNumber("42");
             dto.setPublicationFrequency("Weekly");
             dto.setISSN("1234-5678");
             dto.setLanguage("Vietnamese");
-            dto.setSections(java.util.List.of("News", "Sports", "Entertainment"));
+            dto.setSections(List.of(
+                    "News",
+                    "Sports",
+                    "Entertainment"));
+
+            assertDoesNotThrow(() -> newspaperValidator.validate(dto));
         }
 
         // -----------------------------------------------------
@@ -100,12 +101,14 @@ class NewspaperValidationTest {
         // covers: editorInChief = null
         @Test
         void nullEditorInChief_shouldThrowException() {
-            ProductInfoDTO dto = buildValidNewspaperDTO();
+
+            NewspaperInfoDTO dto = buildValidNewspaperDTO();
+
             dto.setEditorInChief(null);
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> newspaperValidator.validate(dto));
 
             assertEquals(
                     "Editor in chief is required for Newspaper",
@@ -115,12 +118,14 @@ class NewspaperValidationTest {
         // covers: editorInChief = empty string
         @Test
         void emptyEditorInChief_shouldThrowException() {
-            ProductInfoDTO dto = buildValidNewspaperDTO();
+
+            NewspaperInfoDTO dto = buildValidNewspaperDTO();
+
             dto.setEditorInChief("");
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> newspaperValidator.validate(dto));
 
             assertEquals(
                     "Editor in chief is required for Newspaper",
@@ -134,12 +139,14 @@ class NewspaperValidationTest {
         // covers: publisher = null
         @Test
         void nullPublisher_shouldThrowException() {
-            ProductInfoDTO dto = buildValidNewspaperDTO();
+
+            NewspaperInfoDTO dto = buildValidNewspaperDTO();
+
             dto.setPublisher(null);
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> newspaperValidator.validate(dto));
 
             assertEquals(
                     "Publisher is required for Newspaper",
@@ -149,12 +156,14 @@ class NewspaperValidationTest {
         // covers: publisher = empty string
         @Test
         void emptyPublisher_shouldThrowException() {
-            ProductInfoDTO dto = buildValidNewspaperDTO();
+
+            NewspaperInfoDTO dto = buildValidNewspaperDTO();
+
             dto.setPublisher("");
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> newspaperValidator.validate(dto));
 
             assertEquals(
                     "Publisher is required for Newspaper",
@@ -168,12 +177,14 @@ class NewspaperValidationTest {
         // covers: publicationDate = null
         @Test
         void nullPublicationDate_shouldThrowException() {
-            ProductInfoDTO dto = buildValidNewspaperDTO();
+
+            NewspaperInfoDTO dto = buildValidNewspaperDTO();
+
             dto.setPublicationDate(null);
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> newspaperValidator.validate(dto));
 
             assertEquals(
                     "Publication date is required for Newspaper",

@@ -1,0 +1,17 @@
+<div class="pagination">
+    <button (click)="onPage.emit(currentPage - 1)"
+            [disabled]="currentPage === 0">
+    Prev
+    </button>
+
+    <button *ngFor="let p of pages"
+            [class.active]="p === currentPage"
+            (click)="onPage.emit(p)">
+    {{ p + 1 }}
+    </button>
+
+    <button (click)="onPage.emit(currentPage + 1)"
+            [disabled]="currentPage === totalPages - 1">
+    Next
+    </button>
+</div>

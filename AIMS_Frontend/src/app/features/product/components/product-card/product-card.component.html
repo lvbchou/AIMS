@@ -10,7 +10,7 @@
 
   <!-- Image: click → view detail popup (cả 2 mode) -->
   <div class="card-image" (click)="onImageClick()" title="Click to view details">
-    <img [src]="product.imageUrl || 'https://picsum.photos/seed/' + product.productId + '/400/400'"
+    <img [src]="product.image || 'https://picsum.photos/seed/' + product.productId + '/400/400'"
          [alt]="product.title" />
     <div class="image-overlay">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">

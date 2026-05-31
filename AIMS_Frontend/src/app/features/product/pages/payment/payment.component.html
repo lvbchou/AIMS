@@ -1,0 +1,114 @@
+<div class="payment-page">
+  <!-- Progress Tracker -->
+  <div class="progress-tracker">
+    <div class="step completed">
+      <span class="step-num">01</span>
+      <span class="step-label">CART</span>
+    </div>
+    <div class="divider"></div>
+    <div class="step completed">
+      <span class="step-num">02</span>
+      <span class="step-label">DELIVERY INFO</span>
+    </div>
+    <div class="divider"></div>
+    <div class="step active">
+      <span class="step-num">03</span>
+      <span class="step-label">PAYMENT</span>
+    </div>
+  </div>
+
+  <!-- Main Payment Section -->
+  <div class="payment-container">
+    <!-- Left Column: VietQR (Default Done by Team Member) -->
+    <div class="payment-left">
+      <h2>Scan to Pay with VietQR</h2>
+      <p class="subtitle">Open your banking app to scan the QR code and complete your purchase securely.</p>
+      
+      <div class="qr-box">
+        <!-- High-Fidelity Mock VietQR Code Box -->
+        <div class="qr-header">
+          <span class="qr-logo-viet">Viet</span><span class="qr-logo-qr">QR</span>
+        </div>
+        
+        <div class="qr-image-wrapper">
+          <!-- Simple simulated high-fidelity QR Code -->
+          <svg width="220" height="220" viewBox="0 0 100 100" class="simulated-qr">
+            <rect width="100" height="100" fill="#fff" />
+            <!-- Corners -->
+            <path d="M5,5 h20 v20 h-20 z M9,9 h12 v12 h-12 z" fill="#000"/>
+            <path d="M75,5 h20 v20 h-20 z M79,9 h12 v12 h-12 z" fill="#000"/>
+            <path d="M5,75 h20 v20 h-20 z M9,79 h12 v12 h-12 z" fill="#000"/>
+            <!-- Inner QR patterns mock -->
+            <path d="M35,15 h5 v5 h-5 z M45,5 h10 v5 h-10 z M60,15 h5 v10 h-5 z M40,25 h15 v5 h-15 z" fill="#000"/>
+            <path d="M10,35 h5 v10 h-5 z M25,40 h10 v5 h-10 z M5,55 h10 v5 h-10 z M15,45 h5 v10 h-5 z" fill="#000"/>
+            <path d="M70,35 h15 v5 h-15 z M80,45 h10 v5 h-10 z M75,55 h5 v10 h-5 z" fill="#000"/>
+            <path d="M35,35 h10 v10 h-10 z M50,40 h10 v10 h-10 z M35,60 h15 v5 h-15 z M60,55 h10 v15 h-10 z" fill="#000"/>
+            <path d="M35,75 h5 v15 h-5 z M45,85 h15 v5 h-15 z M65,80 h15 v10 h-15 z" fill="#000"/>
+            <!-- Center Red Logo Mock -->
+            <rect x="42" y="42" width="16" height="16" rx="2" fill="#E31A22" />
+            <text x="50" y="52" fill="#fff" font-size="6" font-weight="bold" text-anchor="middle">AIMS</text>
+          </svg>
+        </div>
+
+        <div class="qr-footer">
+          <div class="brand napas">
+            <span class="napas-bold">napas</span><span class="napas-light">247</span>
+          </div>
+          <div class="divider-v"></div>
+          <div class="brand bank">
+            <span class="bank-name">VietinBank</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Info & Payment Button Actions -->
+    <div class="payment-right">
+      <!-- Payment Information Details Card -->
+      <div class="card payment-info-card">
+        <h3>PAYMENT INFORMATION</h3>
+        
+        <div class="info-row">
+          <span class="label">Provider</span>
+          <span class="value bold">AIMS Store</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Order ID</span>
+          <span class="value bold">{{ orderId }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Total Payable</span>
+          <span class="value total bold">{{ totalPayable | number }} VND</span>
+        </div>
+        
+        <div class="terms-row">
+          <span class="label">Payment terms</span>
+          <span class="timer">{{ formattedTime }}</span>
+        </div>
+
+        <button class="btn btn-confirm" (click)="onConfirmVietQR()">
+          Confirm payment 
+          <svg class="icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <!-- PAYPAL CREDIT CARD SECTION (YOUR COMPONENT) -->
+      <div class="paypal-section-box">
+        <div class="paypal-btn-container" (click)="onPayWithPayPal()">
+          <div class="card-icon-box">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">
+              <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
+            </svg>
+          </div>
+          <div class="paypal-text-box">
+            <span class="title">Pay by Credit Card via PayPal</span>
+            <span class="desc">Global payments accepted with PayPal buyer protection.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

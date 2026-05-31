@@ -1,0 +1,123 @@
+// ============================================================
+// FILE: src/app/features/payment/pages/payment-success/payment-success.component.scss
+// ============================================================
+
+$red: #D32F2F;
+$teal: #005F7B;
+$bg: #F9F9F9;
+$text: #171717;
+
+// ── Main content area (spec: 1728×1044, centered) ────────────
+.success-page {
+  width: 100%;
+  max-width: 1728px;
+  min-height: 1006px;
+  height: 1044px;
+  margin: 0 auto;                  // căn giữa ngang
+  background: $bg;
+  display: flex;
+  align-items: flex-start;          // content từ trên xuống
+  justify-content: center;          // căn giữa ngang
+  padding-top: 114.38px;            // spec
+  padding-bottom: 50.37px;          // spec
+  font-family: 'Manrope', 'Inter', 'Roboto', sans-serif;
+
+  @media (max-width: 1728px) {
+    height: auto;
+    min-height: 1006px;
+  }
+}
+
+// ── Centered content block ─────────────────────────────────────
+.success-content {
+  max-width: 520px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}
+
+// ── Check icon ───────────────────────────────────────────────
+.success-icon {
+  width: 64px;
+  height: 64px;
+  background: rgba($teal, 0.12); // Light teal square
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+
+  .material-icons {
+    font-size: 34px;
+    color: $teal;
+  }
+}
+
+// ── Title ────────────────────────────────────────────────────
+.success-title {
+  font-size: 36px; // H1 — per spec
+  font-weight: 700;
+  color: $teal; // Teal title matches screenshot
+  margin: 0 0 12px;
+  line-height: 1.2;
+}
+
+// ── Description ──────────────────────────────────────────────
+.success-desc {
+  font-size: 13px; // Body — per spec
+  color: #555;
+  line-height: 1.65;
+  margin: 0 0 24px;
+}
+
+// ── Order reference box ──────────────────────────────────────
+.order-ref {
+  background: #f0f0f0;
+  border-radius: 8px;
+  border-left: 4px solid $red; // Red left accent
+  padding: 16px 20px;
+  margin-bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-width: 360px;
+
+  &__label {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #999;
+    font-weight: 700;
+  }
+
+  &__value {
+    font-size: 20px;
+    font-weight: 600;
+    color: $text;
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// ── Back link ────────────────────────────────────────────────
+.back-link {
+  background: none;
+  border: none;
+  color: $text;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  transition: color 0.18s ease;
+
+  &:hover {
+    color: $red;
+    text-decoration: underline;
+  }
+}

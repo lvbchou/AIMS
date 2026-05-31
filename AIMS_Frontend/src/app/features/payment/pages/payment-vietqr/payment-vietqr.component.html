@@ -1,0 +1,122 @@
+<!-- ============================================================
+  FILE: src/app/features/payment/pages/payment-vietqr/payment-vietqr.component.html
+  ============================================================ -->
+
+<div class="payment-page">
+
+  <!-- ── Stepper ─────────────────────────────────────────────── -->
+  <nav class="stepper" aria-label="Checkout steps">
+    <div class="stepper__step stepper__step--done">
+      <div class="stepper__circle">01</div>
+      <span class="stepper__label">CART</span>
+    </div>
+    <div class="stepper__line"></div>
+
+    <div class="stepper__step stepper__step--done">
+      <div class="stepper__circle">02</div>
+      <span class="stepper__label">DELIVERY INFO</span>
+    </div>
+    <div class="stepper__line"></div>
+
+    <div class="stepper__step stepper__step--active">
+      <div class="stepper__circle stepper__circle--active">03</div>
+      <span class="stepper__label stepper__label--active">PAYMENT</span>
+    </div>
+  </nav>
+
+  <!-- ── Main Grid ────────────────────────────────────────────── -->
+  <div class="payment-grid">
+
+    <!-- §1 Left Column → §2 VietQR Payment Card -->
+    <div class="qr-panel">
+
+      <!-- §3 Container > §3.1 Heading Group (gap: 16px) -->
+      <div class="qr-panel__heading-group">
+        <!-- §3.1.1 Heading 2 -->
+        <h2 class="qr-panel__title">Scan to Pay with VietQR</h2>
+        <!-- §3.1.2 Description -->
+        <div class="qr-panel__desc-wrap">
+          <p class="qr-panel__subtitle">
+            Open your banking app to scan the QR code and complete your purchase securely.
+          </p>
+        </div>
+      </div>
+
+      <!-- Content Area -->
+      <div class="qr-panel__content">
+        <!-- VietQR logo -->
+        <div class="qr-panel__logo">
+          <img src="/assets/images/vietqr-logo.png" alt="VietQR" class="vietqr-logo-img" />
+        </div>
+
+        <!-- Loading state -->
+        <div class="qr-panel__loading" *ngIf="isLoading">
+          <div class="spinner"></div>
+          <p>Generating QR code...</p>
+        </div>
+
+        <!-- QR ready -->
+        <div class="qr-panel__body" *ngIf="!isLoading">
+          <!-- QR image and logo wrapper -->
+          <div class="qr-panel__code-wrapper">
+            <!-- QR image -->
+            <img *ngIf="!qrError" [src]="qrImageUrl" alt="VietQR payment QR code" class="qr-panel__qr-image"
+              (error)="onQrImageError()" />
+            <div class="qr-error" *ngIf="qrError">
+              <span class="material-icons">qr_code_2</span>
+              <p>QR tạm thời không tải được.<br>Vui lòng thử lại.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right — Info + Actions -->
+    <div class="info-column">
+
+      <!-- Payment info card -->
+      <div class="info-card">
+        <h3 class="info-card__heading">PAYMENT INFORMATION</h3>
+
+        <div class="info-card__row">
+          <span class="info-card__label">Provider</span>
+          <span class="info-card__value bold"><strong>{{ paymentInfo.provider }}</strong></span>
+        </div>
+        <div class="info-card__row">
+          <span class="info-card__label">Order ID</span>
+          <span class="info-card__value bold"><strong>{{ paymentInfo.orderId }}</strong></span>
+        </div>
+        <div class="info-card__row info-card__row--last">
+          <span class="info-card__label">Total Payable</span>
+          <span class="info-card__value bold"><strong>{{ formatCurrency(paymentInfo.totalPayable) }}</strong></span>
+        </div>
+
+        <!-- Countdown timer -->
+        <div class="info-card__timer-row">
+          <span class="info-card__timer-label info-card__value--bold">Payment terms</span>
+          <span class="info-card__timer info-card__value--bold" [class.info-card__timer--urgent]="isUrgent">{{
+            timerDisplay }}</span>
+        </div>
+
+        <!-- Confirm button -->
+        <button class="confirm-btn" (click)="confirmPayment()" [disabled]="isLoading"
+          aria-label="Confirm VietQR payment">
+          Confirm payment &nbsp;&rarr;
+        </button>
+      </div>
+
+      <!-- PayPal alternative -->
+      <div class="paypal-card" (click)="payWithPayPal()" role="button" tabindex="0" (keydown.enter)="payWithPayPal()"
+        aria-label="Pay by credit card via PayPal">
+        <span class="material-icons paypal-card__icon">credit_card</span>
+        <div class="paypal-card__body">
+          <strong class="paypal-card__title">Pay by Credit Card via PayPal</strong>
+          <small class="paypal-card__sub">Global payments accepted with PayPal buyer protection.</small>
+        </div>
+      </div>
+
+    </div><!-- /info-column -->
+
+  </div><!-- /payment-grid -->
+
+</div><!-- /payment-page -->

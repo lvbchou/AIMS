@@ -1,0 +1,63 @@
+<!-- ============================================================
+  FILE: src/app/features/payment/pages/payment-failed/payment-failed.component.html
+  ============================================================ -->
+
+<div class="failed-page">
+  <div class="failed-layout">
+
+    <!-- ── Left: Status panel ──────────────────────────────── -->
+    <div class="failed-status">
+
+      <!-- Error icon card -->
+      <div class="failed-status__icon-card" aria-hidden="true">
+        <div class="failed-status__circle">
+          <span class="failed-status__exclaim">!</span>
+        </div>
+      </div>
+
+      <!-- Title: "Payment Failed" -->
+      <h1 class="failed-status__title">
+        <span class="failed-status__title-black">Payment</span>
+        <span class="failed-status__title-red">Failed</span>
+      </h1>
+
+      <!-- Red underline accent -->
+      <div class="failed-status__underline" aria-hidden="true"></div>
+
+      <!-- Reference code -->
+      <p class="failed-status__ref">REF: {{ errorCode }}</p>
+    </div>
+
+    <!-- ── Right: Error description card ───────────────────── -->
+    <div class="failed-error">
+
+      <!-- Header -->
+      <div class="failed-error__header">
+        <span class="failed-error__dot" aria-hidden="true"></span>
+        <span class="failed-error__label">ERROR DESCRIPTION</span>
+      </div>
+
+      <!-- Quoted error message -->
+      <blockquote class="failed-error__quote">
+        "{{ errorMessage }}"
+      </blockquote>
+
+      <!-- Detail help text -->
+      <p class="failed-error__detail">
+        Please ensure your card or your account has sufficient funds and is
+        authorized for international e-commerce transactions. If the problem
+        persists, contact your financial institution.
+      </p>
+
+      <!-- Actions -->
+      <div class="failed-error__actions">
+        <button class="retry-btn" (click)="retryPayment()">
+          <span class="material-icons">refresh</span>
+          Retry Payment
+        </button>
+        <button class="home-link" (click)="goHome()">Go home</button>
+      </div>
+
+    </div>
+  </div>
+</div>

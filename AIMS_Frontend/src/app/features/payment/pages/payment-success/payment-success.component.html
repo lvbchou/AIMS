@@ -1,0 +1,60 @@
+<!-- ============================================================
+  FILE: src/app/features/payment/pages/payment-success/payment-success.component.html
+  ============================================================ -->
+
+<div class="success-page">
+  <div class="success-content">
+
+    <!-- Check icon -->
+    <div class="success-icon" aria-hidden="true">
+      <span class="material-icons">check_circle</span>
+    </div>
+
+    <h1 class="success-title">Payment Successful</h1>
+
+    <p class="success-desc">
+      Thank you for your purchase. Your order has been confirmed and is
+      being processed by our curation team.
+    </p>
+
+    <!-- Loading state -->
+    <div *ngIf="isLoading" class="loading-indicator">
+      <p>Loading confirmation...</p>
+    </div>
+
+    <!-- Confirmation details -->
+    <div *ngIf="!isLoading" class="confirmation-details">
+      <!-- Order reference box -->
+      <div class="order-ref">
+        <span class="order-ref__label">ORDER REFERENCE</span>
+        <span class="order-ref__value">{{ orderReference }}</span>
+      </div>
+
+      <div class="detail-row" *ngIf="customerName">
+        <span class="detail-label">Customer</span>
+        <span class="detail-value">{{ customerName }}</span>
+      </div>
+
+      <div class="detail-row" *ngIf="totalAmount">
+        <span class="detail-label">Total Paid</span>
+        <span class="detail-value">{{ formatCurrency(totalAmount) }}</span>
+      </div>
+
+      <div class="detail-row" *ngIf="transactionId">
+        <span class="detail-label">Transaction ID</span>
+        <span class="detail-value">{{ transactionId }}</span>
+      </div>
+
+      <div class="detail-row" *ngIf="transactionDatetime">
+        <span class="detail-label">Payment Time</span>
+        <span class="detail-value">{{ transactionDatetime }}</span>
+      </div>
+    </div>
+
+    <!-- Back to shop link -->
+    <button class="back-link" (click)="backToShop()">
+      Back to Shop &nbsp;&rarr;
+    </button>
+
+  </div>
+</div>

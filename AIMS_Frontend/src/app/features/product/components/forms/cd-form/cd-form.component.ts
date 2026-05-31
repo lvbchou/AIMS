@@ -17,8 +17,8 @@ export class CdFormComponent {
     return this.form.get('artists') as FormArray;
   }
 
-  get tracklist(): FormArray {
-    return this.form.get('tracklist') as FormArray;
+  get tracks(): FormArray {
+    return this.form.get('tracks') as FormArray;
   }
 
   addArtist(): void {
@@ -32,7 +32,7 @@ export class CdFormComponent {
   }
 
   addTrack(): void {
-    this.tracklist.push(
+    this.tracks.push(
       this.fb.group({
         title:  ['', Validators.required],
         length: ['', Validators.required],
@@ -41,6 +41,6 @@ export class CdFormComponent {
   }
 
   removeTrack(index: number): void {
-    this.tracklist.removeAt(index);
+    this.tracks.removeAt(index);
   }
 }

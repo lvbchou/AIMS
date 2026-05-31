@@ -1,0 +1,354 @@
+.payment-page {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 0 24px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #fafbfc;
+  min-height: 80vh;
+}
+
+/* Progress Tracker Styling */
+.progress-tracker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 50px;
+  gap: 16px;
+
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #b0bec5;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: #eceff1;
+      color: #90a4ae;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    &.completed {
+      color: #78909c;
+      .step-num {
+        background: #cfd8dc;
+        color: #546e7a;
+      }
+    }
+
+    &.active {
+      color: #b31f24;
+      .step-num {
+        background: #b31f24;
+        color: #fff;
+      }
+    }
+  }
+
+  .divider {
+    height: 1px;
+    background: #cfd8dc;
+    width: 60px;
+  }
+}
+
+/* Payment Layout Container */
+.payment-container {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 40px;
+  align-items: start;
+}
+
+/* Left Column: VietQR Code card styling */
+.payment-left {
+  background: #fff;
+  border-radius: 12px;
+  padding: 40px;
+  border: 1px solid #eef2f5;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+
+  h2 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #1a202c;
+    margin: 0 0 12px 0;
+    letter-spacing: -0.5px;
+  }
+
+  .subtitle {
+    color: #718096;
+    font-size: 15px;
+    line-height: 1.6;
+    margin: 0 0 30px 0;
+  }
+
+  .qr-box {
+    max-width: 320px;
+    margin: 0 auto;
+    border: 2px solid #005a9e;
+    border-radius: 12px;
+    padding: 24px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .qr-header {
+      margin-bottom: 20px;
+      .qr-logo-viet {
+        font-size: 24px;
+        font-weight: 900;
+        color: #e31a22;
+        font-style: italic;
+      }
+      .qr-logo-qr {
+        font-size: 24px;
+        font-weight: 900;
+        color: #005a9e;
+        font-style: italic;
+      }
+    }
+
+    .qr-image-wrapper {
+      padding: 16px;
+      background: #f7fafc;
+      border-radius: 8px;
+      border: 1px dashed #cbd5e0;
+      margin-bottom: 20px;
+    }
+
+    .qr-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      width: 100%;
+      margin-top: 10px;
+
+      .brand {
+        display: flex;
+        align-items: center;
+        font-size: 13px;
+        font-weight: 700;
+
+        &.napas {
+          color: #1a365d;
+          .napas-bold {
+            font-weight: 900;
+            font-style: italic;
+          }
+          .napas-light {
+            font-weight: 300;
+            color: #dd6b20;
+          }
+        }
+
+        &.bank {
+          color: #0066b2;
+          font-style: italic;
+        }
+      }
+
+      .divider-v {
+        width: 1px;
+        height: 16px;
+        background: #cbd5e0;
+      }
+    }
+  }
+}
+
+/* Right Column: Info & Action Buttons Card */
+.payment-right {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 30px;
+    border: 1px solid #eef2f5;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+
+    h3 {
+      font-size: 15px;
+      font-weight: 800;
+      color: #718096;
+      margin: 0 0 24px 0;
+      letter-spacing: 1px;
+    }
+  }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid #edf2f7;
+    font-size: 14px;
+    color: #4a5568;
+
+    .value {
+      color: #1a202c;
+      &.bold {
+        font-weight: 700;
+      }
+      &.total {
+        color: #1a202c;
+        font-size: 16px;
+      }
+    }
+  }
+
+  .terms-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    margin-top: 10px;
+
+    .label {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a202c;
+    }
+
+    .timer {
+      font-size: 24px;
+      font-weight: 800;
+      color: #b31f24;
+      letter-spacing: -0.5px;
+    }
+  }
+
+  .btn-confirm {
+    width: 100%;
+    background: #b31f24;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 16px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s ease, transform 0.1s ease;
+
+    &:hover {
+      background: #96161a;
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+
+    .icon {
+      transition: transform 0.2s ease;
+    }
+
+    &:hover .icon {
+      transform: translateX(4px);
+    }
+  }
+}
+
+/* PAYPAL CREDIT CARD BUTTON CONTAINER */
+.paypal-section-box {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #eef2f5;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  overflow: hidden;
+  padding: 10px;
+}
+
+.paypal-btn-container {
+  display: flex;
+  align-items: center;
+  background: #0079c1; /* PayPal Brand Blue */
+  color: #fff;
+  border-radius: 8px;
+  padding: 18px 24px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+  user-select: none;
+
+  &:hover {
+    background: #00609b;
+  }
+
+  &:active {
+    transform: scale(0.99);
+  }
+
+  .card-icon-box {
+    margin-right: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.95;
+  }
+
+  .paypal-text-box {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    .title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+      margin-bottom: 2px;
+    }
+
+    .desc {
+      font-size: 12px;
+      font-weight: 400;
+      opacity: 0.85;
+    }
+  }
+}
+
+/* Responsive Stacking - Tablet / Mobile First rules */
+@media (max-width: 900px) {
+  .payment-container {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .payment-left {
+    padding: 30px;
+  }
+}
+
+@media (max-width: 600px) {
+  .progress-tracker {
+    margin-bottom: 30px;
+    .divider {
+      width: 30px;
+    }
+    .step-label {
+      display: none; /* Hide labels on mobile to prevent squishing */
+    }
+  }
+
+  .payment-left {
+    padding: 24px;
+    h2 {
+      font-size: 22px;
+    }
+  }
+}

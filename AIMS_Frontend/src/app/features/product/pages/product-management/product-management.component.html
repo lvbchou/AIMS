@@ -3,10 +3,11 @@
   <div class="page-header">
     <div class="page-title">
       <h2>Products</h2>
-      <span class="total-count">Total: {{ products.length }} products</span>
+      <span class="total-count">Total: {{ totalElements }} products</span>
     </div>
 
     <div class="page-actions">
+      <!-- khi chưa vào selection mode -->
       <ng-container *ngIf="!selectionMode">
         <button class="btn btn-danger" (click)="enterSelectionMode()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -26,6 +27,7 @@
         </button>
       </ng-container>
 
+      <!-- khi đang trong selection mode -->
       <ng-container *ngIf="selectionMode">
         <button
           class="btn btn-danger"
@@ -49,6 +51,7 @@
     [products]="products"
     [isLoading]="isLoading"
     [skeletonCount]="10"
+    [mode]="'manager'"
     [selectedIds]="selectedIds"
     [selectionMode]="selectionMode"
     [isMaxSelected]="isMaxSelected"
@@ -58,13 +61,18 @@
     (onViewDetail)="onViewDetail($event)"
   ></app-product-list>
 
-</div>
+  <app-pagination
+    [currentPage]="currentPage"
+    [totalPages]="totalPages"
+    (onPage)="goToPage($event)"
+  />
 
+</div>
 <app-product-form
   *ngIf="showProductForm"
   [product]="selectedProduct"
   (submitted)="onFormSubmitted($event)"
-  (cancelled)="onCancel()"
+  (cancelled)="onCreateCancelled()"
 />
 
 <app-manager-product-view-modal

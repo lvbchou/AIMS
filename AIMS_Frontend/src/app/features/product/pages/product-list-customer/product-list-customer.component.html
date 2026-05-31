@@ -4,21 +4,32 @@
   </aside>
   <main class="main-content" [class.full-width]="!showFilter">
     <h1 class="page-title">{{ pageTitle }}</h1>
-    <div *ngIf="!loading && products.length === 0" class="no-results"><p>No product found!</p></div>
-    <div *ngIf="products.length > 0" class="product-grid">
-      <app-product-card
-        *ngFor="let p of products"
-        [product]="p"
+    <div class="product-grid">
+      <app-product-list
+        [products]="products"
+        [isLoading]="isLoading"
+        [skeletonCount]="10"
         [mode]="'customer'"
-        (viewDetail)="onViewDetail($event)"
-        (addToCart)="onAddToCart($event)">
-      </app-product-card>
+        (onViewDetail)="onViewDetail($event)"
+        (onAddToCart)="onAddToCart($event)"
+      ></app-product-list>
     </div>
+    <div *ngIf="mode != 'all' && !isLoading && products.length === 0" class="no-results">
+      <p>No product found!</p>
+    </div>
+
+    <app-pagination
+      [currentPage]="currentPage"
+      [totalPages]="totalPages"
+      (onPage)="goToPage($event)"
+    />
+
   </main>
 </div>
 <app-product-detail-modal
-  *ngIf="selectedProductId !== null"
-  [productId]="selectedProductId!"
+  *ngIf="viewProductDetail !== null"
+  [product]="viewProductDetail!"
   (close)="closeModal()"
   (addToCart)="onAddToCart($event.product.productId)">
 </app-product-detail-modal>
+<app-toast />

@@ -1,36 +1,32 @@
 package com.aims.service.product.validation;
 
-import com.aims.dto.ProductInfoDTO;
+import com.aims.dto.product.DVDInfoDTO;
 import com.aims.exception.InvalidProductInfoException;
-import com.aims.repository.ProductRepository;
-import com.aims.service.ProductService;
+import com.aims.service.validator.DVDValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+
+import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class DVDValidationTest {
 
-    @Mock
-    private ProductRepository productRepository;
-
-    private ProductService productService;
+    private DVDValidator dvdValidator;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-        productService = new ProductService(productRepository);
+        dvdValidator = new DVDValidator();
     }
 
     // =========================================================
     // FACTORY METHOD
     // =========================================================
 
-    private ProductInfoDTO buildValidDVDDTO() {
-        ProductInfoDTO dto = new ProductInfoDTO();
+    private DVDInfoDTO buildValidDVDDTO() {
+
+        DVDInfoDTO dto = new DVDInfoDTO();
 
         // Common required fields
         dto.setProductType("DVD");
@@ -52,7 +48,7 @@ class DVDValidationTest {
         dto.setLanguage("English");
         dto.setSubtitles("Vietnamese");
 
-        // Optional fields — null by default
+        // Optional fields
         dto.setReleaseDate(null);
         dto.setGenre(null);
 
@@ -72,35 +68,34 @@ class DVDValidationTest {
 
         // covers: all required fields valid, discType = Blu-ray, optional null
         @Test
-        void validDVD_BluRay_shouldReturnTrue() {
-            ProductInfoDTO dto = buildValidDVDDTO();
+        void validDVD_BluRay_shouldNotThrow() {
 
-            boolean result = productService.validateProductInfo(dto);
+            DVDInfoDTO dto = buildValidDVDDTO();
 
-            assertTrue(result);
+            assertDoesNotThrow(() -> dvdValidator.validate(dto));
         }
 
         // covers: optional fields releaseDate and genre provided
         @Test
-        void validDVD_withOptionalFields_shouldReturnTrue() {
-            ProductInfoDTO dto = buildValidDVDDTO();
-            dto.setReleaseDate(java.time.LocalDate.of(2010, 7, 16));
+        void validDVD_withOptionalFields_shouldNotThrow() {
+
+            DVDInfoDTO dto = buildValidDVDDTO();
+
+            dto.setReleaseDate(LocalDate.of(2010, 7, 16));
             dto.setGenre("Sci-Fi");
 
-            boolean result = productService.validateProductInfo(dto);
-
-            assertTrue(result);
+            assertDoesNotThrow(() -> dvdValidator.validate(dto));
         }
 
         // covers: discType = HD-DVD (second valid value)
         @Test
-        void validDVD_HDDVD_shouldReturnTrue() {
-            ProductInfoDTO dto = buildValidDVDDTO();
+        void validDVD_HDDVD_shouldNotThrow() {
+
+            DVDInfoDTO dto = buildValidDVDDTO();
+
             dto.setDiscType("HD-DVD");
 
-            boolean result = productService.validateProductInfo(dto);
-
-            assertTrue(result);
+            assertDoesNotThrow(() -> dvdValidator.validate(dto));
         }
 
         // -----------------------------------------------------
@@ -110,12 +105,14 @@ class DVDValidationTest {
         // covers: discType = null
         @Test
         void nullDiscType_shouldThrowException() {
-            ProductInfoDTO dto = buildValidDVDDTO();
+
+            DVDInfoDTO dto = buildValidDVDDTO();
+
             dto.setDiscType(null);
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> dvdValidator.validate(dto));
 
             assertEquals("Disc type is required for DVD", ex.getMessage());
         }
@@ -123,12 +120,14 @@ class DVDValidationTest {
         // covers: discType = empty string
         @Test
         void emptyDiscType_shouldThrowException() {
-            ProductInfoDTO dto = buildValidDVDDTO();
+
+            DVDInfoDTO dto = buildValidDVDDTO();
+
             dto.setDiscType("");
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> dvdValidator.validate(dto));
 
             assertEquals("Disc type is required for DVD", ex.getMessage());
         }
@@ -136,12 +135,14 @@ class DVDValidationTest {
         // covers: discType = invalid value (not Blu-ray or HD-DVD)
         @Test
         void invalidDiscType_shouldThrowException() {
-            ProductInfoDTO dto = buildValidDVDDTO();
+
+            DVDInfoDTO dto = buildValidDVDDTO();
+
             dto.setDiscType("VCD");
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> dvdValidator.validate(dto));
 
             assertEquals(
                     "Disc type must be Blu-ray or HD-DVD",
@@ -155,12 +156,14 @@ class DVDValidationTest {
         // covers: director = null
         @Test
         void nullDirector_shouldThrowException() {
-            ProductInfoDTO dto = buildValidDVDDTO();
+
+            DVDInfoDTO dto = buildValidDVDDTO();
+
             dto.setDirector(null);
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> dvdValidator.validate(dto));
 
             assertEquals("Director is required for DVD", ex.getMessage());
         }
@@ -168,12 +171,14 @@ class DVDValidationTest {
         // covers: director = empty string
         @Test
         void emptyDirector_shouldThrowException() {
-            ProductInfoDTO dto = buildValidDVDDTO();
+
+            DVDInfoDTO dto = buildValidDVDDTO();
+
             dto.setDirector("");
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> dvdValidator.validate(dto));
 
             assertEquals("Director is required for DVD", ex.getMessage());
         }
@@ -185,12 +190,14 @@ class DVDValidationTest {
         // covers: runtime = null
         @Test
         void nullRuntime_shouldThrowException() {
-            ProductInfoDTO dto = buildValidDVDDTO();
+
+            DVDInfoDTO dto = buildValidDVDDTO();
+
             dto.setRuntime(null);
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> dvdValidator.validate(dto));
 
             assertEquals("Runtime is required for DVD", ex.getMessage());
         }
@@ -198,12 +205,14 @@ class DVDValidationTest {
         // covers: runtime = 0 (lower boundary — invalid)
         @Test
         void zeroRuntime_shouldThrowException() {
-            ProductInfoDTO dto = buildValidDVDDTO();
+
+            DVDInfoDTO dto = buildValidDVDDTO();
+
             dto.setRuntime(0);
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> dvdValidator.validate(dto));
 
             assertEquals("Runtime must be positive", ex.getMessage());
         }
@@ -211,25 +220,27 @@ class DVDValidationTest {
         // covers: runtime = negative (invalid)
         @Test
         void negativeRuntime_shouldThrowException() {
-            ProductInfoDTO dto = buildValidDVDDTO();
+
+            DVDInfoDTO dto = buildValidDVDDTO();
+
             dto.setRuntime(-1);
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> dvdValidator.validate(dto));
 
             assertEquals("Runtime must be positive", ex.getMessage());
         }
 
         // covers: runtime = 1 (lower boundary + 1 — valid)
         @Test
-        void oneRuntime_shouldReturnTrue() {
-            ProductInfoDTO dto = buildValidDVDDTO();
+        void oneRuntime_shouldNotThrow() {
+
+            DVDInfoDTO dto = buildValidDVDDTO();
+
             dto.setRuntime(1);
 
-            boolean result = productService.validateProductInfo(dto);
-
-            assertTrue(result);
+            assertDoesNotThrow(() -> dvdValidator.validate(dto));
         }
 
         // -----------------------------------------------------
@@ -239,12 +250,14 @@ class DVDValidationTest {
         // covers: studio = null
         @Test
         void nullStudio_shouldThrowException() {
-            ProductInfoDTO dto = buildValidDVDDTO();
+
+            DVDInfoDTO dto = buildValidDVDDTO();
+
             dto.setStudio(null);
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> dvdValidator.validate(dto));
 
             assertEquals("Studio is required for DVD", ex.getMessage());
         }
@@ -252,12 +265,14 @@ class DVDValidationTest {
         // covers: studio = empty string
         @Test
         void emptyStudio_shouldThrowException() {
-            ProductInfoDTO dto = buildValidDVDDTO();
+
+            DVDInfoDTO dto = buildValidDVDDTO();
+
             dto.setStudio("");
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> dvdValidator.validate(dto));
 
             assertEquals("Studio is required for DVD", ex.getMessage());
         }
@@ -269,12 +284,14 @@ class DVDValidationTest {
         // covers: language = null
         @Test
         void nullLanguage_shouldThrowException() {
-            ProductInfoDTO dto = buildValidDVDDTO();
+
+            DVDInfoDTO dto = buildValidDVDDTO();
+
             dto.setLanguage(null);
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> dvdValidator.validate(dto));
 
             assertEquals("Language is required for DVD", ex.getMessage());
         }
@@ -282,12 +299,14 @@ class DVDValidationTest {
         // covers: language = empty string
         @Test
         void emptyLanguage_shouldThrowException() {
-            ProductInfoDTO dto = buildValidDVDDTO();
+
+            DVDInfoDTO dto = buildValidDVDDTO();
+
             dto.setLanguage("");
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> dvdValidator.validate(dto));
 
             assertEquals("Language is required for DVD", ex.getMessage());
         }
@@ -299,12 +318,14 @@ class DVDValidationTest {
         // covers: subtitles = null
         @Test
         void nullSubtitles_shouldThrowException() {
-            ProductInfoDTO dto = buildValidDVDDTO();
+
+            DVDInfoDTO dto = buildValidDVDDTO();
+
             dto.setSubtitles(null);
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> dvdValidator.validate(dto));
 
             assertEquals("Subtitles is required for DVD", ex.getMessage());
         }
@@ -312,12 +333,14 @@ class DVDValidationTest {
         // covers: subtitles = empty string
         @Test
         void emptySubtitles_shouldThrowException() {
-            ProductInfoDTO dto = buildValidDVDDTO();
+
+            DVDInfoDTO dto = buildValidDVDDTO();
+
             dto.setSubtitles("");
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> dvdValidator.validate(dto));
 
             assertEquals("Subtitles is required for DVD", ex.getMessage());
         }

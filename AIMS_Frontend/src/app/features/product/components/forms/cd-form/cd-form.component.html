@@ -58,9 +58,9 @@
     <!-- Tracklist (dynamic list) -->
     <div class="form-field full-width">
       <label>Tracklist <span class="required">*</span></label>
-      <div formArrayName="tracklist" class="dynamic-list">
+      <div formArrayName="tracks" class="dynamic-list">
         <div
-          *ngFor="let track of tracklist.controls; let i = index"
+          *ngFor="let track of tracks.controls; let i = index"
           [formGroupName]="i"
           class="dynamic-list-item"
         >

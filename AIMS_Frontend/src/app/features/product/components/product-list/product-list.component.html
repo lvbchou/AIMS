@@ -1,9 +1,8 @@
 <!-- Skeleton khi đang loading -->
 <div class="grid" *ngIf="isLoading">
-  <div
+  <app-product-card-skeleton
     *ngFor="let i of skeletonItems"
-    class="skeleton-card"
-  ></div>
+  ></app-product-card-skeleton>
 </div>
 
 <!-- Danh sách thật khi đã load xong -->
@@ -11,12 +10,14 @@
   <app-product-card
     *ngFor="let p of products"
     [product]="p"
+    [mode]="mode"
     [selected]="isSelected(p.productId)"
     [selectionMode]="selectionMode"
     [isMaxSelected]="isMaxSelected"
     (toggleSelect)="onToggle($event)"
     (update)="onUpdate.emit($event)"
     (delete)="onDelete.emit($event)"
+    (addToCart)="onAddToCart.emit($event)"
     (viewDetail)="onViewDetail.emit($event)"
   ></app-product-card>
 </div>

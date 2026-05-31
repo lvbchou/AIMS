@@ -1,0 +1,120 @@
+// =============================================
+// payment-redirect.component.scss
+// Matches Redirecting_to_PayPal.svg design
+// Centered layout: icon box + large title
+// =============================================
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.redirect-page {
+  min-height: calc(100vh - 70px);
+  background: #F5F5F5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 640px;
+    width: 100%;
+  }
+
+  // ── Icon box with spinner ring ──────────────────────────────
+  &__icon-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 36px;
+  }
+
+  &__icon-box {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    background: #FFFFFF;
+    border-radius: 20px;
+    border: 1px solid #E8E8E8;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__lock-icon {
+    font-size: 38px;
+    color: #A61C1C;
+    position: relative;
+    z-index: 1;
+  }
+
+  &__spinner-ring {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    border-radius: 28px;
+    border: 3px solid transparent;
+    border-top: 3px solid #A61C1C;
+    border-right: 3px solid #A61C1C;
+    animation: spin 1.4s linear infinite;
+  }
+
+  // ── Title ─────────────────────────────────────────────────
+  &__title {
+    font-family: 'Inter', sans-serif;
+    font-size: 40px;
+    font-weight: 800;
+    color: #1A1A2E;
+    margin: 0 0 16px 0;
+    line-height: 1.2;
+  }
+
+  // ── Subtitle ──────────────────────────────────────────────
+  &__sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    color: #555;
+    line-height: 1.7;
+    margin: 0 0 36px 0;
+  }
+}
+
+// ── Cancel Button ──────────────────────────────────────────
+.btn-cancel {
+  padding: 13px 32px;
+  background: transparent;
+  border: 1.5px solid #BBBBBB;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: #555;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+
+  &:hover {
+    border-color: #8B1A1A;
+    color: #8B1A1A;
+  }
+}
+
+// ── Animations ─────────────────────────────────────────────
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@media (max-width: 600px) {
+  .redirect-page__title {
+    font-size: 28px;
+  }
+}

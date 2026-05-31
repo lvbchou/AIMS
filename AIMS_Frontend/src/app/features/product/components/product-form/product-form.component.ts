@@ -1,16 +1,14 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import {
-  FormBuilder,
-  FormGroup,
-  FormArray,
-  FormControl,
-  Validators,
-  ReactiveFormsModule,
+  FormBuilder, FormGroup, FormArray,
+  FormControl, Validators, ReactiveFormsModule,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
 import { ProductType } from '../../models/product-type.enum';
-import { Product } from '../../models/product.model';
+import {
+  Product, DvdProduct, CdProduct, BookProduct, NewspaperProduct
+} from '../../models/product.model';
 import { DvdFormComponent } from '../forms/dvd-form/dvd-form.component';
 import { CdFormComponent } from '../forms/cd-form/cd-form.component';
 import { BookFormComponent } from '../forms/book-form/book-form.component';
@@ -20,21 +18,17 @@ import { NewspaperFormComponent } from '../forms/newspaper-form/newspaper-form.c
   selector: 'app-product-form',
   standalone: true,
   imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    DvdFormComponent,
-    CdFormComponent,
-    BookFormComponent,
-    NewspaperFormComponent,
+    CommonModule, ReactiveFormsModule,
+    DvdFormComponent, CdFormComponent,
+    BookFormComponent, NewspaperFormComponent,
   ],
   templateUrl: './product-form.component.html',
   styleUrls: ['./product-form.component.scss'],
 })
-export class ProductFormComponent implements OnInit {
+export class ProductFormComponent implements OnInit, OnDestroy {
   @Output() submitted = new EventEmitter<Product>();
   @Output() cancelled = new EventEmitter<void>();
-
-  @Input() product: Product | null = null;
+  @Input()  product: Product | null = null;
 
   readonly ProductType = ProductType;
   readonly types = Object.values(ProductType);
@@ -42,23 +36,24 @@ export class ProductFormComponent implements OnInit {
   form!: FormGroup;
 
   get isUpdateMode(): boolean { return this.product !== null; }
-  get modalTitle(): string { return this.isUpdateMode ? 'Update Product' : 'Add New Product'; }
-  get submitLabel(): string { return this.isUpdateMode ? 'Update' : 'Add Product'; }
+  get modalTitle():   string  { return this.isUpdateMode ? 'Update Product' : 'Add New Product'; }
+  get submitLabel():  string  { return this.isUpdateMode ? 'Update' : 'Add Product'; }
+  get selectedType(): ProductType { return this.form.get('productType')?.value; }
+  get generalForm():  FormGroup { return this.form.get('general') as FormGroup; }
+  get categoryForm(): FormGroup { return this.form.get('categoryDetails') as FormGroup; }
 
   constructor(private fb: FormBuilder) {}
 
   ngOnInit(): void {
-    const initialType = (this.product?.productType as ProductType) ?? ProductType.DVD;
+    const initialType = this.product?.productType ?? ProductType.DVD;
     this.buildForm(initialType);
-    if (this.product) {
-      this.patchForm(this.product);
-    }
+    if (this.product) this.patchForm(this.product);
     document.body.style.overflow = 'hidden';
   }
 
-  get selectedType(): ProductType { return this.form.get('productType')?.value; }
-  get generalForm(): FormGroup { return this.form.get('general') as FormGroup; }
-  get categoryForm(): FormGroup { return this.form.get('categoryDetails') as FormGroup; }
+  ngOnDestroy(): void {
+    document.body.style.overflow = '';
+  }
 
   // ── Form builder ───────────────────────────────────────────────────────────
   private buildForm(type: ProductType): void {
@@ -68,7 +63,7 @@ export class ProductFormComponent implements OnInit {
         title:         ['', Validators.required],
         category:      ['', Validators.required],
         barcode:       ['', Validators.required],
-        imageUrl:      ['', Validators.required],
+        image:         ['', Validators.required],
         originalValue: [0, [Validators.required, Validators.min(0)]],
         sellingPrice:  [0, [Validators.required, Validators.min(0)]],
         weight:        [0, [Validators.required, Validators.min(0)]],
@@ -77,108 +72,6 @@ export class ProductFormComponent implements OnInit {
       }),
       categoryDetails: this.buildCategoryGroup(type),
     });
-  }
-
-  // ── Patch data vào form khi update ────────────────────────────────────────
-  private patchForm(product: Product): void {
-    this.form.patchValue({ productType: product.productType });
-
-    this.generalForm.patchValue({
-      title:         product.title,
-      category:      product.category,
-      barcode:       product.barcode,
-      imageUrl:      product.imageUrl ?? (product as any).image ?? '',
-      originalValue: product.originalValue,
-      sellingPrice:  product.sellingPrice,
-      weight:        product.weight,
-      dimensions:    product.dimensions,
-      description:   product.description,
-    });
-
-    // Patch categoryDetails — dùng typeDetails nếu có, không thì dùng product flat
-    const details = (product as any).typeDetails ?? product;
-    this.patchCategoryDetails(product.productType, details);
-  }
-
-  private patchCategoryDetails(type: ProductType, details: any): void {
-    if (!details) return;
-    const group = this.form.get('categoryDetails') as FormGroup;
-
-    switch (type) {
-      case ProductType.CD: {
-        const artistsArray = group.get('artists') as FormArray;
-        artistsArray.clear();
-        (details.artists ?? ['']).forEach((a: string) => {
-          artistsArray.push(new FormControl(a, Validators.required));
-        });
-
-        const tracklistArray = group.get('tracklist') as FormArray;
-        tracklistArray.clear();
-        // Support both {trackTitle, trackLength} (from backend) and {title, length} (mock)
-        const tracks = details.tracks ?? details.tracklist ?? [];
-        tracks.forEach((t: any) => {
-          tracklistArray.push(this.fb.group({
-            title:  [t.trackTitle ?? t.title  ?? '', Validators.required],
-            length: [t.trackLength ?? t.length ?? '', Validators.required],
-          }));
-        });
-
-        group.patchValue({
-          recordLabel: details.recordLabel ?? '',
-          genre:       details.genre       ?? '',
-          releaseDate: details.releaseDate  ?? '',
-        });
-        break;
-      }
-
-      case ProductType.NEWSPAPER: {
-        const sectionsArray = group.get('sections') as FormArray;
-        sectionsArray.clear();
-        (details.sections ?? ['']).forEach((s: string) => {
-          sectionsArray.push(new FormControl(s));
-        });
-
-        group.patchValue({
-          editorInChief:        details.editorInChief        ?? '',
-          issueNumber:          details.issueNumber          ?? '',
-          publicationFrequency: details.publicationFrequency ?? '',
-          ISSN:                 details.ISSN ?? details.issn  ?? '',
-          publisher:            details.publisher            ?? '',
-          publicationDate:      details.publicationDate      ?? '',
-          language:             details.language             ?? '',
-        });
-        break;
-      }
-
-      case ProductType.BOOK:
-        group.patchValue({
-          author:          details.author          ?? '',
-          coverType:       details.coverType       ?? '',
-          pages:           details.pages           ?? null,
-          genre:           details.genre           ?? '',
-          publisher:       details.publisher       ?? '',
-          publicationDate: details.publicationDate ?? '',
-          language:        details.language        ?? '',
-        });
-        break;
-
-      case ProductType.DVD:
-        group.patchValue({
-          discType:    details.discType    ?? '',
-          director:    details.director    ?? '',
-          runtime:     details.runtime     ?? null,
-          studio:      details.studio      ?? '',
-          language:    details.language    ?? '',
-          subtitles:   details.subtitles   ?? '',
-          genre:       details.genre       ?? '',
-          releaseDate: details.releaseDate ?? '',
-        });
-        break;
-
-      default:
-        group.patchValue(details);
-        break;
-    }
   }
 
   private buildCategoryGroup(type: ProductType): FormGroup {
@@ -201,7 +94,7 @@ export class ProductFormComponent implements OnInit {
           recordLabel: ['', Validators.required],
           genre:       ['', Validators.required],
           releaseDate: [''],
-          tracklist:   this.fb.array([]),
+          tracks:      this.fb.array([]),
         });
 
       case ProductType.BOOK:
@@ -220,15 +113,114 @@ export class ProductFormComponent implements OnInit {
           editorInChief:        ['', Validators.required],
           issueNumber:          [''],
           publicationFrequency: [''],
-          ISSN:                 [''],
+          issn:                 [''],
           publisher:            ['', Validators.required],
           publicationDate:      ['', Validators.required],
           language:             [''],
           sections:             this.fb.array([new FormControl('')]),
         });
+    }
+  }
 
-      default:
-        return this.fb.group({});
+  // ── Patch form khi update ─────────────────────────────────────────────────
+  private patchForm(product: Product): void {
+    this.form.patchValue({ productType: product.productType });
+
+    this.generalForm.patchValue({
+      title:         product.title,
+      category:      product.category,
+      barcode:       product.barcode,
+      image:         product.image,
+      originalValue: product.originalValue,
+      sellingPrice:  product.sellingPrice,
+      weight:        product.weight,
+      dimensions:    product.dimensions,
+      description:   product.description,
+    });
+
+    this.patchCategoryDetails(product);
+  }
+
+  private patchCategoryDetails(product: Product): void {
+    const group = this.categoryForm;
+
+    switch (product.productType) {
+
+      case ProductType.DVD: {
+        const d = (product as DvdProduct).typeDetails;
+        group.patchValue({
+          discType: d.discType,
+          director: d.director,
+          runtime: d.runtime,
+          studio: d.studio,
+          language: d.language,
+          subtitles: d.subtitles,
+          genre: d.genre ?? '',
+          releaseDate: d.releaseDate ?? '',
+        });
+        break;
+      }
+
+      case ProductType.CD: {
+        const d = (product as CdProduct).typeDetails;
+
+        const artistsArray = group.get('artists') as FormArray;
+        artistsArray.clear();
+        (d.artists ?? ['']).forEach(a =>
+          artistsArray.push(new FormControl(a, Validators.required))
+        );
+
+        const tracksArray = group.get('tracks') as FormArray;
+        tracksArray.clear();
+        (d.tracks ?? []).forEach(t =>
+          tracksArray.push(this.fb.group({
+            title:  [t.title,  Validators.required],
+            length: [t.length, Validators.required],
+          }))
+        );
+
+        group.patchValue({
+          recordLabel: d.recordLabel,
+          genre:       d.genre,
+          releaseDate: d.releaseDate ?? '',
+        });
+        break;
+      }
+
+      case ProductType.BOOK: {
+        const d = (product as BookProduct).typeDetails;
+        group.patchValue({
+          author: d.author,
+          coverType: d.coverType,
+          pages: d.pages ?? null,
+          genre: d.genre ?? '',
+          publisher: d.publisher,
+          publicationDate: d.publicationDate,
+          language: d.language ?? '',
+        });
+        break;
+      }
+
+      case ProductType.NEWSPAPER: {
+        const d = (product as NewspaperProduct).typeDetails;
+
+        const sectionsArray = group.get('sections') as FormArray;
+        sectionsArray.clear();
+        (d.sections ?? ['']).forEach(s =>
+          sectionsArray.push(new FormControl(s))
+        );
+
+        group.patchValue({
+          editorInChief:        d.editorInChief,
+          issueNumber:          d.issueNumber          ?? '',
+          publicationFrequency: d.publicationFrequency ?? '',
+          issn:                 d.issn                 ?? '',
+          publisher:            d.publisher,
+          publicationDate:      d.publicationDate,
+          language:             d.language             ?? '',
+        });
+        break;
+      }
     }
   }
 
@@ -246,19 +238,19 @@ export class ProductFormComponent implements OnInit {
     }
 
     const { productType, general, categoryDetails } = this.form.value;
+
     const product = {
-      productType,
       ...general,
+      productType,
       typeDetails: categoryDetails,
       ...(this.product?.productId ? { productId: this.product.productId } : {}),
+      ...(this.product?.status    ? { status:    this.product.status }    : {}),
     } as Product;
 
-    document.body.style.overflow = '';
     this.submitted.emit(product);
   }
 
   onCancel(): void {
-    document.body.style.overflow = '';
     this.cancelled.emit();
   }
 }

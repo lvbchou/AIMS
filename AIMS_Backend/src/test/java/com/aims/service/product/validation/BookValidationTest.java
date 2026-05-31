@@ -1,14 +1,11 @@
 package com.aims.service.product.validation;
 
-import com.aims.dto.ProductInfoDTO;
+import com.aims.dto.product.BookInfoDTO;
 import com.aims.exception.InvalidProductInfoException;
-import com.aims.repository.ProductRepository;
-import com.aims.service.ProductService;
+import com.aims.service.validator.BookValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDate;
 
@@ -16,23 +13,19 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class BookValidationTest {
 
-    @Mock
-    private ProductRepository productRepository;
-
-    private ProductService productService;
+    private BookValidator bookValidator;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-        productService = new ProductService(productRepository);
+        bookValidator = new BookValidator();
     }
 
     // =========================================================
     // FACTORY METHOD
     // =========================================================
 
-    private ProductInfoDTO buildValidBookDTO() {
-        ProductInfoDTO dto = new ProductInfoDTO();
+    private BookInfoDTO buildValidBookDTO() {
+        BookInfoDTO dto = new BookInfoDTO();
 
         // Common required fields
         dto.setProductType("BOOK");
@@ -74,23 +67,17 @@ class BookValidationTest {
         // covers: all required fields valid, optional fields null
         // coverType = Paperback
         @Test
-        void validBook_Paperback_shouldReturnTrue() {
-            ProductInfoDTO dto = buildValidBookDTO();
-
-            boolean result = productService.validateProductInfo(dto);
-
-            assertTrue(result);
+        void validBook_Paperback_shouldNotThrow() {
+            BookInfoDTO dto = buildValidBookDTO();
+            assertDoesNotThrow(() -> bookValidator.validate(dto));
         }
 
         // covers: coverType = Hardcover (second valid value)
         @Test
-        void validBook_Hardcover_shouldReturnTrue() {
-            ProductInfoDTO dto = buildValidBookDTO();
+        void validBook_Hardcover_shouldNotThrow() {
+            BookInfoDTO dto = buildValidBookDTO();
             dto.setCoverType("Hardcover");
-
-            boolean result = productService.validateProductInfo(dto);
-
-            assertTrue(result);
+            assertDoesNotThrow(() -> bookValidator.validate(dto));
         }
 
         // -----------------------------------------------------
@@ -100,12 +87,12 @@ class BookValidationTest {
         // covers: author = null
         @Test
         void nullAuthor_shouldThrowException() {
-            ProductInfoDTO dto = buildValidBookDTO();
+            BookInfoDTO dto = buildValidBookDTO();
             dto.setAuthor(null);
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> bookValidator.validate(dto));
 
             assertEquals("Author is required for Book", ex.getMessage());
         }
@@ -113,12 +100,12 @@ class BookValidationTest {
         // covers: author = empty string
         @Test
         void emptyAuthor_shouldThrowException() {
-            ProductInfoDTO dto = buildValidBookDTO();
+            BookInfoDTO dto = buildValidBookDTO();
             dto.setAuthor("");
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> bookValidator.validate(dto));
 
             assertEquals("Author is required for Book", ex.getMessage());
         }
@@ -130,12 +117,12 @@ class BookValidationTest {
         // covers: coverType = null
         @Test
         void nullCoverType_shouldThrowException() {
-            ProductInfoDTO dto = buildValidBookDTO();
+            BookInfoDTO dto = buildValidBookDTO();
             dto.setCoverType(null);
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> bookValidator.validate(dto));
 
             assertEquals("Cover type is required for Book", ex.getMessage());
         }
@@ -143,12 +130,12 @@ class BookValidationTest {
         // covers: coverType = empty string
         @Test
         void emptyCoverType_shouldThrowException() {
-            ProductInfoDTO dto = buildValidBookDTO();
+            BookInfoDTO dto = buildValidBookDTO();
             dto.setCoverType("");
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> bookValidator.validate(dto));
 
             assertEquals("Cover type is required for Book", ex.getMessage());
         }
@@ -156,16 +143,14 @@ class BookValidationTest {
         // covers: coverType = invalid value (not Paperback or Hardcover)
         @Test
         void invalidCoverType_shouldThrowException() {
-            ProductInfoDTO dto = buildValidBookDTO();
+            BookInfoDTO dto = buildValidBookDTO();
             dto.setCoverType("Spiral");
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> bookValidator.validate(dto));
 
-            assertEquals(
-                    "Cover type must be Paperback or Hardcover",
-                    ex.getMessage());
+            assertEquals("Cover type must be Paperback or Hardcover", ex.getMessage());
         }
 
         // -----------------------------------------------------
@@ -175,12 +160,12 @@ class BookValidationTest {
         // covers: publisher = null
         @Test
         void nullPublisher_shouldThrowException() {
-            ProductInfoDTO dto = buildValidBookDTO();
+            BookInfoDTO dto = buildValidBookDTO();
             dto.setPublisher(null);
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> bookValidator.validate(dto));
 
             assertEquals("Publisher is required for Book", ex.getMessage());
         }
@@ -188,12 +173,12 @@ class BookValidationTest {
         // covers: publisher = empty string
         @Test
         void emptyPublisher_shouldThrowException() {
-            ProductInfoDTO dto = buildValidBookDTO();
+            BookInfoDTO dto = buildValidBookDTO();
             dto.setPublisher("");
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> bookValidator.validate(dto));
 
             assertEquals("Publisher is required for Book", ex.getMessage());
         }
@@ -205,16 +190,14 @@ class BookValidationTest {
         // covers: publicationDate = null
         @Test
         void nullPublicationDate_shouldThrowException() {
-            ProductInfoDTO dto = buildValidBookDTO();
+            BookInfoDTO dto = buildValidBookDTO();
             dto.setPublicationDate(null);
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> bookValidator.validate(dto));
 
-            assertEquals(
-                    "Publication date is required for Book",
-                    ex.getMessage());
+            assertEquals("Publication date is required for Book", ex.getMessage());
         }
 
         // -----------------------------------------------------
@@ -224,38 +207,35 @@ class BookValidationTest {
         // covers: pages = negative (invalid)
         @Test
         void negativePages_shouldThrowException() {
-            ProductInfoDTO dto = buildValidBookDTO();
+            BookInfoDTO dto = buildValidBookDTO();
             dto.setPages(-234);
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> bookValidator.validate(dto));
 
-            assertEquals("Pages value must be positive", ex.getMessage());
+            assertEquals("Pages must be positive", ex.getMessage());
         }
 
         // covers: pages = 0 (lower boundary — invalid)
         @Test
         void zeroPages_shouldThrowException() {
-            ProductInfoDTO dto = buildValidBookDTO();
+            BookInfoDTO dto = buildValidBookDTO();
             dto.setPages(0);
 
             InvalidProductInfoException ex = assertThrows(
                     InvalidProductInfoException.class,
-                    () -> productService.validateProductInfo(dto));
+                    () -> bookValidator.validate(dto));
 
-            assertEquals("Pages value must be positive", ex.getMessage());
+            assertEquals("Pages must be positive", ex.getMessage());
         }
 
         // covers: pages = 1 (lower boundary + 1 — valid)
         @Test
-        void onePages_shouldReturnTrue() {
-            ProductInfoDTO dto = buildValidBookDTO();
+        void onePages_shouldNotThrow() {
+            BookInfoDTO dto = buildValidBookDTO();
             dto.setPages(1);
-
-            boolean result = productService.validateProductInfo(dto);
-
-            assertTrue(result);
+            assertDoesNotThrow(() -> bookValidator.validate(dto));
         }
     }
 }

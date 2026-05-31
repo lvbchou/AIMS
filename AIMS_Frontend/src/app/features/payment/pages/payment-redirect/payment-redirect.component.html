@@ -1,0 +1,65 @@
+<!-- ============================================================
+  payment-redirect.component.html
+  Spec: Main (1728×1044) → Container (896×612) → Editorial Layout
+  ============================================================ -->
+
+<div class="redirect-main">
+  <div class="redirect-container">
+
+    <!-- §3 Asymmetric / Editorial Layout (896×612, position:relative) -->
+    <div class="redirect-layout">
+
+      <!-- §4 High-end "Loading" Visual : margin  [top:80, left:400, 96×144] -->
+      <div class="loading-margin">
+
+        <!-- §5 High-end "Loading" Visual (96×96) -->
+        <div class="loading-visual">
+
+          <!-- §5.1 Border (96×96, border-radius:12, border:#E4BEBA33) -->
+          <div class="loading-border">
+            <!-- §5.1.1 HorizontalBorder – spinner arc (64×64, border-top:#AF101A) -->
+            <div class="loading-arc"></div>
+          </div>
+
+          <!-- §5.2 Container/instance (96×96) – icon overlay -->
+          <div class="loading-icon-container">
+            <!-- §5.2.1 Container (20×26.25) -->
+            <div class="loading-icon-inner">
+              <!-- §5.2.1.1 Icon -->
+              <span class="material-icons loading-icon">lock</span>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- /loading-margin -->
+
+      <!-- §7 Heading 1 : margin  [top:224, left:129.17, 640×84] -->
+      <div class="heading-margin">
+        <!-- §7.1 Heading 1 (640×60) -->
+        <div class="heading-wrap">
+          <!-- §7.1.1 Text – "..." animated, không quay arc -->
+          <h1 class="redirect-title">
+            Redirecting to PayPal<span class="dots"
+              ><span>.</span><span>.</span><span>.</span></span>
+          </h1>
+        </div>
+      </div>
+
+      <!-- §6 Margin / Text wrapper  [top:308, left:-0.72, 897×104] -->
+      <div class="text-margin">
+        <!-- §6.1 Text -->
+        <p class="redirect-subtitle">
+          Your secure payment session is being prepared.
+          Please do not refresh the page or click the back button.
+        </p>
+      </div>
+
+    </div><!-- /redirect-layout -->
+  </div><!-- /redirect-container -->
+
+  <!-- Cancel (outside spec tree, needed for UX) -->
+  <button class="redirect-cancel" (click)="cancel()" type="button">
+    Cancel and go back
+  </button>
+
+</div>
