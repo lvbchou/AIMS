@@ -2,6 +2,12 @@
 // Cohesion Level: Functional Cohesion
 // Reason for Coupling: Its constructor accepts only basic primitive string attributes (amount, currency, urls) and produces a JSON string, ensuring it doesn't couple with domain models like Invoice or Order.
 // Reason for Cohesion: Every field and method within this class strictly cooperates to format and serialize the JSON payload structure required by PayPal's Create Order API.
+/**
+ * SOLID Principles Analysis:
+ * - **SRP (Single Responsibility Principle) Violation**: The class constructs its own JSON representation through `toJsonString()` using manual Jackson tree nodes. A DTO should only represent the data structure; serialization should be handled by the client or HTTP utility layers.
+ * 
+ * **Improvement Direction**: Use a standard JSON serialization library or let `PayPalBoundary` serialize the instance automatically using its JSON converter.
+ */
 package com.aims.subsystem.paypal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -15,6 +15,28 @@
                    to call (filterProductsByPriceRange vs searchProduct). The flow of
                    execution is controlled by a flag — this is control coupling.
 */
+
+/*
+ProductController .searchAndFilterProduct(): OCP-VIOLATE
+- Description: Routing between SearchProduct and FilterProduct is controlled by an inline conditional (priceRange != null). 
+               Adding a new filter dimension (e.g., sort order, date range) requires modifying this method. 
+- Improvement: Introduce a ProductSearchRequest value object that carries all filter parameters. 
+               Dispatch to a single service method; 
+               the service decides internally how to combine filters without the controller branching.               
+*/
+
+/*
+ProductController => ProductService: ISP-VIOLATE
+- Description: ProductController depends on the full concrete ProductService class with no interface boundary. 
+               Read-only endpoints (viewProduct, searchProduct, filterProductsByPriceRange, getAllProducts) never call command methods (saveProduct, updateProduct, deleteProduct), 
+               yet they are declared in the same class that injects a dependency exposing all of them.
+               If ProductController is later split into separate read/write controllers,
+               each would be forced to depend on the full service — including methods it never calls.
+- Improvement: Extract IProductQueryService (viewProduct, getAllProducts, getProductsByIds, searchProduct, filterProductsByPriceRange) 
+               and IProductCommandService (saveProduct, updateProduct, deleteProduct, deleteManyProducts).
+               Each controller injects only the interface it actually uses, eliminating unnecessary method dependencies.
+*/
+
 package com.aims.controller;
 
 import com.aims.dto.product.ProductInfoDTO;
@@ -43,17 +65,23 @@ public class ProductController {
     // GET ALL PRODUCT
     @GetMapping
     public Page<ProductSummaryDTO> getAllProducts(
-            @RequestParam(defaultValue = "0")  int page,
+            @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "title") String sortBy,
-            @RequestParam(defaultValue = "asc")  String sortDir
-    ) {
+            @RequestParam(defaultValue = "asc") String sortDir) {
         Sort sort = sortDir.equalsIgnoreCase("asc")
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
         return productService.getAllProducts(pageable);
     }
+
+    @GetMapping("/batch")
+    public List<ProductSummaryDTO> getItemByIds(
+            @RequestParam List<Integer> ids) {
+        return productService.getProductsByIds(ids);
+    }
+
     /**
      * POST /api/products
      * createProduct(product: Product): void
@@ -102,7 +130,7 @@ public class ProductController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String priceRange,
-            @RequestParam(defaultValue = "0")  int page,
+            @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
         Pageable pageable = PageRequest.of(page, size);

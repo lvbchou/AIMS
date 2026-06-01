@@ -1,3 +1,10 @@
+/**
+ * SOLID Principles Analysis:
+ * - **SRP (Single Responsibility Principle) Violation**: The class is named `PaymentResult` (sounding generic), but its comments and internal context couple it specifically to the "VietQR callback outcome".
+ * - **OCP (Open/Closed Principle) Violation**: If a new payment subsystem needs to process callback results, developers must either modify this class or create duplicate classes with similar names.
+ * 
+ * **Improvement Direction**: Rename this class to `VietQrPaymentResult` and place it in the `vietqr` subsystem package, or transform it into a generic result interface that different gateways can implement.
+ */
 package com.aims.entity;
 
 /**

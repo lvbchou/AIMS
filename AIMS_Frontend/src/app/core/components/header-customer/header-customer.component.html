@@ -1,0 +1,31 @@
+<header class="aims-header">
+  <div class="header-inner">
+    <a class="logo" routerLink="/">AIMS</a>
+
+    <nav class="nav">
+      <a class="nav-link active" routerLink="/"        routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" (click)="setActive($event)">Home</a>
+      <a class="nav-link"        routerLink="/products" routerLinkActive="active" (click)="setActive($event)">Products</a>
+    </nav>
+
+    <div class="search-box">
+      <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <circle cx="11" cy="11" r="7"/>
+        <path d="M16.5 16.5l4 4" stroke-linecap="round"/>
+      </svg>
+      <input type="text" placeholder="Search products" (keyup)="onSearch($event)" />
+    </div>
+
+    <div class="spacer"></div>
+
+    <a class="cart-btn" routerLink="/cart">
+      <svg class="icon-cart" width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="9"  cy="21" r="1"/>
+        <circle cx="20" cy="21" r="1"/>
+        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+      </svg>
+      <span class="cart-label">Cart</span>
+      <span class="cart-badge" *ngIf="cartCount > 0">{{ cartCount }}</span>
+    </a>
+  </div>
+</header>

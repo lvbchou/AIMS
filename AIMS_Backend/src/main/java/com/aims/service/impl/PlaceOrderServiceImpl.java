@@ -1,3 +1,36 @@
+/*
+ * LAB12 SOLID REVIEW:
+ * Violated principles:
+ * - SRP: this class handles session cart retrieval, request-to-domain
+ *   conversion, product availability validation, VAT/shipping calculations,
+ *   order/delivery/invoice persistence, invoice response mapping, and stock
+ *   deduction. The createInvoice method also validates input, computes prices,
+ *   creates persisted domain objects, and maps the response. The confirmPaidOrder
+ *   method mixes payment-state checks, inventory update, order status update,
+ *   session cleanup, and response mapping.
+ * - OCP: pricing and shipping rules are hard-coded in private methods and
+ *   constants. VAT, free-shipping discount, province classification, base
+ *   shipping fee, and weight-step fee are embedded in this class. Adding rush
+ *   delivery, a new province group, a new discount, or a different VAT policy
+ *   requires modifying this class.
+ * - DIP: the implementation depends directly on HttpSession and concrete JPA
+ *   repositories instead of smaller application ports for cart storage, product
+ *   lookup, pricing, shipping, inventory, and persistence orchestration.
+ * Impact: the class becomes difficult to test in isolation, has high change
+ * risk, and creates merge conflicts when several team members work on shared
+ * Place Order behavior.
+ * Improvement directions:
+ * - SRP solution: extract CartSessionAdapter, ProductAvailabilityService,
+ *   OrderCreationService, InventoryService, OrderStatusService, and InvoiceMapper
+ *   so each class has one clear reason to change.
+ * - OCP solution: move VAT, discount, and shipping formulas behind PricingService,
+ *   VatPolicy, DiscountPolicy, and ShippingFeePolicy strategies so new pricing
+ *   rules can be added without editing this class.
+ * - DIP solution: depend on application-level ports such as CartStore,
+ *   ProductCatalogPort, OrderPersistencePort, InvoicePersistencePort, and
+ *   InventoryPort instead of HttpSession and concrete Spring Data repositories.
+ * Keep this class as a small orchestration service that depends on abstractions.
+ */
 package com.aims.service.impl;
 
 import com.aims.dto.Cart;
@@ -97,8 +130,7 @@ public class PlaceOrderServiceImpl implements PlaceOrderService {
         delivery.setNote(trimToNull(deliveryInfoRequest.getNote()));
         deliveryRepository.saveAndFlush(delivery);
 
-        Invoice invoice = new Invoice();
-        invoice.setOrder(order);
+        Invoice invoice = new Invoice(order);
         invoice.setSubTotalExVAT(pricing.subtotalExVat());
         invoice.setSubTotalIncVAT(pricing.subtotalIncVat());
         invoice.setShippingFee(pricing.shippingFee());

@@ -24,9 +24,10 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))  // JWT không dùng session
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/api/**").permitAll()
                         .requestMatchers("/api/products/**").permitAll() // customer xem được
-                        .requestMatchers("/api/stock/**").hasAnyAuthority("MANAGER", "ADMIN")
-                        .requestMatchers("/api/**").hasAnyAuthority("MANAGER", "ADMIN")
+                        .requestMatchers("/api/product-manager/**").hasAnyAuthority("MANAGER")
+                        .requestMatchers("/api/admin/**").hasAnyAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);  // thêm JWT filter

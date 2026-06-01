@@ -1,3 +1,12 @@
+/**
+ * SOLID Principles Analysis:
+ * - **SRP (Single Responsibility Principle) Violation**: The controller performs domain instantiation and business logic (creating `Cart`, `Order`, `Invoice`, configuring shipping fees, updating repositories) instead of delegating to a dedicated service or domain factory.
+ * - **DIP (Dependency Inversion Principle) Violation**: Tightly couples to the concrete service class `PayThroughPaymentGatewayService` instead of depending on an abstract service interface.
+ * 
+ * **Improvement Direction**:
+ * 1. Move all entity creation, shipping calculations, and repository updates out of the controller into the service layer or a dedicated factory class.
+ * 2. Depend on abstract interfaces rather than concrete service classes.
+ */
 package com.aims.controller;
 
 import com.aims.dto.PaymentCompleteRequest;
@@ -21,7 +30,6 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/payment")
-@CrossOrigin(origins = "*") // Allows Angular frontend (port 4200) to connect
 public class PayThroughPaymentGatewayController {
 
     private final PayThroughPaymentGatewayService paymentService;

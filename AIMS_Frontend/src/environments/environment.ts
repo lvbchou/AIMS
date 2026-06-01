@@ -1,7 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: '/api'
-  apiBaseUrl: 'http://localhost:8080/api',
+  apiUrl: '/api',
   vietqr: {
     baseUrl: 'https://api.vietqr.io',
     clientId: 'customer-testaimvd-user26586',

@@ -6,6 +6,7 @@ export interface ProductSummary {
   productType: ProductType;
   sellingPrice: number;
   image?: string;
+  quantityInStock?: number;
 }
 
 // ── Base ──────────────────────────────────────────────────────────────────────

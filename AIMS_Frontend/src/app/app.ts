@@ -1,18 +1,13 @@
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { Header } from './components/header/header';
-import { Footer } from './components/footer/footer';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Header, Footer],
+  standalone: true,
+  imports: [RouterOutlet],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.scss'
 })
-/**
- * Coupling: Data coupling through Angular routing and focused layout components.
- * Cohesion: Functional cohesion because it provides the application layout shell.
- */
 export class App {
-  protected readonly title = signal('frontend');
+  protected title = 'AIMS';
 }

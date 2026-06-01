@@ -1,3 +1,13 @@
+/*
+ * LAB12 SOLID REVIEW:
+ * Potential SRP issue: Invoice is a persistence entity but also stores and
+ * mutates a transient calculated total. The Place Order service separately
+ * calculates invoice totals, so pricing responsibility is split between the
+ * entity and service layer.
+ * Impact: duplicate total-calculation logic can become inconsistent.
+ * Improvement direction: keep Invoice as a state holder and move total/VAT
+ * calculation to a dedicated PricingService or InvoiceTotalCalculator.
+ */
 package com.aims.entity;
 
 import lombok.Data;
@@ -12,8 +22,6 @@ import java.util.UUID;
 @Entity
 @Table(name = "invoice")
 @Data
-@Getter
-@Setter
 @NoArgsConstructor
 public class Invoice {
 

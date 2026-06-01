@@ -1,7 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
 import { PaymentValidatingComponent } from './payment-validating.component';
 import { PaymentMockService } from '../../services/payment-mock.service';
+import { VietQRPaymentService } from '../../services/vietqr-payment.service';
+import { CartService } from '../../../cart/services/cart.service';
+import { OrderService } from '../../../order/services/order.service';
 
 describe('PaymentValidatingComponent', () => {
   let component: PaymentValidatingComponent;
@@ -11,7 +15,13 @@ describe('PaymentValidatingComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [PaymentValidatingComponent],
-      providers: [PaymentMockService],
+      providers: [
+        PaymentMockService,
+        VietQRPaymentService,
+        CartService,
+        OrderService,
+        provideHttpClient(),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(PaymentValidatingComponent);
@@ -51,23 +61,24 @@ describe('PaymentValidatingComponent', () => {
 
   it('should render title', () => {
     fixture.detectChanges();
-    const title = fixture.nativeElement.querySelector('.validating-card__title');
-    expect(title?.textContent).toContain('Đang xác thực thanh toán');
+    const title = fixture.nativeElement.querySelector('.validating-page__title');
+    expect(title?.textContent).toContain('Validating Payment Results');
   });
 
   it('should render loading animation', () => {
     fixture.detectChanges();
-    const hourglass = fixture.nativeElement.querySelector('.validating-card__hourglass');
-    expect(hourglass).toBeTruthy();
+    const iconBox = fixture.nativeElement.querySelector('.validating-page__icon-box');
+    expect(iconBox).toBeTruthy();
   });
 
-  it('should render loading dots', () => {
+  // Skip elements that are no longer part of the single-card layout
+  xit('should render loading dots', () => {
     fixture.detectChanges();
     const dots = fixture.nativeElement.querySelectorAll('.loading-dot');
     expect(dots.length).toBe(3);
   });
 
-  it('should render progress bar', () => {
+  xit('should render progress bar', () => {
     fixture.detectChanges();
     const progress = fixture.nativeElement.querySelector('.validating-card__progress');
     expect(progress).toBeTruthy();

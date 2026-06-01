@@ -27,6 +27,8 @@ public class OrderConfirmationDTO {
     private long totalAmountToBePaid;
     private String transactionId;
     private String transactionContent;
+    /** Tên ngắn gọn của đơn hàng — hiển thị trên trang success. */
+    private String orderName;
     /** Format DD/MM/YYYY HH:MM:SS per UC003 Table 3. */
     private String transactionDatetimeDisplay;
 }

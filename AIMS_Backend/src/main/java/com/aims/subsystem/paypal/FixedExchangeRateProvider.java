@@ -2,6 +2,12 @@
 // Cohesion Level: Functional Cohesion
 // Reason for Coupling: Its operations depend only on standard types like String and BigDecimal, with no references to other subsystem classes.
 // Reason for Cohesion: All attributes (in-memory rates map) and methods (setRate, getExchangeRate) are entirely aligned around managing local currency exchange rates.
+/**
+ * SOLID Principles Analysis:
+ * - **OCP (Open/Closed Principle) Adherence & Limitation**: Implements the abstraction correctly, but hardcodes rate conversions in the constructor.
+ * 
+ * **Improvement Direction**: Load default rate values from configuration properties or database settings to make it fully open for extension without recompiling.
+ */
 package com.aims.subsystem.paypal;
 
 import java.math.BigDecimal;

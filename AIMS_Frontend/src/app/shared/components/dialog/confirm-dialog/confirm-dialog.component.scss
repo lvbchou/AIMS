@@ -1,0 +1,99 @@
+:host {
+  display: contents;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 2001;
+}
+
+.dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2002;
+  width: 340px;
+  max-width: 94vw;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 20px 20px 16px;
+}
+
+.icon-wrap {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #FDECEA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialog-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dialog-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111111;
+  margin: 0;
+}
+
+.dialog-message {
+  font-size: 13px;
+  color: #555555;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.dialog-footer {
+  display: flex;
+  gap: 8px;
+  padding: 0 20px 20px;
+}
+
+.btn-cancel {
+  flex: 1;
+  background: none;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  color: #333333;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover { background: #f5f5f5; }
+}
+
+.btn-delete {
+  flex: 1;
+  background: #D32F2F;
+  border: none;
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover { background: #AF101A; }
+}

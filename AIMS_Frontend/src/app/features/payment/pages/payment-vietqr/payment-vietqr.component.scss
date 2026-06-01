@@ -20,72 +20,6 @@ $border: #EEEEEE;
   font-family: 'Manrope', 'Inter', 'Roboto', sans-serif;
 }
 
-// ── Stepper ──────────────────────────────────────────────────
-.stepper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 36px;
-
-  &__step {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    &--done .stepper__circle {
-      background: #e0e0e0;
-      color: #aaa;
-    }
-
-    &--done .stepper__label {
-      color: #aaa;
-    }
-
-    &--active .stepper__label {
-      color: $red;
-    }
-  }
-
-  &__circle {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #e0e0e0;
-    color: #aaa;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    flex-shrink: 0;
-
-    &--active {
-      background: $red;
-      color: #fff;
-    }
-  }
-
-  &__label {
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.07em;
-    color: #aaa;
-    text-transform: uppercase;
-
-    &--active {
-      color: $red;
-    }
-  }
-
-  &__line {
-    width: 72px;
-    height: 1px;
-    background: #e0e0e0;
-    margin: 0 14px;
-  }
-}
-
 // ── Layout grid ──────────────────────────────────────────────
 // Spec: QR panel = column-span 6 of 12-col grid → ~698px wide
 .payment-grid {
@@ -376,42 +310,63 @@ font-family: 'Manrope', sans-serif;
 
 // ── PayPal card ──────────────────────────────────────────────
 .paypal-card {
-  background: $teal;
-  border-radius: 12px;
-  padding: 18px 20px;
   display: flex;
-  align-items: center;
-  gap: 16px;
+  align-items: stretch;
   cursor: pointer;
-  transition: background 0.18s ease;
+  transition: all 0.18s ease;
   outline: none;
+  border: 1.5px solid #0a7c9d;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 
   &:hover,
   &:focus-visible {
-    background: #004d63;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+
+    .paypal-card__body {
+      background: #006883;
+    }
+  }
+
+  &__icon-box {
+    background: #ffffff;
+    width: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-right: 1.5px solid #0a7c9d;
   }
 
   &__icon {
-    color: #fff;
-    font-size: 22px;
-    flex-shrink: 0;
+    font-family: 'Material Icons' !important;
+    color: #4a3734; // dark charcoal/brown like in the image
+    font-size: 32px; // large scale as shown in the image
+    display: block;
   }
 
   &__body {
+    background: #0a7c9d;
+    flex: 1;
+    padding: 16px 20px;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    justify-content: center;
+    gap: 4px;
+    transition: background 0.18s ease;
   }
 
   &__title {
-    color: #fff;
-    font-size: 14px;
+    color: #ffffff;
+    font-size: 20px;
     font-weight: 700;
+    line-height: 1.2;
   }
 
   &__sub {
-    color: rgba(255, 255, 255, 0.72);
-    font-size: 12px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
     font-weight: 400;
     line-height: 1.4;
   }

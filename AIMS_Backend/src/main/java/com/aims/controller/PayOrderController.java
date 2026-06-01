@@ -29,7 +29,6 @@ import com.aims.service.PayOrderService;
  */
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*")
 public class PayOrderController {
 
     private final PayOrderService payOrderService;
@@ -76,6 +75,31 @@ public class PayOrderController {
                 "transactionId", transactionId,
                 "status", success ? "COMPLETED" : "PENDING"
         ));
+    }
+
+    /**
+     * Triggers a test callback to the real VietQR Sandbox API to simulate a successful payment.
+     * VietQR will then call back our transaction-sync endpoint.
+     *
+     * @param orderId order identifier.
+     * @return result of the test callback.
+     */
+    @PostMapping("/orders/{orderId}/pay/vietqr/test-callback")
+    public ResponseEntity<?> triggerVietQRTestCallback(@PathVariable String orderId) {
+        java.util.Map<String, Object> result = payOrderService.triggerVietQRTestCallback(orderId);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Returns the payment status for an order by looking up its latest transaction.
+     *
+     * @param orderId order identifier.
+     * @return a JSON map with success, transactionId, and status.
+     */
+    @GetMapping("/orders/{orderId}/pay/status")
+    public ResponseEntity<?> getOrderPaymentStatus(@PathVariable String orderId) {
+        java.util.Map<String, Object> result = payOrderService.getOrderPaymentStatus(orderId);
+        return ResponseEntity.ok(result);
     }
 
     /**

@@ -2,6 +2,12 @@
 // Cohesion Level: Functional Cohesion
 // Reason for Coupling: It is stamp-coupled to the custom DTO CreateOrderRequest in createOrder since it receives the custom request object as a parameter. It is data-coupled via simple strings for access tokens and order IDs.
 // Reason for Cohesion: The class acts exclusively as the HTTP network client for the external PayPal API, with all of its methods serving to make outbound API requests (OAuth, create order, capture order).
+/**
+ * SOLID Principles Analysis:
+ * - **DIP (Dependency Inversion Principle) Violation**: Directly instantiates the concrete `HttpClient` in the constructor. This reduces mockability during unit testing and prevents client reuse.
+ * 
+ * **Improvement Direction**: Inject the `HttpClient` (or a configured HTTP manager interface) through the constructor.
+ */
 package com.aims.subsystem.paypal;
 
 import java.net.URI;

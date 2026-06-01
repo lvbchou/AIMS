@@ -21,6 +21,9 @@ import com.aims.repository.OrderItemRepository;
 import com.aims.repository.OrderRepository;
 import com.aims.repository.PaymentTransactionRepository;
 import com.aims.subsystem.IPaymentQRCode;
+import com.aims.subsystem.vietqr.VietQRController;
+import com.aims.subsystem.vietqr.VietQRBoundary;
+import com.aims.subsystem.vietqr.QRAccessTokenRequest;
 
 /**
  * Coupling level: Data Coupling.
@@ -42,6 +45,8 @@ public class PayOrderService {
     private final OrderItemRepository orderItemRepository;
     private final PaymentTransactionRepository paymentTransactionRepository;
     private final IPaymentQRCode paymentQRCode;
+    private final VietQRController vietQRController;
+    private final VietQRBoundary vietQRBoundary;
 
     public PayOrderService(
             OrderRepository orderRepository,
@@ -49,13 +54,17 @@ public class PayOrderService {
             DeliveryRepository deliveryRepository,
             OrderItemRepository orderItemRepository,
             PaymentTransactionRepository paymentTransactionRepository,
-            IPaymentQRCode paymentQRCode) {
+            IPaymentQRCode paymentQRCode,
+            VietQRController vietQRController,
+            VietQRBoundary vietQRBoundary) {
         this.orderRepository = orderRepository;
         this.invoiceRepository = invoiceRepository;
         this.deliveryRepository = deliveryRepository;
         this.orderItemRepository = orderItemRepository;
         this.paymentTransactionRepository = paymentTransactionRepository;
         this.paymentQRCode = paymentQRCode;
+        this.vietQRController = vietQRController;
+        this.vietQRBoundary = vietQRBoundary;
     }
 
     /**
@@ -132,14 +141,14 @@ public class PayOrderService {
             .orElseThrow(() -> new com.aims.exception.OrderNotPayableException("delivery missing"));
 
         // if already paid
-        if (paymentTransactionRepository.existsByInvoiceIdAndStatus(invoice.getInvoiceId(), TransactionStatus.SUCCESS)) {
+        if (paymentTransactionRepository.existsByInvoiceIdAndStatus(invoice.getInvoiceId(), TransactionStatus.success)) {
             throw new com.aims.exception.PaymentAlreadyCompletedException(invoice.getInvoiceId());
         }
 
         // reuse existing pending
         java.util.Optional<com.aims.entity.PaymentTransaction> existing =
             paymentTransactionRepository.findFirstByInvoiceIdAndStatusOrderByTransactionTimeDesc(
-                invoice.getInvoiceId(), TransactionStatus.PENDING);
+                invoice.getInvoiceId(), TransactionStatus.pending);
 
         com.aims.entity.PaymentTransaction txnToReturn;
         if (existing.isPresent()) {
@@ -164,6 +173,7 @@ public class PayOrderService {
             .qrCodeImageBase64(qrCode.getQrCode())
             .vietQrReference(qrCode.getQrLink())
             .totalAmountToBePaid(invoice.getSubTotalIncVAT() + invoice.getShippingFee())
+            .content(qrCode.getContent())
             .build();
 
         return resp;
@@ -189,18 +199,18 @@ public class PayOrderService {
 
         java.util.Optional<com.aims.entity.PaymentTransaction> successTxn =
                 paymentTransactionRepository.findFirstByInvoiceIdAndStatusOrderByTransactionTimeDesc(
-                        invoice.getInvoiceId(), TransactionStatus.SUCCESS);
+                        invoice.getInvoiceId(), TransactionStatus.success);
         if (successTxn.isPresent()) {
             return successTxn.get().getTransactionId();
         }
 
         com.aims.entity.PaymentTransaction txn = paymentTransactionRepository
                 .findFirstByInvoiceIdAndStatusOrderByTransactionTimeDesc(
-                        invoice.getInvoiceId(), TransactionStatus.PENDING)
+                        invoice.getInvoiceId(), TransactionStatus.pending)
                 .orElseThrow(() -> new com.aims.exception.PaymentTransactionNotFoundException(
                         "no pending transaction for order " + orderId));
 
-        txn.setStatus(TransactionStatus.SUCCESS);
+        txn.setStatus(TransactionStatus.success);
         txn.setTransactionTime(transactionTimeMillis == null ? LocalDateTime.now() : LocalDateTime.ofEpochSecond(transactionTimeMillis / 1000,
                 (int) ((transactionTimeMillis % 1000) * 1_000_000),
                 java.time.ZoneOffset.UTC));
@@ -233,7 +243,7 @@ public class PayOrderService {
 
         PaymentTransaction txn = paymentTransactionRepository
                 .findFirstByInvoiceIdAndStatusOrderByTransactionTimeDesc(
-                        invoice.getInvoiceId(), TransactionStatus.PENDING)
+                        invoice.getInvoiceId(), TransactionStatus.pending)
                 .orElseThrow(() -> new com.aims.exception.PaymentTransactionNotFoundException(
                         "no pending transaction for order " + orderId));
 
@@ -244,6 +254,41 @@ public class PayOrderService {
                 .amount(0)
                 .build();
         handleVietQrPaymentCallback(dto);
+    }
+
+    /**
+     * Simulates a successful VietQR payment callback by directly completing the
+     * payment transaction in the database — exactly what the real transaction-sync
+     * callback would do. This avoids E222 sandbox errors from dev.vietqr.org.
+     *
+     * @param orderId order identifier.
+     * @return result map with content, amount and transaction details.
+     */
+    @Transactional
+    public java.util.Map<String, Object> triggerVietQRTestCallback(String orderId) {
+        Invoice invoice = invoiceRepository.findByOrderOrderId(orderId)
+                .orElseThrow(() -> new com.aims.exception.InvoiceNotFoundException(orderId));
+
+        long amount = invoice.getSubTotalIncVAT() + invoice.getShippingFee();
+
+        // Build content the same way VietQRController does
+        String safeOrderId = orderId.replace("-", "");
+        if (safeOrderId.length() > 13) {
+            safeOrderId = safeOrderId.substring(safeOrderId.length() - 13);
+        }
+        String content = "Order " + safeOrderId;
+
+        // Directly complete the payment — same logic transaction-sync would trigger
+        String transactionId = completeVietQrPayment(orderId, System.currentTimeMillis(), "MOCK-" + System.currentTimeMillis(), amount);
+
+        System.out.println("[VietQR MockCallback] completed transactionId=" + transactionId
+                + " for orderId=" + orderId + " content=" + content + " amount=" + amount);
+
+        return java.util.Map.of(
+                "transactionId", transactionId,
+                "content", content,
+                "amount", amount,
+                "status", "SUCCESS");
     }
 
     /**
@@ -265,12 +310,12 @@ public class PayOrderService {
                 .orElseThrow(() -> new com.aims.exception.PaymentTransactionNotFoundException(txnId));
 
         // idempotent if already success
-        if (TransactionStatus.SUCCESS.equals(txn.getStatus())) {
+        if (TransactionStatus.success.equals(txn.getStatus())) {
             return;
         }
 
         if ("SUCCESS".equals(normalized)) {
-            txn.setStatus(TransactionStatus.SUCCESS);
+            txn.setStatus(TransactionStatus.success);
             txn.setTransactionTime(LocalDateTime.now());
             paymentTransactionRepository.save(txn);
 
@@ -285,7 +330,7 @@ public class PayOrderService {
             }
         } else {
             // FAILED
-            txn.setStatus(TransactionStatus.FAILED);
+            txn.setStatus(TransactionStatus.failed);
             paymentTransactionRepository.save(txn);
         }
     }
@@ -299,8 +344,34 @@ public class PayOrderService {
     @Transactional(readOnly = true)
     public boolean isPaymentSuccessful(String transactionId) {
         return paymentTransactionRepository.findById(transactionId)
-                .map(t -> com.aims.constants.PaymentTransactionStatusValues.SUCCESS.equals(t.getStatus()))
+                .map(t -> com.aims.constants.PaymentTransactionStatusValues.SUCCESS.equals(t.getStatus() != null ? t.getStatus().name() : null))
                 .orElse(false);
+    }
+
+    /**
+     * Returns payment status for an order by checking its latest transaction.
+     * Used by the frontend to poll payment completion by orderId.
+     *
+     * @param orderId order identifier.
+     * @return map with success flag, transactionId, and status string.
+     */
+    @Transactional(readOnly = true)
+    public java.util.Map<String, Object> getOrderPaymentStatus(String orderId) {
+        java.util.Optional<Invoice> invoiceOpt = invoiceRepository.findByOrderOrderId(orderId);
+        if (invoiceOpt.isEmpty()) {
+            return java.util.Map.of("success", false, "status", "PENDING", "transactionId", "");
+        }
+        Invoice invoice = invoiceOpt.get();
+        java.util.Optional<PaymentTransaction> successTxn =
+                paymentTransactionRepository.findFirstByInvoiceIdAndStatusOrderByTransactionTimeDesc(
+                        invoice.getInvoiceId(), TransactionStatus.success);
+        if (successTxn.isPresent()) {
+            return java.util.Map.of(
+                    "success", true,
+                    "status", "COMPLETED",
+                    "transactionId", successTxn.get().getTransactionId());
+        }
+        return java.util.Map.of("success", false, "status", "PENDING", "transactionId", "");
     }
 
     /**
@@ -323,7 +394,7 @@ public class PayOrderService {
         // Return 404 if payment has not been confirmed yet — frontend can retry gracefully
         com.aims.entity.PaymentTransaction txn = paymentTransactionRepository
             .findFirstByInvoiceIdAndStatusOrderByTransactionTimeDesc(
-                invoice.getInvoiceId(), TransactionStatus.SUCCESS)
+                invoice.getInvoiceId(), TransactionStatus.success)
             .orElseThrow(() -> new com.aims.exception.PaymentTransactionNotFoundException(
                 "payment not yet confirmed for order " + orderId));
 
@@ -331,6 +402,18 @@ public class PayOrderService {
         ZonedDateTime zdt = txn.getTransactionTime()
                 .atZone(ZoneId.of("Asia/Ho_Chi_Minh"));
         String dt = zdt.format(fmt);
+
+        // Build human-readable order name from product titles
+        List<com.aims.entity.OrderItem> items = orderItemRepository.findByOrderOrderId(orderId);
+        String orderName;
+        if (items.isEmpty()) {
+            orderName = "Đơn hàng #" + orderId.replace("-", "").substring(Math.max(0, orderId.replace("-","").length() - 8)).toUpperCase();
+        } else {
+            String firstName = items.get(0).getProduct().getTitle();
+            orderName = items.size() > 1
+                    ? firstName + " và " + (items.size() - 1) + " sản phẩm khác"
+                    : firstName;
+        }
 
         OrderConfirmationDTO dto = OrderConfirmationDTO.builder()
             .customerName(delivery.getRecipientName())
@@ -340,6 +423,7 @@ public class PayOrderService {
             .totalAmountToBePaid(invoice.getSubTotalIncVAT() + invoice.getShippingFee())
             .transactionId(txn.getTransactionId())
             .transactionContent(txn.getContent())
+            .orderName(orderName)
             .transactionDatetimeDisplay(dt)
             .build();
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable, throwError, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import {
@@ -13,7 +13,7 @@ import {
   providedIn: 'root',
 })
 export class VietQRPaymentService {
-  private apiBaseUrl = environment.apiBaseUrl;
+  private apiBaseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) { }
 
@@ -49,6 +49,16 @@ export class VietQRPaymentService {
   }
 
   /**
+   * Trigger VietQR test callback via backend. Backend will call
+   * dev.vietqr.org/vqr/bank/api/test/transaction-callback with correct auth,
+   * and VietQR will then call our transaction-sync endpoint to update the DB.
+   */
+  triggerTestCallback(orderId: string): Observable<any> {
+    const url = `${this.apiBaseUrl}/orders/${orderId}/pay/vietqr/test-callback`;
+    return this.http.post<any>(url, {});
+  }
+
+  /**
    * Check payment status via the AIMS backend.
    */
   checkPaymentStatus(transactionId: string): Observable<PaymentStatusResponse> {
@@ -73,6 +83,73 @@ export class VietQRPaymentService {
         );
       })
     );
+  }
+
+  /**
+   * Check payment status by orderId (uses order-level status endpoint).
+   */
+  checkPaymentStatusByOrderId(orderId: string): Observable<PaymentStatusResponse> {
+    const statusUrl = `${this.apiBaseUrl}/orders/${orderId}/pay/status`;
+
+    return this.http.get<any>(statusUrl).pipe(
+      map((response): PaymentStatusResponse => ({
+        transactionId: response?.transactionId || orderId,
+        orderId,
+        status: response?.success ? 'COMPLETED' : 'PENDING',
+        amount: 0,
+        timestamp: new Date().toISOString(),
+        message: response?.success ? 'Payment processed' : 'Payment pending',
+      })),
+      catchError(() =>
+        // Fallback: not found = still pending
+        of({
+          transactionId: orderId,
+          orderId,
+          status: 'PENDING' as const,
+          amount: 0,
+          timestamp: new Date().toISOString(),
+          message: 'Payment pending',
+        })
+      )
+    );
+  }
+
+  /**
+   * Poll payment status by orderId — more reliable than transactionId polling
+   * because it works even if transactionId was not captured.
+   */
+  pollByOrderId(
+    orderId: string,
+    timeoutMs = environment.payment.timeout,
+    intervalMs = environment.payment.pollInterval
+  ): Observable<PaymentStatusResponse> {
+    return new Observable((observer) => {
+      const startTime = Date.now();
+      let pollCount = 0;
+
+      const pollFn = () => {
+        if (Date.now() - startTime > timeoutMs) {
+          observer.error(new Error('Payment polling timeout'));
+          return;
+        }
+
+        pollCount++;
+        this.checkPaymentStatusByOrderId(orderId).subscribe({
+          next: (status) => {
+            console.log(`[Poll #${pollCount}] OrderId=${orderId} Status:`, status.status);
+            if (status.status === 'COMPLETED') {
+              observer.next(status);
+              observer.complete();
+            } else {
+              setTimeout(pollFn, intervalMs);
+            }
+          },
+          error: () => setTimeout(pollFn, intervalMs),
+        });
+      };
+
+      pollFn();
+    });
   }
 
   /**

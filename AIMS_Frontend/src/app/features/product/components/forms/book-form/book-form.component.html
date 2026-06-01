@@ -1,0 +1,62 @@
+<section class="category-section" [formGroup]="form">
+  <h3 class="category-title">Category Details — Book</h3>
+
+  <div class="form-grid">
+
+    <div class="form-field">
+      <label>Author <span class="required">*</span></label>
+      <input type="text" formControlName="author"
+        [class.invalid]="form.get('author')?.invalid && form.get('author')?.touched" />
+      <span class="error-msg"
+        *ngIf="form.get('author')?.invalid && form.get('author')?.touched">
+        Author is required
+      </span>
+    </div>
+
+    <div class="form-field">
+      <label>Cover Type <span class="required">*</span></label>
+      <input type="text" formControlName="coverType"
+        [class.invalid]="form.get('coverType')?.invalid && form.get('coverType')?.touched" />
+      <span class="error-msg"
+        *ngIf="form.get('coverType')?.invalid && form.get('coverType')?.touched">
+        Cover type is required
+      </span>
+    </div>
+
+    <div class="form-field">
+      <label>Pages</label>
+      <input type="number" formControlName="pages" />
+    </div>
+
+    <div class="form-field">
+      <label>Genre</label>
+      <input type="text" formControlName="genre" />
+    </div>
+
+    <div class="form-field">
+      <label>Publisher <span class="required">*</span></label>
+      <input type="text" formControlName="publisher"
+        [class.invalid]="form.get('publisher')?.invalid && form.get('publisher')?.touched" />
+      <span class="error-msg"
+        *ngIf="form.get('publisher')?.invalid && form.get('publisher')?.touched">
+        Publisher is required
+      </span>
+    </div>
+
+    <div class="form-field">
+      <label>Publication Date <span class="required">*</span></label>
+      <input type="date" formControlName="publicationDate"
+        [class.invalid]="form.get('publicationDate')?.invalid && form.get('publicationDate')?.touched" />
+      <span class="error-msg"
+        *ngIf="form.get('publicationDate')?.invalid && form.get('publicationDate')?.touched">
+        Publication date is required
+      </span>
+    </div>
+
+    <div class="form-field">
+      <label>Language</label>
+      <input type="text" formControlName="language" />
+    </div>
+
+  </div>
+</section>

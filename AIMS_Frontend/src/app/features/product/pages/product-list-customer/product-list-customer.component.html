@@ -17,7 +17,7 @@
     <div *ngIf="mode != 'all' && !isLoading && products.length === 0" class="no-results">
       <p>No product found!</p>
     </div>
-
+    
     <app-pagination
       [currentPage]="currentPage"
       [totalPages]="totalPages"

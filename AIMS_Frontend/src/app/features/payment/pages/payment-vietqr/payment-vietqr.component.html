@@ -3,27 +3,6 @@
   ============================================================ -->
 
 <div class="payment-page">
-
-  <!-- ── Stepper ─────────────────────────────────────────────── -->
-  <nav class="stepper" aria-label="Checkout steps">
-    <div class="stepper__step stepper__step--done">
-      <div class="stepper__circle">01</div>
-      <span class="stepper__label">CART</span>
-    </div>
-    <div class="stepper__line"></div>
-
-    <div class="stepper__step stepper__step--done">
-      <div class="stepper__circle">02</div>
-      <span class="stepper__label">DELIVERY INFO</span>
-    </div>
-    <div class="stepper__line"></div>
-
-    <div class="stepper__step stepper__step--active">
-      <div class="stepper__circle stepper__circle--active">03</div>
-      <span class="stepper__label stepper__label--active">PAYMENT</span>
-    </div>
-  </nav>
-
   <!-- ── Main Grid ────────────────────────────────────────────── -->
   <div class="payment-grid">
 
@@ -108,7 +87,9 @@
       <!-- PayPal alternative -->
       <div class="paypal-card" (click)="payWithPayPal()" role="button" tabindex="0" (keydown.enter)="payWithPayPal()"
         aria-label="Pay by credit card via PayPal">
-        <span class="material-icons paypal-card__icon">credit_card</span>
+        <div class="paypal-card__icon-box">
+          <span class="material-icons paypal-card__icon">credit_card</span>
+        </div>
         <div class="paypal-card__body">
           <strong class="paypal-card__title">Pay by Credit Card via PayPal</strong>
           <small class="paypal-card__sub">Global payments accepted with PayPal buyer protection.</small>

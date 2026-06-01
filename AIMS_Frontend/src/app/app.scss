@@ -1,0 +1,45 @@
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Body */
+body {
+  font-family: 'Inter', 'Roboto', sans-serif;
+  background: #F9F9F9;
+  color: #222;
+}
+
+/* Container chung */
+.container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
+}
+
+/* Button base */
+button {
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* Primary button */
+.btn-primary {
+  background: #D32F2F;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #AF101A;
+}
+
+/* Secondary */
+.btn-secondary {
+  background: #005F7B;
+  color: white;
+}

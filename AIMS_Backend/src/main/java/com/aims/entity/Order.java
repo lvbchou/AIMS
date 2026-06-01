@@ -45,7 +45,7 @@ public class Order {
             this.createdAt = LocalDateTime.now();
         }
         if (this.status == null) {
-            this.status = "PENDING";
+            this.status = "pending";
         }
     }
 
@@ -56,6 +56,6 @@ public class Order {
         this.orderId = UUID.randomUUID().toString();
         this.createdAt = LocalDateTime.now();
         this.cart = cart;
-        this.status = "PENDING";
+        this.status = "pending";
     }
 }

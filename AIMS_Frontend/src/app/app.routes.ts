@@ -11,6 +11,10 @@ import { PaymentRedirectComponent } from './features/payment/pages/payment-redir
 import { PaymentValidatingComponent } from './features/payment/pages/payment-validating/payment-validating.component';
 import { PaymentSuccessComponent } from './features/payment/pages/payment-success/payment-success.component';
 import { PaymentFailedComponent } from './features/payment/pages/payment-failed/payment-failed.component';
+import { CartComponent } from './features/cart/pages/cart/cart.component';
+import { DeliveryComponent } from './features/order/pages/delivery/delivery.component';
+import { InvoiceComponent } from './features/order/pages/invoice/invoice.component';
+import { PaymentResultComponent } from './features/payment/pages/payment-result/payment-result.component';
 
 export const routes: Routes = [
 
@@ -26,6 +30,52 @@ export const routes: Routes = [
       {
         path: 'products',
         component: ProductListCustomerComponent
+      },
+      { 
+        path: 'cart', 
+        component: CartComponent 
+      },
+      { 
+        path: '', 
+        redirectTo: 'products', 
+        pathMatch: 'full' 
+      },
+      { 
+        path: 'delivery', 
+        component: DeliveryComponent 
+      },
+      { 
+        path: 'invoice', 
+        component: InvoiceComponent 
+      },
+      {
+        path: 'payment',
+        pathMatch: 'full',
+        redirectTo: 'payment/vietqr'
+      },
+      {
+        path: 'payment/vietqr',
+        component: PaymentVietqrComponent
+      },
+      {
+        path: 'payment/redirect',
+        component: PaymentRedirectComponent
+      },
+      {
+        path: 'payment/validating',
+        component: PaymentValidatingComponent
+      },
+      {
+        path: 'payment/success',
+        component: PaymentSuccessComponent
+      },
+      {
+        path: 'payment/failed',
+        component: PaymentFailedComponent
+      },
+      {
+        path: 'payment/result',
+        component: PaymentResultComponent
       }
     ]
   },
@@ -49,63 +99,4 @@ export const routes: Routes = [
       }
     ]
   },
-  }
-
-]; import { Routes } from '@angular/router';
-import { CustomerLayoutComponent } from './layouts/customer-layout/customer-layout.component';
-import { ManagerLayoutComponent } from './layouts/manager-layout/manager-layout.component';
-import { ManagerDashboardComponent } from './features/dashboard/pages/manager-dashboard/manager-dashboard.component';
-import { ProductManagementComponent } from './features/product/pages/product-management/product-management.component';
-import { StockManagementComponent } from './features/stock/pages/stock-management/stock-management.component';
-import { HomeComponent } from './features/product/pages/home/home.component';
-import { ProductListCustomerComponent } from './features/product/pages/product-list-customer/product-list-customer.component';
-import { Cart } from './pages/cart/cart';
-import { Delivery } from './pages/delivery/delivery';
-import { Invoice } from './pages/invoice/invoice';
-import { Success } from './pages/success/success';
-import { ProductDetails } from './pages/product-details/product-details';
-import { Payment } from './pages/payment/payment';
-
-  // PAYMENT
-  {
-    path: 'payment',
-    children: [
-      {
-        path: '',
-        pathMatch: 'full',
-        redirectTo: 'vietqr'
-      },
-      {
-        path: 'vietqr',
-        component: PaymentVietqrComponent
-      },
-      {
-        path: 'redirect',
-        component: PaymentRedirectComponent
-      },
-      {
-        path: 'validating',
-        component: PaymentValidatingComponent
-      },
-      {
-        path: 'success',
-        component: PaymentSuccessComponent
-      },
-      {
-        path: 'failed',
-        component: PaymentFailedComponent
-      }
-    ]
-  }
-export const routes: Routes = [
-  { path: '', redirectTo: 'products/1', pathMatch: 'full' },
-  { path: 'products/:id', component: ProductDetails },
-  { path: 'cart', component: Cart },
-  { path: 'delivery', component: Delivery },
-  { path: 'invoice', component: Invoice },
-  { path: 'payment', component: Payment },
-  { path: 'success', component: Success }
-];
-
-
 ];

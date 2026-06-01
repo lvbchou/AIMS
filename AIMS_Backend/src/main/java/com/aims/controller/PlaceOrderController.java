@@ -1,3 +1,10 @@
+/*
+ * LAB12 SOLID REVIEW:
+ * No major SRP violation is identified in this controller because it only
+ * coordinates HTTP requests and delegates business work to PlaceOrderService.
+ * Improvement direction: keep validation, pricing, persistence, and stock
+ * update rules out of this class so it remains a thin delivery adapter.
+ */
 package com.aims.controller;
 
 import com.aims.dto.request.DeliveryInfoRequest;

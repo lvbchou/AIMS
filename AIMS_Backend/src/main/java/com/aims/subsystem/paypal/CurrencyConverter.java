@@ -2,6 +2,11 @@
 // Cohesion Level: Functional Cohesion
 // Reason for Coupling: The convert method communicates with the caller using simple arguments (amount, fromCurrency, toCurrency) and is loosely coupled to ExchangeRateProvider using interface-based dependency injection.
 // Reason for Cohesion: The class performs exactly one unified responsibility: converting money values from one currency to another using exchange rates.
+/**
+ * SOLID Principles Analysis:
+ * - **DIP (Dependency Inversion Principle) Adherence**: Correctly depends on the abstraction `ExchangeRateProvider` rather than concrete implementations, allowing flexible rate provision mechanisms.
+ * - **OCP (Open/Closed Principle) Adherence**: Extensible to support external API or live exchange providers without modifying this conversion logic.
+ */
 package com.aims.subsystem.paypal;
 
 import java.math.BigDecimal;

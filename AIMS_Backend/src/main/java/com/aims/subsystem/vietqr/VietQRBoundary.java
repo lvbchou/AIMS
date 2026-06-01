@@ -94,6 +94,16 @@ public class VietQRBoundary {
         return "";
     }
 
+    /** Returns the configured merchant ID. */
+    public String getMerchantId() {
+        return merchantId;
+    }
+
+    /** Returns the configured API key. */
+    public String getApiKey() {
+        return apiKey;
+    }
+
     /**
      * Sends a token request using a prebuilt Authorization header.
      *

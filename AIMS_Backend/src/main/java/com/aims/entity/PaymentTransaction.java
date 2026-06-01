@@ -1,3 +1,9 @@
+/**
+ * SOLID Principles Analysis:
+ * - **SRP/OCP (Single Responsibility & Open/Closed) Violation**: The core entity class contains a static factory method `pendingVietQr()` dedicated to a specific payment method. This tightly couples the entity to concrete payment subsystems and requires code modification whenever new payment methods are introduced.
+ * 
+ * **Improvement Direction**: Move the creation of pending transactions into their respective subsystem packages (e.g. VietQr implementation of IPaymentGateway) or a dedicated factory class (`PaymentTransactionFactory`).
+ */
 package com.aims.entity;
 
 import java.time.Instant;
@@ -59,7 +65,7 @@ public class PaymentTransaction {
         this.method = method;
         this.content = content;
         this.transactionTime = LocalDateTime.now();
-        this.status = TransactionStatus.PENDING;
+        this.status = TransactionStatus.pending;
     }
 
     @PrePersist
@@ -101,7 +107,7 @@ public class PaymentTransaction {
         txn.setContent("Order #" + orderId);
         txn.setMethod(PaymentMethod.VIET_QR);
         txn.setTransactionTime(LocalDateTime.now());
-        txn.setStatus(TransactionStatus.PENDING);
+        txn.setStatus(TransactionStatus.pending);
         return txn;
     }
 }

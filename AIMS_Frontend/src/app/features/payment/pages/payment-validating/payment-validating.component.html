@@ -1,7 +1,7 @@
 <div class="validating-page">
+  <div class="validating-page__card">
 
-  <!-- Left part: icon + title -->
-  <div class="validating-page__left">
+    <!-- Icon shield + lock badge -->
     <div class="validating-page__icon-wrap">
       <div class="validating-page__icon-box">
         <span class="material-icons validating-page__shield-icon">verified_user</span>
@@ -11,64 +11,14 @@
       </div>
     </div>
 
+    <!-- Tiêu đề -->
     <h1 class="validating-page__title">Validating Payment Results...</h1>
+
+    <!-- Mô tả -->
     <p class="validating-page__sub">
-      Our system is securely communicating with PayPal
-      to confirm your transaction details. Please do not
-      refresh this page.
+      Our system is securely communicating with {{ isVietQR ? 'VietQR' : 'PayPal' }}
+      to confirm your transaction details. Please do not refresh this page.
     </p>
+
   </div>
-
-  <!-- Right part: red-top card with progress steps -->
-  <div class="validating-page__right">
-    <div class="validating-page__card">
-
-      <div class="vstep-list">
-        <div class="vstep" [class.vstep--active]="step === 0" [class.vstep--done]="step > 0">
-          <div class="vstep__indicator">
-            <span class="material-icons" *ngIf="step > 0">check_circle</span>
-            <div class="vstep__dot" *ngIf="step <= 0">
-              <div class="vstep__ring" *ngIf="step === 0"></div>
-            </div>
-          </div>
-          <div class="vstep__content">
-            <span class="vstep__label" [class.vstep__label--active]="step === 0">Connecting to PayPal</span>
-            <span class="vstep__desc">Establishing secure connection</span>
-          </div>
-        </div>
-
-        <div class="vstep vstep--connector"></div>
-
-        <div class="vstep" [class.vstep--active]="step === 1" [class.vstep--done]="step > 1">
-          <div class="vstep__indicator">
-            <span class="material-icons" *ngIf="step > 1">check_circle</span>
-            <div class="vstep__dot" *ngIf="step <= 1">
-              <div class="vstep__ring" *ngIf="step === 1"></div>
-            </div>
-          </div>
-          <div class="vstep__content">
-            <span class="vstep__label" [class.vstep__label--active]="step === 1">Verifying Transaction</span>
-            <span class="vstep__desc">Checking payment details</span>
-          </div>
-        </div>
-
-        <div class="vstep vstep--connector"></div>
-
-        <div class="vstep" [class.vstep--active]="step === 2" [class.vstep--done]="step > 2">
-          <div class="vstep__indicator">
-            <span class="material-icons" *ngIf="step > 2">check_circle</span>
-            <div class="vstep__dot" *ngIf="step <= 2">
-              <div class="vstep__ring" *ngIf="step === 2"></div>
-            </div>
-          </div>
-          <div class="vstep__content">
-            <span class="vstep__label" [class.vstep__label--active]="step === 2">Finalizing Order</span>
-            <span class="vstep__desc">Completing your purchase</span>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
 </div>

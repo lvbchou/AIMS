@@ -2,6 +2,12 @@
 // Cohesion Level: Functional Cohesion
 // Reason for Coupling: It interacts via simple input data passing (a JSON String in parseResponse) and returns basic types through getters, remaining decoupled from domain entities.
 // Reason for Cohesion: The entire class is dedicated solely to parsing and reading the PayPal order creation response payload, extracting only key details like the order ID and approval link.
+/**
+ * SOLID Principles Analysis:
+ * - **SRP (Single Responsibility Principle) Violation**: Mixes data modeling with JSON structural parsing in `parseResponse()`.
+ * 
+ * **Improvement Direction**: Delegate the parsing concern to a JSON deserializer or HTTP client adapter.
+ */
 package com.aims.subsystem.paypal;
 
 import com.fasterxml.jackson.databind.JsonNode;

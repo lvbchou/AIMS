@@ -1,3 +1,12 @@
+/**
+ * SOLID Principles Analysis:
+ * - **OCP (Open/Closed Principle) Violation**: The service has hardcoded dependencies on `PaymentMethod.PAYPAL` inside `completePayment()`. Supporting a new payment gateway would require modifying this core service logic rather than just extending it.
+ * - **DIP (Dependency Inversion Principle) Violation**: The class depends directly on concrete repositories like `JpaInvoiceRepository` and `PaymentTransactionRepository` instead of abstract repository interfaces.
+ * 
+ * **Improvement Direction**:
+ * 1. Inject a strategy-based factory or resolve the payment method dynamically from the gateway result rather than hardcoding `PaymentMethod.PAYPAL`.
+ * 2. Replace concrete repositories with abstraction interfaces to decouple persistence mechanisms.
+ */
 package com.aims.service;
 
 import com.aims.IPaymentGateway;
@@ -55,7 +64,7 @@ public class PayThroughPaymentGatewayService {
         // 2. Update order status and save invoice/order record to PostgreSQL database
         Order order = invoice.getOrder();
         if (order != null) {
-            order.setStatus("PENDING");
+            order.setStatus("pending");
         }
 
         // Saving invoice will cascade and automatically save/update the Order record
@@ -92,13 +101,13 @@ public class PayThroughPaymentGatewayService {
 
         // 5. Check result and update status
         if (result.checkSuccess()) {
-            order.setStatus("APPROVED");
+            order.setStatus("approved");
             orderRepository.updateOrder(order); // Save updated Order state
 
-            transaction.setStatus(TransactionStatus.SUCCESS);
+            transaction.setStatus(TransactionStatus.success);
             paymentTransactionRepository.save(transaction); // Persist successful transaction to PostgreSQL database
         } else {
-            transaction.setStatus(TransactionStatus.FAILED);
+            transaction.setStatus(TransactionStatus.failed);
             paymentTransactionRepository.save(transaction); // Persist failed transaction log to PostgreSQL database
 
             throw new PaymentException(result.getMessage());

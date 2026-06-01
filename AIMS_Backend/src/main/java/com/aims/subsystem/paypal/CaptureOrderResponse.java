@@ -2,6 +2,12 @@
 // Cohesion Level: Functional Cohesion
 // Reason for Coupling: It interacts with external callers using simple parameters (receives a JSON string in parseResponse and exposes basic string/boolean values via getters), keeping it decoupled from any complex domain models.
 // Reason for Cohesion: Every method and field is solely dedicated to parsing and representing the specific properties and status (success/failure) of a captured PayPal transaction.
+/**
+ * SOLID Principles Analysis:
+ * - **SRP (Single Responsibility Principle) Violation**: The DTO is loaded with complex JSON path navigation and parsing inside `parseResponse()`.
+ * 
+ * **Improvement Direction**: Refactor parsing logic to a dedicated deserializer or client adapter layer.
+ */
 package com.aims.subsystem.paypal;
 
 import com.fasterxml.jackson.databind.JsonNode;

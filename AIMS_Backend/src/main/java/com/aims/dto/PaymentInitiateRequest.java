@@ -1,3 +1,9 @@
+/**
+ * SOLID Principles Analysis:
+ * - **OCP (Open/Closed Principle) Limitation**: The DTO has no parameter indicating the selected payment gateway or method. If a user wishes to switch payment methods at runtime, the API design would break or require modification to accommodate extra selectors.
+ * 
+ * **Improvement Direction**: Add a `paymentMethod` or `gatewayType` field so that the request payload can support multiple polymorphic payment routes dynamically.
+ */
 package com.aims.dto;
 
 import lombok.Getter;

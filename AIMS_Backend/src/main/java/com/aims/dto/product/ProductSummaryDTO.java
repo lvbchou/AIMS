@@ -14,5 +14,6 @@ public record ProductSummaryDTO(
         String title,
         String productType,
         Long sellingPrice,
-        String image
+        String image,
+        Integer quantityInStock
 ) {}

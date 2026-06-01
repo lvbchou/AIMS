@@ -26,6 +26,15 @@
                   repository internals. Good data coupling.
  */
 
+/*
+ProductService .parsePriceRange(): OCP-VIOLATE
+- Description: If new filter formats are introduced (e.g., "above-X", "under-Y"), 
+               this method must be modified directly to handle them, violating closed-for-modification.
+- Improvement: Introduce a PriceRangeParser strategy interface with a parse(String input): long[] method. 
+               Provide implementations for each format. 
+               ProductService receives the appropriate parser via dependency injection.
+ */
+
 package com.aims.service;
 
 import com.aims.dto.product.ProductInfoDTO;
@@ -110,7 +119,21 @@ public class ProductService {
                         p.getTitle(),
                         p.getClass().getSimpleName().toUpperCase(), // "CD", "DVD"...
                         p.getSellingPrice(),
-                        p.getImage()));
+                        p.getImage(),
+                        -1));
+    }
+
+    public List<ProductSummaryDTO> getProductsByIds(List<Integer> ids) {
+        return productRepository.findAllById(ids)
+                .stream()
+                .map(p -> new ProductSummaryDTO(
+                        p.getProductId(),
+                        p.getTitle(),
+                        p.getClass().getSimpleName().toUpperCase(),
+                        p.getSellingPrice(),
+                        p.getImage(),
+                        p.getQuantityInStock()))
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -141,7 +164,8 @@ public class ProductService {
                         p.getTitle(),
                         p.getClass().getSimpleName().toUpperCase(),
                         p.getSellingPrice(),
-                        p.getImage()));
+                        p.getImage(),
+                        -1));
     }
 
     @Transactional(readOnly = true)
@@ -165,7 +189,8 @@ public class ProductService {
                         p.getTitle(),
                         p.getClass().getSimpleName().toUpperCase(),
                         p.getSellingPrice(),
-                        p.getImage()));
+                        p.getImage(),
+                        -1));
     }
 
     private long[] parsePriceRange(String priceRange) {

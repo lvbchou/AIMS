@@ -10,6 +10,17 @@
  *     (barcode, keyword, productId) and returns typed results
  *     (Optional<Product>, List<Product>).
  */
+
+/*
+ProductRepository .searchAndFilter(): ISP-VIOLATE
+- Description: Callers that only need keyword search must still supply minPrice=0 and maxPrice=Long.MAX_VALUE — parameters they do not conceptually need. 
+               They are forced to depend on price-filter parameters irrelevant to their use case.
+- Improvement: Add a separate interface method searchByKeywordAndCategory(keyword, category, pageable) backed by a simpler query without price conditions.
+               Callers that only need search use this method;
+               callers that need both search + price filter use searchAndFilter().
+*/
+
+
 package com.aims.repository;
 
 import com.aims.entity.product.Product;
@@ -23,6 +34,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -66,4 +78,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select p from Product p where p.productId = :productId")
     Optional<Product> findWithLockByProductId(Integer productId);
+
+    @Query("SELECT p FROM Product p WHERE p.productId IN :ids")
+    List<Product> findAllByIds(@Param("ids") List<Integer> ids);
 }

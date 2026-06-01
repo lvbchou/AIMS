@@ -2,6 +2,17 @@
 // Cohesion Level: Sequential Cohesion
 // Reason for Coupling: It implements IPaymentGateway and receives entire Invoice and Order objects as parameters, using only a small subset of their attributes (e.g. ID, total amount). It is also stamp-coupled to custom DTO structures like GatewayTransactionContext and GatewayTransactionResult.
 // Reason for Cohesion: The methods coordinate a sequence of processing steps where the output of one operation (e.g., getting an access token or converting currency) is directly used as the input to the next step (creating the payload and sending the HTTP request via the boundary).
+/**
+ * SOLID Principles Analysis:
+ * - **SRP (Single Responsibility Principle) Violation**: Handles both the gateway transaction flow (coordinating payments) and PayPal credentials token caching/lifecycle management. Token caching should belong to a dedicated authentication helper.
+ * - **DIP (Dependency Inversion Principle) Violation**:
+ *   1. Directly instantiates `PayPalBoundary` in the constructor instead of injecting it.
+ *   2. Directly instantiates concrete `CurrencyConverter` and `FixedExchangeRateProvider` inside `createPayment()` instead of injecting them as abstractions.
+ * 
+ * **Improvement Direction**:
+ * 1. Extract OAuth token lifecycle management into a dedicated class (`PayPalAuthService`).
+ * 2. Inject `PayPalBoundary`, `CurrencyConverter`, and `ExchangeRateProvider` through the constructor to allow runtime substitution and easier mocking.
+ */
 package com.aims.subsystem.paypal;
 
 import com.aims.dto.GatewayTransactionContext;

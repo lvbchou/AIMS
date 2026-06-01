@@ -17,13 +17,9 @@ import { VietQRPaymentService } from '../../services/vietqr-payment.service';
 export class PaymentSuccessComponent implements OnInit {
 
   orderReference = '';
-  transactionId = '';
-  customerName = '';
-  phoneNumber = '';
-  shippingAddress = '';
-  totalAmount = 0;
-  transactionDatetime = '';
-  isLoading = true;
+  isLoading = false; // start as false — show content immediately
+
+  private orderId = '';
 
   constructor(
     private readonly router: Router,
@@ -32,45 +28,33 @@ export class PaymentSuccessComponent implements OnInit {
 
   ngOnInit(): void {
     const state = history.state;
-    const orderId: string = state?.orderId || 'ORD-001';
-    this.transactionId = state?.transactionId || '';
+    this.orderId = state?.orderId || '';
+    const transactionId: string = state?.transactionId || '';
 
-    // Only call confirmation API if we arrived here via polling success
-    // (transactionId is set). If the user navigated manually or via confirmPayment()
-    // without a transactionId, skip the API call and show fallback immediately.
-    if (!this.transactionId) {
-      this.orderReference = `AIMS-${orderId}-SUC`;
-      this.isLoading = false;
-      return;
+    console.log('[Success] orderId:', this.orderId, '| transactionId:', transactionId);
+
+    // Hiển thị fallback ngay lập tức — không chờ API
+    if (this.orderId) {
+      const shortId = this.orderId.replace(/-/g, '').slice(-8).toUpperCase();
+      this.orderReference = `Order #${shortId}`;
+    } else {
+      this.orderReference = transactionId || 'N/A';
     }
 
-    // Fetch real confirmation from backend
-    this.vietQRPaymentService.getOrderConfirmation(orderId).subscribe({
-      next: (confirmation) => {
-        this.customerName = confirmation.customerName || '';
-        this.phoneNumber = confirmation.phoneNumber || '';
-        this.shippingAddress = [confirmation.shippingAddress, confirmation.province]
-          .filter(Boolean).join(', ');
-        this.totalAmount = confirmation.totalAmountToBePaid || 0;
-        this.transactionId = confirmation.transactionId || this.transactionId;
-        this.transactionDatetime = confirmation.transactionDatetimeDisplay || '';
-        this.orderReference = `AIMS-${orderId}-SUC`;
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error('Failed to load confirmation:', err);
-        // Fallback: show what we have from navigation state
-        this.orderReference = `AIMS-${orderId}-SUC`;
-        this.isLoading = false;
-      }
-    });
+    // Nếu có orderId, thử gọi API để lấy tên sản phẩm thật (non-blocking)
+    if (this.orderId) {
+      this.vietQRPaymentService.getOrderConfirmation(this.orderId).subscribe({
+        next: (confirmation) => {
+          if (confirmation?.orderName) {
+            this.orderReference = confirmation.orderName;
+          }
+        },
+        error: () => { /* keep fallback */ }
+      });
+    }
   }
 
   backToShop(): void {
     this.router.navigate(['/']);
-  }
-
-  formatCurrency(amount: number): string {
-    return `${amount.toLocaleString('vi-VN')} VND`;
   }
 }

@@ -25,6 +25,7 @@ export class PaymentVietqrComponent implements OnInit, OnDestroy {
   selectedMethod: PaymentMethod = 'BANK_TRANSFER';
   isLoading = true;
   isSubmitting = false;
+  transactionId = '';
 
   // Added properties for the template
   qrError = false;
@@ -88,14 +89,16 @@ export class PaymentVietqrComponent implements OnInit, OnDestroy {
   `)}`;
   paymentInfo = {
     provider: 'VietQR',
-    orderId: 'ORD-123456',
+    orderId: '',
     totalPayable: 0
   };
   isUrgent = false;
   timerDisplay = '05:00';
+  private timerInterval: any;
 
   payWithPayPal(): void {
     if (!this.order || this.isSubmitting) {
+      this.router.navigate(['/payment/redirect'], { queryParams: { amount: this.paymentInfo.totalPayable } });
       return;
     }
     this.isSubmitting = true;
@@ -136,6 +139,7 @@ export class PaymentVietqrComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
+    this.startCountdown(300); // 5 minutes countdown
     // Get orderId dynamically from query parameters, e.g. /payment/vietqr?orderId=ORD-002
     // Fallback to ORD-1K if none provided.
     const orderId = this.route.snapshot.queryParamMap.get('orderId') || 'ORD-1K';
@@ -202,28 +206,15 @@ export class PaymentVietqrComponent implements OnInit, OnDestroy {
                 console.log('QR loaded. isLoading:', this.isLoading, 'url:', this.qrImageUrl);
                 console.log('[TestCallback] content:', this.qrContent, '| amount:', amount, '| bankAccount: 8823302684 | bankCode: 970418');
 
-                // Bắt đầu polling nếu có transactionId
+                // Gửi test callback qua VietQR Sandbox thực, không poll ngay
                 const txnId = qrResp.transactionId;
                 if (txnId) {
-                  this.vietQRPaymentService
-                    .pollPaymentStatus(txnId)
-                    .pipe(takeUntil(this.destroy$))
-                    .subscribe({
-                      next: (status) => {
-                        if (status.status === 'COMPLETED') {
-                          this.router.navigate(['/payment/success'], {
-                            state: { orderId: respOrderId, transactionId: status.transactionId }
-                          });
-                        }
-                      },
-                      error: (err) => {
-                        console.error('Polling error:', err);
-                        // Timeout hoặc giao dịch thất bại → chuyển sang trang lỗi
-                        this.router.navigate(['/payment/failed'], {
-                          state: { orderId: respOrderId, reason: err?.message || 'Payment failed or timed out' }
-                        });
-                      },
-                    });
+                  this.transactionId = txnId;
+                  // triggerTestCallback gọi backend → backend gọi dev.vietqr.org → VietQR gọi lại transaction-sync
+                  this.vietQRPaymentService.triggerTestCallback(respOrderId).subscribe({
+                    next: (r) => console.log('[VietQR] Test callback triggered:', r),
+                    error: (err) => console.warn('[VietQR] Test callback failed (will still allow polling):', err)
+                  });
                 }
               })
             )
@@ -240,6 +231,9 @@ export class PaymentVietqrComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+    }
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -254,6 +248,17 @@ export class PaymentVietqrComponent implements OnInit, OnDestroy {
     }
 
     this.isSubmitting = true;
+
+    if (this.selectedMethod === 'BANK_TRANSFER') {
+      this.router.navigate(['/payment/validating'], {
+        state: {
+          transactionId: this.transactionId || this.order.id,
+          orderId: this.order.id,
+          isVietQR: true
+        }
+      });
+      return;
+    }
 
     if (this.selectedMethod === 'PAYPAL') {
       this.router.navigate(['/payment/redirect'], {
@@ -301,6 +306,36 @@ export class PaymentVietqrComponent implements OnInit, OnDestroy {
     } else {
       this.qrError = true;
     }
+  }
+
+  private startCountdown(seconds: number): void {
+    let remaining = seconds;
+    this.updateTimerDisplay(remaining);
+
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+    }
+
+    this.timerInterval = setInterval(() => {
+      if (remaining > 0) {
+        remaining--;
+      } else {
+        clearInterval(this.timerInterval);
+      }
+      this.isUrgent = remaining <= 60;
+      this.updateTimerDisplay(remaining);
+      this.cdr.detectChanges();
+    }, 1000);
+  }
+
+  private updateTimerDisplay(totalSeconds: number): void {
+    const minutes = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    this.timerDisplay = `${this.padZero(minutes)}:${this.padZero(secs)}`;
+  }
+
+  private padZero(num: number): string {
+    return num < 10 ? `0${num}` : `${num}`;
   }
 
   get totalItems(): number {

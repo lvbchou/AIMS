@@ -2,9 +2,11 @@ import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angu
 import { CommonModule } from '@angular/common';
 import { ProductType } from '../../models/product-type.enum';
 import { ProductService } from '../../services/product.service';
-import { ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectorRef } from '@angular/core';  
 import { MOCK_DETAIL } from '../../data/mock-products.data';
 import { Product } from '../../models/product.model';
+import { CartService } from '../../../cart/services/cart.service';
+import { ToastService } from '../../../../core/services/toast/toast.service';
 
 @Component({
   selector: 'app-product-detail-modal',
@@ -22,6 +24,12 @@ export class ProductDetailModalComponent implements OnInit, OnDestroy {
   quantity = 1;
   readonly ProductType = ProductType;
 
+  constructor(
+    private cartService: CartService,
+    private toastService: ToastService,
+    private cdr: ChangeDetectorRef,
+  ){}
+
   ngOnInit(): void {
     document.body.style.overflow = 'hidden';
     if (this.product) {
@@ -33,7 +41,9 @@ export class ProductDetailModalComponent implements OnInit, OnDestroy {
 
   onClose(): void { this.close.emit(); }
   onAddToCart(): void {
-    if (this.product) { this.addToCart.emit({ product: this.product, quantity: this.quantity }); this.onClose(); }
+    this.cartService.addToCart(this.product.productId, this.quantity);
+    this.toastService.show('Added to cart');
+    this.onClose();
   }
   decrement(): void { if (this.quantity > 1) this.quantity--; }
   increment(): void { this.quantity++; }

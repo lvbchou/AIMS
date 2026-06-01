@@ -6,9 +6,10 @@ import { ProductService } from '../../services/product.service';
 import { Product, ProductSummary } from '../../models/product.model';
 import { MOCK_SUMMARIES } from '../../data/mock-products.data';
 import { ChangeDetectorRef } from '@angular/core';
-import { ToastService } from '../../../../core/services/toast.service';
+import { ToastService } from '../../../../core/services/toast/toast.service';
 import { ToastComponent } from '../../../../shared/components/toast/toast/toast.component';
 import { ProductListComponent } from '../../components/product-list/product-list.component';
+import { CartService } from '../../../cart/services/cart.service';
 
 
 @Component({
@@ -28,10 +29,11 @@ export class HomeComponent implements OnInit {
   isLoading = false;
 
   constructor(
-    private api: ProductService,
+    private api: ProductService, 
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private cartService: CartService
   ) {}
 
   ngOnInit(): void {
@@ -72,14 +74,15 @@ export class HomeComponent implements OnInit {
     });
   }
   onAddToCart(id: number): void {
-    this.toastService.show("Added to cart");
+    this.cartService.addToCart(id, 1);
+    this.toastService.show('Added to cart');
   }
 
   closeModal(): void {
     this.viewProductDetail = null;
   }
 
-  viewAll(): void {
+  viewAll(): void { 
     this.router.navigate(['/products']);
   }
 }

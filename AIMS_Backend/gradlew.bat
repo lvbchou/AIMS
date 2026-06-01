@@ -13,8 +13,6 @@
 @rem See the License for the specific language governing permissions and
 @rem limitations under the License.
 @rem
-@rem SPDX-License-Identifier: Apache-2.0
-@rem
 
 @if "%DEBUG%"=="" @echo off
 @rem ##########################################################################
@@ -23,13 +21,8 @@
 @rem
 @rem ##########################################################################
 
-<<<<<<< HEAD
 @rem Set local scope for the variables, and ensure extensions are enabled
 setlocal EnableExtensions
-=======
-@rem Set local scope for the variables with windows NT shell
-if "%OS%"=="Windows_NT" setlocal
->>>>>>> feature/Pay_Order_By_Credit_Card_Programming
 
 set DIRNAME=%~dp0
 if "%DIRNAME%"=="" set DIRNAME=.
@@ -56,11 +49,7 @@ echo. 1>&2
 echo Please set the JAVA_HOME variable in your environment to match the 1>&2
 echo location of your Java installation. 1>&2
 
-<<<<<<< HEAD
 "%COMSPEC%" /c exit 1
-=======
-goto fail
->>>>>>> feature/Pay_Order_By_Credit_Card_Programming
 
 :findJavaFromJavaHome
 set JAVA_HOME=%JAVA_HOME:"=%
@@ -74,11 +63,7 @@ echo. 1>&2
 echo Please set the JAVA_HOME variable in your environment to match the 1>&2
 echo location of your Java installation. 1>&2
 
-<<<<<<< HEAD
 "%COMSPEC%" /c exit 1
-=======
-goto fail
->>>>>>> feature/Pay_Order_By_Credit_Card_Programming
 
 :execute
 @rem Setup the command line
@@ -86,7 +71,6 @@ goto fail
 
 
 @rem Execute Gradle
-<<<<<<< HEAD
 @rem endlocal doesn't take effect until after the line is parsed and variables are expanded
 @rem which allows us to clear the local environment before executing the java command
 endlocal & "%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -jar "%APP_HOME%\gradle\wrapper\gradle-wrapper.jar" %* & call :exitWithErrorLevel
@@ -94,23 +78,3 @@ endlocal & "%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.grad
 :exitWithErrorLevel
 @rem Use "%COMSPEC%" /c exit to allow operators to work properly in scripts
 "%COMSPEC%" /c exit %ERRORLEVEL%
-=======
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -jar "%APP_HOME%\gradle\wrapper\gradle-wrapper.jar" %*
-
-:end
-@rem End local scope for the variables with windows NT shell
-if %ERRORLEVEL% equ 0 goto mainEnd
-
-:fail
-rem Set variable GRADLE_EXIT_CONSOLE if you need the _script_ return code instead of
-rem the _cmd.exe /c_ return code!
-set EXIT_CODE=%ERRORLEVEL%
-if %EXIT_CODE% equ 0 set EXIT_CODE=1
-if not ""=="%GRADLE_EXIT_CONSOLE%" exit %EXIT_CODE%
-exit /b %EXIT_CODE%
-
-:mainEnd
-if "%OS%"=="Windows_NT" endlocal
-
-:omega
->>>>>>> feature/Pay_Order_By_Credit_Card_Programming

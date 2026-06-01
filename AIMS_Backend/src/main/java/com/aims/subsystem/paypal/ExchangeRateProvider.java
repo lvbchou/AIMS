@@ -2,6 +2,11 @@
 // Cohesion Level: Functional Cohesion
 // Reason for Coupling: The interface's single method getExchangeRate only relies on simple string arguments to return a BigDecimal rate.
 // Reason for Cohesion: The interface defines a single cohesive abstraction: providing currency exchange rates.
+/**
+ * SOLID Principles Analysis:
+ * - **ISP (Interface Segregation Principle) Adherence**: Defines a highly specific single-purpose interface.
+ * - **DIP (Dependency Inversion Principle) Adherence**: Serves as the abstraction interface that decouples the converter from concrete source rates.
+ */
 package com.aims.subsystem.paypal;
 
 import java.math.BigDecimal;

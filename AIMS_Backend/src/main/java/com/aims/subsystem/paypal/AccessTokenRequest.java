@@ -2,6 +2,10 @@
 // Cohesion Level: Functional Cohesion
 // Reason for Coupling: It uses and passes simple types (String) to represent client credentials and encodes them into standard base64 formats without depending on complex object structures.
 // Reason for Cohesion: All properties and methods inside this class are strictly focused on a single responsibility: modeling the OAuth2 access token request credentials and generating the Basic authorization header.
+/**
+ * SOLID Principles Analysis:
+ * - **SRP/OCP Adherence**: The class successfully encapsulates the formatting details for PayPal Basic authentication. Its package-private visibility limits leakage of PayPal credentials logic outside the subsystem.
+ */
 package com.aims.subsystem.paypal;
 
 import java.nio.charset.StandardCharsets;

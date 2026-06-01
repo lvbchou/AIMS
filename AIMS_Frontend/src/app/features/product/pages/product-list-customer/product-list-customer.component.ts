@@ -10,8 +10,9 @@ import { PaginationComponent } from '../../../../shared/components/pagination/pa
 import { ToastComponent } from '../../../../shared/components/toast/toast/toast.component';
 
 import { ProductService } from '../../services/product.service';
-import { ToastService } from '../../../../core/services/toast.service';
+import { ToastService } from '../../../../core/services/toast/toast.service';
 import { Product, ProductSummary } from '../../models/product.model';
+import { CartService } from '../../../cart/services/cart.service';
 
 type Mode = 'all' | 'search' | 'filter';
 
@@ -51,6 +52,7 @@ export class ProductListCustomerComponent implements OnInit, OnDestroy {
     private router:       Router,
     private cdr:          ChangeDetectorRef,
     private toastService: ToastService,
+    private cartService: CartService,
   ) {}
 
   ngOnInit(): void {
@@ -206,6 +208,7 @@ export class ProductListCustomerComponent implements OnInit, OnDestroy {
 
   // ── Cart ───────────────────────────────────────────────────────────────────
   onAddToCart(id: number): void {
+    this.cartService.addToCart(id, 1);
     this.toastService.show('Added to cart');
   }
 }

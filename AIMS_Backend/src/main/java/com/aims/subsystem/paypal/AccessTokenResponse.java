@@ -2,6 +2,12 @@
 // Cohesion Level: Functional Cohesion
 // Reason for Coupling: The methods pass and receive simple parameter types (takes a raw JSON String to parse and returns basic/primitive types via getters).
 // Reason for Cohesion: The class has a single, well-defined function: parsing and representing the PayPal OAuth2 access token response.
+/**
+ * SOLID Principles Analysis:
+ * - **SRP (Single Responsibility Principle) Violation**: The DTO contains internal parsing logic (`ObjectMapper` tree mapping) in `parseResponse()`. A DTO should be a pure data container; serialization and parsing logic should reside in the client or mapping layers.
+ * 
+ * **Improvement Direction**: Move JSON parsing out of the DTO into the `PayPalBoundary` or a dedicated mapper class.
+ */
 package com.aims.subsystem.paypal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

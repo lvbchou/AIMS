@@ -27,4 +27,6 @@ public class VietQRCodeResponseDTO {
     private String vietQrReference;
     private String qrCodeImageBase64;
     private long totalAmountToBePaid;
+    /** Nội dung chuyển tiền — phải truyền chính xác vào Test Callback */
+    private String content;
 }

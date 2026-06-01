@@ -1,120 +1,98 @@
-// =============================================
-// payment-redirect.component.scss
-// Matches Redirecting_to_PayPal.svg design
-// Centered layout: icon box + large title
-// =============================================
-
-:host {
-  display: block;
-  width: 100%;
-}
-
 .redirect-page {
-  min-height: calc(100vh - 70px);
-  background: #F5F5F5;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 24px;
+  min-height: 80vh;
+  background-color: #fafbfc;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding: 24px;
+}
 
-  &__content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    max-width: 640px;
-    width: 100%;
-  }
+.redirect-card {
+  text-align: center;
+  max-width: 500px;
+  background: #fff;
+  padding: 60px 40px;
+  border-radius: 12px;
+  border: 1px solid #eef2f5;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 
-  // ── Icon box with spinner ring ──────────────────────────────
-  &__icon-wrap {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 36px;
-  }
-
-  &__icon-box {
-    position: relative;
-    width: 100px;
-    height: 100px;
-    background: #FFFFFF;
-    border-radius: 20px;
-    border: 1px solid #E8E8E8;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  .lock-icon-wrapper {
+    width: 76px;
+    height: 76px;
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 12px;
+    background: #fdf2f2;
+    color: #e53e3e;
+    border: 1px solid #fed7d7;
+    margin-bottom: 35px;
+    animation: pulseLock 2s infinite ease-in-out;
   }
 
-  &__lock-icon {
-    font-size: 38px;
-    color: #A61C1C;
-    position: relative;
-    z-index: 1;
-  }
-
-  &__spinner-ring {
-    position: absolute;
-    top: -10px;
-    left: -10px;
-    right: -10px;
-    bottom: -10px;
-    border-radius: 28px;
-    border: 3px solid transparent;
-    border-top: 3px solid #A61C1C;
-    border-right: 3px solid #A61C1C;
-    animation: spin 1.4s linear infinite;
-  }
-
-  // ── Title ─────────────────────────────────────────────────
-  &__title {
-    font-family: 'Inter', sans-serif;
-    font-size: 40px;
+  h1 {
+    font-size: 34px;
     font-weight: 800;
-    color: #1A1A2E;
+    color: #1a202c;
     margin: 0 0 16px 0;
-    line-height: 1.2;
+    letter-spacing: -1px;
   }
 
-  // ── Subtitle ──────────────────────────────────────────────
-  &__sub {
-    font-family: 'Inter', sans-serif;
-    font-size: 16px;
-    color: #555;
-    line-height: 1.7;
-    margin: 0 0 36px 0;
+  .description {
+    color: #718096;
+    font-size: 15px;
+    line-height: 1.6;
+    margin: 0 0 35px 0;
   }
-}
 
-// ── Cancel Button ──────────────────────────────────────────
-.btn-cancel {
-  padding: 13px 32px;
-  background: transparent;
-  border: 1.5px solid #BBBBBB;
-  border-radius: 8px;
-  font-family: 'Inter', sans-serif;
-  font-size: 15px;
-  font-weight: 500;
-  color: #555;
-  cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
+  /* Animated loading bar */
+  .loader-bar-container {
+    width: 140px;
+    height: 4px;
+    background: #edf2f7;
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
 
-  &:hover {
-    border-color: #8B1A1A;
-    color: #8B1A1A;
+  .loader-bar-fill {
+    width: 50px;
+    height: 100%;
+    background: #b31f24;
+    border-radius: 2px;
+    position: absolute;
+    animation: loaderMove 1.5s infinite ease-in-out;
   }
 }
 
-// ── Animations ─────────────────────────────────────────────
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+/* Animations */
+@keyframes pulseLock {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.2);
+  }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(229, 62, 62, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(229, 62, 62, 0);
+  }
 }
 
-@media (max-width: 600px) {
-  .redirect-page__title {
-    font-size: 28px;
+@keyframes loaderMove {
+  0% {
+    left: -50px;
+  }
+  50% {
+    left: 100%;
+  }
+  100% {
+    left: -50px;
   }
 }

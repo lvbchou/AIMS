@@ -1,51 +1,62 @@
-// ============================================================
-// FILE: src/app/features/payment/pages/payment-redirect/payment-redirect.component.ts
-// ============================================================
-
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
+import { PaymentService } from '../../services/payment.service';
 
 @Component({
   selector: 'app-payment-redirect',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './payment-redirect.component.html',
-  styleUrls: ['./payment-redirect.component.scss'],
+  styleUrl: './payment-redirect.component.scss'
 })
-export class PaymentRedirectComponent implements OnInit, OnDestroy {
+export class PaymentRedirectComponent implements OnInit {
+  amount = 126500;
 
-  private orderId = 0;
-  private totalPayable = 0;
-  private provider = 'AIMS Store';
-  private redirectTimeout: ReturnType<typeof setTimeout> | null = null;
-
-  constructor(private readonly router: Router) { }
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private paymentService: PaymentService
+  ) {}
 
   ngOnInit(): void {
-    const state = history.state;
-    this.orderId      = state?.orderId      ?? 161;
-    this.totalPayable = state?.totalPayable ?? 126_500;
-    this.provider     = state?.provider     ?? 'AIMS Store';
-
-    // Redirect thật đến PayPal sau 2.5 giây
-    this.redirectTimeout = setTimeout(() => {
-      window.location.href = 'https://www.paypal.com/signin';
-    }, 2_500);
+    // 1. Get amount from query parameters
+    this.route.queryParams.subscribe(params => {
+      const amt = Number(params['amount']);
+      if (!isNaN(amt) && amt > 0) {
+        this.amount = amt;
+      }
+      
+      // 2. Initiate payment session
+      this.initiatePayPalPayment();
+    });
   }
 
-  ngOnDestroy(): void {
-    if (this.redirectTimeout) {
-      clearTimeout(this.redirectTimeout);
-    }
+  private initiatePayPalPayment(): void {
+    this.paymentService.initiatePayment(this.amount).subscribe({
+      next: (response) => {
+        if (response?.approvalUrl) {
+          // Redirect the browser window to PayPal Sandbox
+          window.location.href = response.approvalUrl;
+        } else {
+          this.handleError('No redirect URL returned from gateway.');
+        }
+      },
+      error: (err) => {
+        const errorMsg = err?.error?.error || err?.message || 'Gateway communication failed';
+        this.handleError(errorMsg);
+      }
+    });
   }
 
-  /** Huỷ redirect, quay về trang chọn phương thức thanh toán */
-  cancel(): void {
-    if (this.redirectTimeout) {
-      clearTimeout(this.redirectTimeout);
-      this.redirectTimeout = null;
-    }
-    this.router.navigate(['/payment']);
+  private handleError(message: string): void {
+    // Navigate to payment result screen with failed status
+    this.router.navigate(['/payment/result'], {
+      queryParams: {
+        token: 'ERROR',
+        success: 'false',
+        error: message
+      }
+    });
   }
 }

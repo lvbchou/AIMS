@@ -21,6 +21,17 @@ export class ProductService {
     );
   }
 
+  getByIds(ids: number[]): Observable<ProductSummary[]> {
+    return this.http.get<ProductSummary[]>(
+      `${this.BASE_URL}/batch`,
+      {
+        params: {
+          ids: ids.join(',')
+        }
+      }
+    );
+  }
+
   // ── Get by id (full detail) ───────────────────────────────────────
   getById(id: number): Observable<Product> {
     return this.http.get<any>(`${this.BASE_URL}/${id}`).pipe(
