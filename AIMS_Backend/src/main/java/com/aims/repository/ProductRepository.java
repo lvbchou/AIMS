@@ -1,14 +1,16 @@
 /**
- * ProductRepository
+ * ISP VIOLATION (searchAndFilter method):
+ * Callers that only need keyword search must still supply minPrice=0 and
+ * maxPrice=Long.MAX_VALUE — parameters they do not conceptually need.
+ * They are forced to depend on price-filter parameters irrelevant to their use case.
  *
- * Cohesion Level: Functional
- * Reason: Each query method has a single precisely defined purpose
- *   (find by barcode, check existence, search by keyword, etc.).
+ * Impact: Forces callers to pass dummy values, making the API confusing and
+ * harder to use correctly. Increases unnecessary coupling between search
+ * and filter concerns.
  *
- * Coupling:
- *   - Data coupling with ProductService: receives only primitive parameters
- *     (barcode, keyword, productId) and returns typed results
- *     (Optional<Product>, List<Product>).
+ * Improvement: Split into searchByKeywordAndCategory(keyword, category, pageable)
+ * and filterByPriceRange(min, max, pageable). Compose them at the service layer
+ * only when both dimensions are required simultaneously.
  */
 
 /*

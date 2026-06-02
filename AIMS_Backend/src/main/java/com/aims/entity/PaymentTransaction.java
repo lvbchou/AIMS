@@ -1,9 +1,3 @@
-/**
- * SOLID Principles Analysis:
- * - **SRP/OCP (Single Responsibility & Open/Closed) Violation**: The core entity class contains a static factory method `pendingVietQr()` dedicated to a specific payment method. This tightly couples the entity to concrete payment subsystems and requires code modification whenever new payment methods are introduced.
- * 
- * **Improvement Direction**: Move the creation of pending transactions into their respective subsystem packages (e.g. VietQr implementation of IPaymentGateway) or a dedicated factory class (`PaymentTransactionFactory`).
- */
 package com.aims.entity;
 
 import java.time.Instant;
@@ -20,9 +14,51 @@ import lombok.Setter;
 /**
  * Coupling level: Data Coupling.
  * Cohesion level: Functional Cohesion.
- * <p>
+ *
  * This entity concentrates all state and lifecycle behavior for a payment
  * transaction record.
+ *
+ * SOLID VIOLATION: Single Responsibility Principle (SRP)
+ *
+ * Problem: This entity class mixes data persistence responsibility with
+ *   payment-method-specific factory logic. The static factory method
+ *   pendingVietQr(Invoice, String) creates a transaction preconfigured for
+ *   the VietQR payment flow, embedding VietQR-specific business rules
+ *   (PaymentMethod.VIET_QR, content format "Order #orderId") inside a
+ *   generic entity class.
+ * Impact: Adding a new payment method (e.g. MoMo, ZaloPay) would require
+ *   adding another static factory method to this entity, growing the class
+ *   with unrelated payment-method-specific logic.
+ * Improvement:
+ *   - Extract a PaymentTransactionFactory class with method-specific factory methods
+ *   - Or move factory methods into the respective subsystem packages
+ *     (e.g. VietQrTransactionFactory in the vietqr package)
+ *   - Keep PaymentTransaction as a pure data entity with no factory logic
+ *
+ * SOLID VIOLATION: Open/Closed Principle (OCP)
+ *
+ * Problem: The pendingVietQr factory method is hardcoded to one payment method.
+ *   To support a new payment method, a new factory method must be added to
+ *   this class (e.g. pendingMoMo, pendingPayPal), modifying the entity.
+ * Impact: The entity class grows unboundedly as new payment methods are introduced.
+ * Improvement:
+ *   - Use a Factory Pattern with a PaymentTransactionFactory that accepts
+ *     PaymentMethod as a parameter and returns the appropriate transaction
+ *   - The entity class remains closed for modification
+ *
+ * SOLID: Liskov Substitution Principle (LSP) - Not Violated
+ *
+ * This entity does not participate in an inheritance hierarchy.
+ *
+ * SOLID: Interface Segregation Principle (ISP) - Not Violated
+ *
+ * This entity does not implement any interface. It is a JPA entity class.
+ *
+ * SOLID: Dependency Inversion Principle (DIP) - Not Violated
+ *
+ * This entity has no dependencies on high-level modules. It only depends
+ * on JPA annotations and its own field types, which is appropriate for
+ * a data entity in the persistence layer.
  *
  * @author Team 03
  * @since 1.0.0

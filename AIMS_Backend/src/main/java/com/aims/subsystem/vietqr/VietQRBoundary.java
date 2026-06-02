@@ -18,9 +18,56 @@ import org.springframework.stereotype.Component;
 /**
  * Coupling level: Data Coupling.
  * Cohesion level: Functional Cohesion.
- * <p>
+ *
  * This boundary isolates HTTP request construction, transport, and fallback
  * handling for the VietQR integration.
+ *
+ * SOLID VIOLATION: Single Responsibility Principle (SRP)
+ *
+ * Problem: This class handles four distinct responsibilities:
+ *   1. HTTP request construction and transport (getAccessTokenResponse, callGenerateCustomerApi)
+ *   2. QR request data assembly (createGenerateRequest) — building domain-specific
+ *      request objects from raw parameters
+ *   3. Static QR fallback generation (buildStaticQrPayload, buildStaticQrImageUrl)
+ *      — constructing a fallback URL when the live API is unavailable
+ *   4. Configuration value exposure (getMerchantId, getApiKey) — acting as a
+ *      configuration holder
+ * Impact: A change to the fallback URL format could inadvertently affect the
+ *   HTTP transport logic. The class mixes infrastructure concerns (HTTP) with
+ *   domain concerns (request assembly and fallback strategy).
+ * Improvement:
+ *   - Extract VietQRHttpClient for HTTP transport (requestAccessToken, callGenerateCustomerApi)
+ *   - Extract VietQRFallbackProvider for static QR URL generation
+ *   - Keep VietQRBoundary as a facade coordinating these components
+ *
+ * SOLID VIOLATION: Open/Closed Principle (OCP)
+ *
+ * Problem: The getQRCode and generateQrCode methods embed the fallback
+ *   strategy directly via if-else logic: "try live API, if fails, use static URL".
+ *   Adding a new fallback strategy (e.g. cached QR from Redis, or a secondary
+ *   QR provider) requires modifying these methods.
+ * Impact: New fallback strategies force modification of stable, tested methods.
+ * Improvement:
+ *   - Define a QRCodeFallbackStrategy interface
+ *   - Implement StaticUrlFallback, CachedQRFallback, etc.
+ *   - Inject the fallback strategy via constructor, making the boundary open
+ *     for extension but closed for modification
+ *
+ * SOLID: Liskov Substitution Principle (LSP) - Not Violated
+ *
+ * This class does not participate in an inheritance hierarchy.
+ *
+ * SOLID: Interface Segregation Principle (ISP) - Not Violated
+ *
+ * This class does not implement any interface. It is a standalone component.
+ *
+ * SOLID: Dependency Inversion Principle (DIP) - Not Violated
+ *
+ * This class is a low-level boundary module that directly handles HTTP
+ * communication with the external VietQR API. It uses Java's built-in
+ * HttpClient which is appropriate for a boundary layer. Higher-level modules
+ * depend on this class through injection, and the boundary itself has no
+ * internal dependencies on other application modules.
  *
  * @author Team 03
  * @since 1.0.0

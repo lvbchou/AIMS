@@ -1,3 +1,16 @@
+/**
+ * OCP VIOLATION:
+ * Same issue as ProductValidatorRegistry: the constructor hardcodes four
+ * product types. Any new product type forces modification of this class.
+ *
+ * Impact: Every new product type forces modification of this registry class,
+ * increasing risk of regression in existing creator mappings.
+ *
+ * Improvement: Inject List<ProductCreator> via Spring; each creator declares
+ * its supported type via getSupportedType(). The registry self-assembles the
+ * map without any manual modification.
+ */
+
 package com.aims.service.creator;
 
 import com.aims.exception.InvalidProductInfoException;

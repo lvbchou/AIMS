@@ -21,9 +21,65 @@ import com.aims.exception.CallbackVerificationException;
 /**
  * Coupling level: Stamp Coupling.
  * Cohesion level: Functional Cohesion.
- * <p>
+ *
  * This facade groups QR generation and callback validation under one payment
  * responsibility, but it still receives the full order object to build QR data.
+ *
+ * SOLID VIOLATION: Single Responsibility Principle (SRP)
+ *
+ * Problem: This class handles three distinct responsibilities:
+ *   1. QR code generation orchestration (getQRCode) — building QR data from
+ *      order, invoice, and delivery entities
+ *   2. Callback payload verification (checkPaymentStatus) — parsing and
+ *      validating VietQR webhook payloads
+ *   3. Authentication token management (validateBearerToken, getPartnerTokenSecret)
+ *      — validating Basic/Bearer authorization headers
+ * Impact: Modifying the authentication mechanism (e.g. switching from Basic to
+ *   OAuth2) requires changing the same class that generates QR codes. Testing
+ *   QR generation in isolation requires mocking authentication-related fields.
+ * Improvement:
+ *   - Extract a VietQRAuthValidator class for validateBearerToken and
+ *     getPartnerTokenSecret
+ *   - Keep VietQRController focused solely on QR generation and callback parsing
+ *     as defined by the IPaymentQRCode interface contract
+ *
+ * SOLID VIOLATION: Open/Closed Principle (OCP)
+ *
+ * Problem: The validateBearerToken method uses if-else branching to handle
+ *   different authentication schemes (Basic and Bearer). Adding a new auth
+ *   scheme (e.g. API-Key, OAuth2) requires modifying this method directly.
+ * Impact: Each new authentication mechanism requires editing a stable, tested
+ *   method, increasing regression risk.
+ * Improvement:
+ *   - Define an AuthSchemeValidator interface with method boolean validate(String header)
+ *   - Implement BasicAuthValidator and BearerTokenValidator separately
+ *   - Use a chain-of-responsibility or registry pattern to evaluate validators
+ *
+ * SOLID: Liskov Substitution Principle (LSP) - Not Violated
+ *
+ * VietQRController implements IPaymentQRCode faithfully. Both getQRCode and
+ * checkPaymentStatus honor the interface contract without throwing unexpected
+ * exceptions or weakening postconditions.
+ *
+ * SOLID: Interface Segregation Principle (ISP) - Not Violated
+ *
+ * IPaymentQRCode defines only two methods (getQRCode and checkPaymentStatus),
+ * both of which are relevant to and implemented by this class. The interface
+ * is appropriately narrow.
+ *
+ * SOLID VIOLATION: Dependency Inversion Principle (DIP)
+ *
+ * Problem: This class directly depends on concrete repository implementations
+ *   (InvoiceRepository, DeliveryRepository) and the concrete VietQRBoundary
+ *   class. A high-level subsystem controller should depend on abstractions
+ *   rather than concrete data-access and HTTP-transport classes.
+ * Impact: Replacing the data source (e.g. switching from JPA to a remote API)
+ *   or the HTTP client library requires modifying this class. Unit testing
+ *   requires mocking concrete classes rather than interfaces.
+ * Improvement:
+ *   - Inject an IPaymentDataProvider interface instead of raw repositories
+ *   - Define an IVietQRBoundary interface for the HTTP boundary layer
+ *   - VietQRController should only depend on these abstractions
  *
  * @author Team 03
  * @since 1.0.0
@@ -168,7 +224,7 @@ public class VietQRController implements IPaymentQRCode {
 
     /**
      * Validates the Authorization header sent by VietQR callbacks.
-     * <p>
+     *
      * Supports either {@code Basic} authentication using the configured
      * username/password pair or a {@code Bearer} token matching the configured
      * secret.

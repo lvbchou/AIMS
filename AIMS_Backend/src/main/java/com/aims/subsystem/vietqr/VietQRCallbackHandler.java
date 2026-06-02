@@ -13,9 +13,44 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Coupling level: Data Coupling.
  * Cohesion level: Functional Cohesion.
- * <p>
+ *
  * This parser keeps checksum verification, order resolution, and payment result
  * conversion in a single callback-processing responsibility.
+ *
+ * SOLID: Single Responsibility Principle (SRP) - Not Violated
+ *
+ * This class is focused on a single responsibility: parsing and validating
+ * VietQR callback payloads. All methods (verifyChecksum, getOrderIdFromContent,
+ * toPaymentResult, checkSuccess) serve this unified purpose.
+ *
+ * SOLID VIOLATION: Open/Closed Principle (OCP)
+ *
+ * Problem: The getOrderIdFromContent method uses a chain of if-else branches
+ *   to parse different content formats ("Order #ORD-001", "VQR..." prefix,
+ *   plain orderId). Adding a new VietQR content format requires modifying
+ *   this method. Similarly, isPaymentSuccessful hardcodes "SUCCESS" and "00"
+ *   as the only success indicators.
+ * Impact: Each new content format or status code from VietQR forces modification
+ *   of this parser, increasing regression risk in stable parsing logic.
+ * Improvement:
+ *   - Define an OrderIdExtractor interface with method String extract(String content)
+ *   - Implement format-specific extractors and chain them
+ *   - Use a configurable set of success status codes instead of hardcoded values
+ *
+ * SOLID: Liskov Substitution Principle (LSP) - Not Violated
+ *
+ * This class does not participate in an inheritance hierarchy.
+ *
+ * SOLID: Interface Segregation Principle (ISP) - Not Violated
+ *
+ * This class does not implement any interface. It is instantiated directly
+ * by VietQRController.checkPaymentStatus with callback data.
+ *
+ * SOLID: Dependency Inversion Principle (DIP) - Not Violated
+ *
+ * This class depends only on Jackson ObjectMapper (a framework utility) and
+ * the PaymentResult entity. It has no dependencies on high-level application
+ * modules, which is appropriate for a low-level parsing utility.
  *
  * @author Team 03
  * @since 1.0.0

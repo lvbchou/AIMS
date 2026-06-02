@@ -1,3 +1,19 @@
+/**
+ * LSP VIOLATION:
+ * validateTypeFields(ProductInfoDTO dto) declares it accepts any ProductInfoDTO
+ * (the parent type), but immediately downcasts to a specific subtype
+ * (e.g., BookInfoDTO book = (BookInfoDTO) dto).
+ *
+ * Impact: If a caller substitutes a different ProductInfoDTO subtype, a
+ * ClassCastException is thrown at runtime. The subclass cannot safely substitute
+ * the base ProductValidator for all valid inputs of the declared type.
+ *
+ * Improvement: Use generics — abstract class ProductValidator<T extends ProductInfoDTO>
+ * with abstract void validateTypeFields(T dto). Each subtype validator is typed as
+ * ProductValidator<BookInfoDTO>, ProductValidator<CDInfoDTO>, etc.
+ * Type correctness is enforced at compile time; no runtime downcast is needed.
+ */
+
 package com.aims.service.validator;
 
 import com.aims.dto.product.BookInfoDTO;

@@ -10,8 +10,46 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Coupling level: Data Coupling.
  * Cohesion level: Functional Cohesion.
- * <p>
+ *
  * This entity stores and parses the QR payload data for a single VietQR payment.
+ *
+ * SOLID VIOLATION: Single Responsibility Principle (SRP)
+ *
+ * Problem: This class combines two distinct responsibilities:
+ *   1. Data storage — holding QR code fields (qrCode, qrLink, bankCode, etc.)
+ *   2. Response parsing — the parseQRCodeResponse method contains complex parsing
+ *      logic supporting both JSON and legacy key=value formats, including JSON
+ *      deserialization with ObjectMapper and string tokenization
+ * Impact: A change to the VietQR API response format requires modifying the same
+ *   class that stores QR data. Parsing logic is tightly coupled with data fields.
+ * Improvement:
+ *   - Extract a QRCodeResponseParser class with method QRCode parse(String response)
+ *   - Keep QRCode as a pure data holder (POJO) with only getters and setters
+ *   - The parser can support multiple formats via strategy pattern if needed
+ *
+ * SOLID VIOLATION: Open/Closed Principle (OCP)
+ *
+ * Problem: The parseQRCodeResponse method uses if-else branching to handle two
+ *   response formats (JSON starting with "{" and legacy key=value strings).
+ *   Adding a new response format (e.g. XML, Protocol Buffers) requires modifying
+ *   this method directly.
+ * Impact: New response formats force modification of the parsing method.
+ * Improvement:
+ *   - Define a QRResponseFormat interface with method QRCode parse(String response)
+ *   - Implement JsonQRResponseFormat and KeyValueQRResponseFormat
+ *   - Use a format detector to select the appropriate parser
+ *
+ * SOLID: Liskov Substitution Principle (LSP) - Not Violated
+ *
+ * This class does not participate in an inheritance hierarchy.
+ *
+ * SOLID: Interface Segregation Principle (ISP) - Not Violated
+ *
+ * This class does not implement any interface.
+ *
+ * SOLID: Dependency Inversion Principle (DIP) - Not Violated
+ *
+ * As a data entity in the lowest layer, it does not depend on higher-level modules.
  *
  * @author Team 03
  * @since 1.0.0
@@ -46,7 +84,7 @@ public class QRCode {
 
     /**
      * Parses the QR response from VietQR.
-     * <p>
+     *
      * Supports two formats: JSON from the live API and key=value strings from the fallback payload.
      *
      * @param response raw response from VietQR.

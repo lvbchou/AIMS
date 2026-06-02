@@ -1,13 +1,26 @@
 /**
- * ProductController
+ * SRP VIOLATION:
+ * One controller handles CUD endpoints, ViewProductDetails, and
+ * SearchProduct/FilterProduct — three use cases with different actors and flows.
  *
- * Cohesion Level: Functional
- * Reason: Each method has a single well-defined purpose —
- *   map one HTTP endpoint to one service call. No business logic present.
+ * Impact: A change to search pagination parameters requires modifying the same
+ * file as changes to the delete endpoint, violating single axis of change.
  *
- * Coupling:
- *   - Data coupling with ProductService: passes only primitives
- *     or purpose-built DTOs and receives purpose-built response types.
+ * Improvement: Split into ProductCUDController, ViewProductController, and
+ * SearchFilterProductController, one class per use-case boundary.
+ *
+ * ---
+ *
+ * DIP VIOLATION:
+ * ProductController depends directly on the concrete ProductService class
+ * rather than on an abstraction.
+ *
+ * Impact: Tight coupling makes it difficult to substitute a mock or alternative
+ * implementation in unit tests without loading the full Spring context.
+ *
+ * Improvement: Introduce IProductService, or reuse the split interfaces from
+ * the ISP fix (IProductQueryService / IProductCommandService).
+ * ProductController declares its dependency as the interface, not the concrete class.
  */
 /*
     Coupling level: Control coupling with ProductService (in searchAndFilterProduct()).

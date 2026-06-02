@@ -1,18 +1,49 @@
-/**
- * SOLID Principles Analysis:
- * - **SRP (Single Responsibility Principle) Violation**: The class is named `PaymentResult` (sounding generic), but its comments and internal context couple it specifically to the "VietQR callback outcome".
- * - **OCP (Open/Closed Principle) Violation**: If a new payment subsystem needs to process callback results, developers must either modify this class or create duplicate classes with similar names.
- * 
- * **Improvement Direction**: Rename this class to `VietQrPaymentResult` and place it in the `vietqr` subsystem package, or transform it into a generic result interface that different gateways can implement.
- */
 package com.aims.entity;
 
 /**
  * Coupling level: Data Coupling.
  * Cohesion level: Functional Cohesion.
- * <p>
+ *
  * This entity represents the parsed outcome of a VietQR callback and keeps the
  * callback result data together in one responsibility.
+ *
+ * SOLID VIOLATION: Single Responsibility Principle (SRP)
+ *
+ * Problem: The class is named "PaymentResult" (generic), but its internal
+ *   implementation and field set are tightly coupled to the VietQR callback
+ *   outcome format. The checkSuccess method uses VietQR-specific logic
+ *   (checking for "SUCCESS" status string).
+ * Impact: If a new payment subsystem (e.g. PayPal) needs a callback result
+ *   class, developers must either modify this class to accommodate different
+ *   success semantics or create a duplicate class with a similar name.
+ * Improvement:
+ *   - Rename to VietQrPaymentResult and place it in the vietqr subsystem package
+ *   - Or define a generic IPaymentResult interface that different gateways implement
+ *
+ * SOLID VIOLATION: Open/Closed Principle (OCP)
+ *
+ * Problem: The checkSuccess method hardcodes success determination logic
+ *   (success > 0 || "SUCCESS".equalsIgnoreCase(status)). If a new payment
+ *   gateway uses different success semantics (e.g. status code "0" means success),
+ *   this method must be modified.
+ * Impact: Each new payment provider with different success indicators requires
+ *   modifying the entity, risking regression in existing payment flows.
+ * Improvement:
+ *   - Define an IPaymentResult interface with boolean isSuccessful()
+ *   - Each payment subsystem provides its own implementation with provider-specific
+ *     success logic
+ *
+ * SOLID: Liskov Substitution Principle (LSP) - Not Violated
+ *
+ * This class does not participate in an inheritance hierarchy.
+ *
+ * SOLID: Interface Segregation Principle (ISP) - Not Violated
+ *
+ * This class does not implement any interface.
+ *
+ * SOLID: Dependency Inversion Principle (DIP) - Not Violated
+ *
+ * This entity has no dependencies on higher-level modules.
  *
  * @author Team 03
  * @since 1.0.0

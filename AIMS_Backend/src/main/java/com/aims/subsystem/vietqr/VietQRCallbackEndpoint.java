@@ -15,9 +15,70 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Coupling level: Stamp Coupling.
  * Cohesion level: Logical Cohesion.
- * <p>
+ *
  * This endpoint groups related callback routes and delegates the actual payment
  * handling to the service layer after routing the incoming payload.
+ *
+ * SOLID VIOLATION: Single Responsibility Principle (SRP)
+ *
+ * Problem: This class combines four distinct responsibilities:
+ *   1. HTTP endpoint routing for three different callback paths
+ *      (receiveCallback, transactionSync, testTransactionCallback)
+ *   2. Request validation and orderId resolution logic (processSync, resolveOrderId,
+ *      restoreOrderId) — this is business logic embedded in a controller
+ *   3. Authentication delegation (calling vietQRController.validateBearerToken)
+ *   4. DTO definitions (TransactionSyncRequest, TransactionSyncResponse,
+ *      TestCallbackRequest, TestCallbackResponse) — data classes defined as
+ *      inner records inside the controller
+ * Impact: Changes to the orderId resolution algorithm affect the endpoint class.
+ *   DTO changes (e.g. adding a field) require modifying the controller file.
+ *   The class has over 340 lines, well beyond the expected size for a controller.
+ * Improvement:
+ *   - Move resolveOrderId and restoreOrderId into a dedicated OrderIdResolver
+ *     utility or into the service layer
+ *   - Move inner record DTOs into the dto package as standalone classes
+ *   - Split receiveCallback (raw webhook) into a separate controller from
+ *     the synchronous callback endpoints
+ *
+ * SOLID VIOLATION: Open/Closed Principle (OCP)
+ *
+ * Problem: The resolveOrderId method uses a chain of if-else branches to parse
+ *   different content formats ("Order #ORD-001", "Order ORD001", "VQR... ORD001",
+ *   plain orderId). Adding support for a new format requires modifying this method.
+ * Impact: New VietQR content formats or new payment providers with different
+ *   content patterns force modification of this stable method.
+ * Improvement:
+ *   - Define an OrderIdParser interface with method String parse(String content)
+ *   - Implement format-specific parsers (LegacyOrderIdParser, VQRPrefixParser, etc.)
+ *   - Use a chain-of-responsibility pattern to try each parser in sequence
+ *
+ * SOLID: Liskov Substitution Principle (LSP) - Not Violated
+ *
+ * This class does not participate in an inheritance hierarchy.
+ *
+ * SOLID VIOLATION: Interface Segregation Principle (ISP)
+ *
+ * Problem: The inner record DTOs (TransactionSyncRequest, TestCallbackRequest,
+ *   TransactionSyncResponse, TestCallbackResponse) are defined as nested types
+ *   inside this controller. Any class that needs to reference these DTOs is
+ *   forced to depend on the entire VietQRCallbackEndpoint class, even if it
+ *   only needs one DTO type.
+ * Impact: External modules or tests that reference these DTOs unnecessarily
+ *   import the full controller class with all its dependencies.
+ * Improvement:
+ *   - Move each DTO into the dto package as a standalone top-level class
+ *   - This decouples DTO consumers from the controller implementation
+ *
+ * SOLID VIOLATION: Dependency Inversion Principle (DIP)
+ *
+ * Problem: This controller depends on the concrete class VietQRController for
+ *   authentication validation. It also depends on the concrete PayOrderService
+ *   rather than an abstraction.
+ * Impact: Swapping the authentication provider or payment service implementation
+ *   requires modifying the constructor injection.
+ * Improvement:
+ *   - Inject an IAuthValidator interface instead of VietQRController for token validation
+ *   - Inject an IPayOrderService interface instead of the concrete PayOrderService
  *
  * @author Team 03
  * @since 1.0.0

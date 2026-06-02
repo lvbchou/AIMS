@@ -1,12 +1,17 @@
 /**
- * ProductSummaryDTO
+ * SRP VIOLATION:
+ * ProductService.searchProduct() builds ProductSummaryDTO inline with
+ * new ProductSummaryDTO(...). This mixes service orchestration logic
+ * with object-mapping concern — two separate reasons to change.
  *
- * Cohesion Level: Functional
- * Reason: All five fields serve a single purpose — product list display.
+ * Impact: Changes to the DTO structure force modification of the service class,
+ * and changes to mapping logic are scattered across the codebase.
  *
- * Coupling:
- *   - Data coupling with ProductService: received as return type of getAllProducts().
+ * Improvement: Move the construction into ProductMapper.toSummary(Product p).
+ * The service calls ProductMapper.toSummary(p), keeping all mapping concerns
+ * in one dedicated class.
  */
+
 package com.aims.dto.product;
 
 public record ProductSummaryDTO(

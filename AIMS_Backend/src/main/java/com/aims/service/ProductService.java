@@ -1,29 +1,29 @@
 /**
- * ProductService
+ * SRP VIOLATION:
+ * One class handles four independent use cases: Create/Update/Delete,
+ * View Product Details, Search Product, and Filter Product.
+ * Each use case has a separate reason to change.
  *
- * Cohesion Level: Procedural
- * Reason: Methods validateProductInfo(), buildProductFromDTO(), and
- *   repository.save() are grouped because they form an ordered sequence
- *   of steps in the save/update flow — validate first, build next, then persist.
- *   Each step is a precondition for the next, which is the characteristic
- *   of procedural cohesion.
+ * Impact: A change to search pagination forces modification of the same file
+ * as changes to the delete endpoint, increasing risk of regression.
  *
- * Coupling:
- *   - Data coupling with ProductRepository: passes only primitives
- *     or typed entities, no internal state of repository is accessed.
- *   - Content coupling with Book, CD, DVD, Newspaper (updateProduct):
- *     directly modifies internal data of each subtype via setters after downcasting.
- *     Improvement: add abstract method applyUpdate(ProductInfoDTO dto) to Product.
- *   - Control coupling with ProductInfoDTO (validateProductInfo, buildProductFromDTO):
- *     productType string flag controls which branch of logic executes.
- *     Improvement: extract per-type validators and factories selected via a map.
- */
-/*
-    Coupling level: Data coupling with ProductRepository.
-        - Reason: findActiveById(Integer productId) and searchAndFilter(keyword, category,
-                  minPrice, maxPrice) pass only the exact parameters needed. The repository
-                  does not depend on service logic, and the service does not access
-                  repository internals. Good data coupling.
+ * Improvement: Split into ProductCommandService (saveProduct / updateProduct /
+ * deleteProduct) and ProductQueryService (viewProduct / searchProduct /
+ * filterProductsByPriceRange). Each class has a single axis of change.
+ *
+ * ---
+ *
+ * DIP VIOLATION (deleteProduct):
+ * The high-level module directly implements the deletion business rule inline:
+ * if stock > 0, deactivate; otherwise, hard-delete. This low-level policy
+ * detail is baked into the service.
+ *
+ * Impact: If the rule changes (e.g., threshold becomes 10, or a soft-delete
+ * audit trail is required), the service class itself must be modified.
+ *
+ * Improvement: Introduce a ProductDeletionPolicy interface with an
+ * execute(Product product, ProductRepository repo) method. Inject the concrete
+ * policy into ProductService via constructor.
  */
 
 /*

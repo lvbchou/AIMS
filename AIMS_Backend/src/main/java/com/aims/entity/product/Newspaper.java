@@ -1,16 +1,17 @@
 /**
- * Newspaper
+ * LSP VIOLATION (applyUpdate method):
+ * applyUpdate(ProductInfoDTO dto) accepts the abstract parent type but
+ * immediately casts to a concrete subtype
+ * (e.g., BookInfoDTO book = (BookInfoDTO) dto).
  *
- * Cohesion Level: Functional
- * Reason: All fields contribute to representing a single domain concept — a specific product subtype.
+ * Impact: Passing the wrong DTO subtype causes a ClassCastException at runtime.
+ * A caller holding a Product reference cannot safely invoke applyUpdate()
+ * with any arbitrary ProductInfoDTO.
  *
- * Coupling:
- *   - Content coupling with ProductService (updateProduct):
- *     ProductService directly modifies internal data of this class via setters.
- *     Improvement: implement applyUpdate(ProductInfoDTO dto) to encapsulate update logic.
- *   - Content coupling with ProductMapper (toDTO):
- *     ProductMapper directly reads internal data of this class via getters after downcasting.
- *     Improvement: implement toDTO() to encapsulate mapping logic.
+ * Improvement: Apply the same generic solution as validators:
+ * abstract class Product<T extends ProductInfoDTO> with abstract void applyUpdate(T dto).
+ * Each entity subtype declares its own T. Alternatively, add an explicit type-check
+ * that throws a descriptive IllegalArgumentException instead of an opaque ClassCastException.
  */
 package com.aims.entity.product;
 
