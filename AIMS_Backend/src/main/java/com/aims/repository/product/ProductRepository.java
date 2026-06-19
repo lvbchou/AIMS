@@ -1,17 +1,3 @@
-/**
- * ISP VIOLATION (searchAndFilter method):
- * Callers that only need keyword search must still supply minPrice=0 and
- * maxPrice=Long.MAX_VALUE — parameters they do not conceptually need.
- * They are forced to depend on price-filter parameters irrelevant to their use case.
- *
- * Impact: Forces callers to pass dummy values, making the API confusing and
- * harder to use correctly. Increases unnecessary coupling between search
- * and filter concerns.
- *
- * Improvement: Split into searchByKeywordAndCategory(keyword, category, pageable)
- * and filterByPriceRange(min, max, pageable). Compose them at the service layer
- * only when both dimensions are required simultaneously.
- */
 package com.aims.repository.product;
 
 import com.aims.entity.product.Product;
@@ -41,26 +27,16 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     boolean existsByBarcode(@Param("barcode") String barcode);
 
     /**
-     * SD SearchProduct step 1.1.3 + step 2.1.1 (kết hợp):
-     * - Bước 1: searchProduct(keyword, category) → lọc theo title/category
-     * - Bước 2 (opt): filterByPriceRange áp dụng TRÊN kết quả search
-     *
-     * Cả hai bước được thực hiện trong 1 query duy nhất để đúng với Sequence Diagram:
-     * "filterProductsByPriceRange(productList, priceRange)" tức là filter
-     * chỉ áp dụng trên tập đã search, không phải toàn bộ catalog.
-     *
-     * Nếu minPrice = 0 và maxPrice = Long.MAX_VALUE → không filter giá (chỉ search).
-     * Nếu keyword = null và category = null → không áp dụng (dùng getAllProducts thay thế).
+     * Search thuần theo keyword + category (SD SearchProduct step 1.1.3).
+     * Không phụ thuộc bất kỳ tham số giá nào → tuân thủ ISP.
+     * Việc filter theo giá được thực hiện ở tầng service, áp trên tập đã search.
      */
     @Query("SELECT p FROM Product p WHERE p.status = 'active' " +
             "AND (:keyword IS NULL OR LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-            "AND (:category IS NULL OR p.category = :category) " +
-            "AND p.sellingPrice >= :minPrice AND p.sellingPrice <= :maxPrice")
-    Page<Product> searchAndFilter(
+            "AND (:category IS NULL OR p.category = :category)")
+    Page<Product> searchByKeywordAndCategory(
             @Param("keyword") String keyword,
             @Param("category") String category,
-            @Param("minPrice") long minPrice,
-            @Param("maxPrice") long maxPrice,
             Pageable pageable);
 
     @Query("SELECT p FROM Product p WHERE p.status = 'active'")

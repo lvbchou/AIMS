@@ -87,7 +87,7 @@ export const routes: Routes = [
   {
     path: 'product-manager',
     canActivate: [authGuard, roleGuard],
-    data: { role: 'PRODUCT_MANAGER' },
+    data: { role: 'ROLE_PRODUCT_MANAGER' },
     component: ManagerLayoutComponent,
     children: [
       {

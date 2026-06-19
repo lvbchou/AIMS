@@ -1,13 +1,17 @@
 package com.aims.service.product;
 
 import com.aims.dto.product.ProductSummaryDTO;
+import com.aims.entity.product.Product;
 import com.aims.mapper.product.ProductSummaryMapper;
 import com.aims.repository.product.ProductRepository;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.aims.exception.*;
+
+import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -15,18 +19,21 @@ public class ProductSearchService implements IProductSearchService {
 
     private final ProductRepository productRepository;
     private final ProductSummaryMapper productSummaryMapper;
+    private final PriceRangeParser priceRangeParser;
 
     public ProductSearchService(ProductRepository productRepository,
-                                ProductSummaryMapper productSummaryMapper) {
+                                ProductSummaryMapper productSummaryMapper,
+                                PriceRangeParser priceRangeParser) {
         this.productRepository = productRepository;
         this.productSummaryMapper = productSummaryMapper;
+        this.priceRangeParser = priceRangeParser;
     }
 
     @Transactional(readOnly = true)
     public Page<ProductSummaryDTO> searchProduct(String keyword, String category, Pageable pageable) {
         isValidInput(keyword, category);
         return productRepository
-                .searchAndFilter(keyword, category, 0L, Long.MAX_VALUE, pageable)
+                .searchByKeywordAndCategory(keyword, category, pageable)
                 .map(p -> productSummaryMapper.toDTO(p));
     }
 
@@ -34,39 +41,33 @@ public class ProductSearchService implements IProductSearchService {
     public Page<ProductSummaryDTO> filterProductsByPriceRange(
             String keyword, String category, String priceRange, Pageable pageable) {
 
-        long[] range = parsePriceRange(priceRange);
+        isValidInput(keyword, category);
+        long[] range = priceRangeParser.parse(priceRange);
+        long min = range[0];
+        long max = range[1];
 
-        boolean noSearchContext = (keyword == null || keyword.isBlank())
-                && (category == null || category.isBlank());
+        // Bước 1: search ra tập kết quả (đúng SD: filter áp TRÊN tập đã search)
+        List<Product> searched = productRepository
+                .searchByKeywordAndCategory(keyword, category, Pageable.unpaged())
+                .getContent();
 
-        return productRepository
-                .searchAndFilter(
-                        noSearchContext ? null : keyword,
-                        noSearchContext ? null : category,
-                        range[0],
-                        range[1],
-                        pageable)
-                .map(p -> productSummaryMapper.toDTO(p));
+        // Bước 2: filter giá trên chính tập đã search (in-memory)
+        List<ProductSummaryDTO> filtered = searched.stream()
+                .filter(p -> p.getSellingPrice() >= min && p.getSellingPrice() <= max)
+                .map(productSummaryMapper::toDTO)
+                .toList();
+
+        // Bước 3: phân trang thủ công trên kết quả đã filter
+        return paginate(filtered, pageable);
     }
 
-    private long[] parsePriceRange(String priceRange) {
-        String[] parts = priceRange.split("-");
-        if (parts.length != 2) {
-            throw new InvalidProductInfoException(
-                    "Invalid price range format. Expected: min-max (e.g. 100000-200000)");
+    private Page<ProductSummaryDTO> paginate(List<ProductSummaryDTO> list, Pageable pageable) {
+        int start = (int) pageable.getOffset();
+        if (start >= list.size()) {
+            return new PageImpl<>(List.of(), pageable, list.size());
         }
-        try {
-            long min = Long.parseLong(parts[0].trim());
-            long max = Long.parseLong(parts[1].trim());
-            if (min < 0 || max < min) {
-                throw new InvalidProductInfoException(
-                        "Price range invalid: min must be >= 0 and max >= min");
-            }
-            return new long[] { min, max };
-        } catch (NumberFormatException e) {
-            throw new InvalidProductInfoException(
-                    "Price range must contain valid numbers. Expected: min-max");
-        }
+        int end = Math.min(start + pageable.getPageSize(), list.size());
+        return new PageImpl<>(list.subList(start, end), pageable, list.size());
     }
 
     private void isValidInput(String keyword, String category) {
