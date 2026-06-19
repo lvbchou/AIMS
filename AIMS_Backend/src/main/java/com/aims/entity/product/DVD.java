@@ -63,37 +63,4 @@ public class DVD extends DiscProduct {
         this.language = language;
         this.subtitles = subtitles;
     }
-
-    @Override
-    public void applyUpdate(ProductInfoDTO dto) {
-        DVDInfoDTO dvd = (DVDInfoDTO) dto;
-        this.discType = dvd.getDiscType();
-        this.director = dvd.getDirector();
-        this.runtime = dvd.getRuntime();
-        this.studio = dvd.getStudio();
-        this.language = dvd.getLanguage();
-        this.subtitles = dvd.getSubtitles();
-        this.setGenre(dvd.getGenre());
-        this.setReleaseDate(dvd.getReleaseDate());
-    }
-
-    @Override
-    public ProductInfoDTO toDTO() {
-
-        DVDInfoDTO dto = new DVDInfoDTO();
-
-        baseDTO(dto);
-
-        dto.setProductType("DVD");
-        dto.setGenre(getGenre());
-        dto.setDirector(director);
-        dto.setRuntime(runtime);
-        dto.setStudio(studio);
-        dto.setDiscType(discType);
-        dto.setLanguage(language);
-        dto.setSubtitles(subtitles);
-        dto.setReleaseDate(getReleaseDate());
-
-        return dto;
-    }
 }

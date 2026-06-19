@@ -116,11 +116,11 @@ export interface OrderConfirmationData {
   phoneNumber: string;
   shippingAddress: string;
   province: string;
-  totalAmount: number; // in VND
+  totalAmountToBePaid: number; // in VND
   transactionId: string;
   transactionContent: string;
-  transactionDatetime: string; // format: DD/MM/YYYY HH:mm:ss
-  orderReference: string; // format: AIMS-XXXXX-SUC
+  transactionDatetimeDisplay: string; // format: DD/MM/YYYY HH:mm:ss
+  orderName: string;
 }
 
 // Payment Failure Data

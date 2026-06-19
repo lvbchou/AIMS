@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PaymentService } from '../../services/payment.service';
-import { CartService } from '../../../cart/services/cart.service';  
+import { CartService } from '../../../cart/services/cart.service';
 import { OrderService } from '../../../order/services/order.service';
 
 @Component({
@@ -28,12 +28,10 @@ export class PaymentResultComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // 1. Retrieve the payment token from URL query params
     this.route.queryParams.subscribe(params => {
       const token = params['token'] || params['paymentId'];
       const isSuccessParam = params['success'];
 
-      // If redirected from an immediate frontend error or cancel
       if (token === 'ERROR' || isSuccessParam === 'false') {
         this.loading = false;
         this.success = false;
@@ -50,41 +48,48 @@ export class PaymentResultComponent implements OnInit {
         return;
       }
 
-      // 2. Complete/Capture the payment session on the backend
       this.capturePayment(token);
     });
   }
 
   private capturePayment(token: string): void {
-    console.log('[PaymentResult] Initiating capture for token:', token);
     this.paymentService.completePayment(token).subscribe({
       next: (res) => {
-        console.log('[PaymentResult] Capture completed successfully:', res);
         this.loading = false;
         this.success = true;
-        // Format a high-fidelity reference code exactly as in the success screenshot
-        this.orderReference = '#AIMS-' + this.generateRandomRef() + '-SUC';
-        this.orderService.clearCheckoutState();
-  
-        // Wrap trong setTimeout để tránh ExpressionChangedAfterItHasBeenChecked
+        if (res.orderId) {
+          this.orderService.setCurrentOrderId(res.orderId);
+        }
+
         setTimeout(() => {
           this.cartService.clear();
+          this.router.navigate(['/payment/success'], {
+            queryParams: {
+              orderId: res.orderId,
+            },
+            state: {
+              orderId: res.orderId,
+              transactionId: res.transactionId,
+            },
+          });
         }, 0);
-        this.cdr.detectChanges(); // Force Angular to update view
+        this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('[PaymentResult] Capture failed:', err);
         this.loading = false;
         this.success = false;
         this.orderReference = '#AIMS-' + this.generateRandomRef() + '-ERR';
-        this.errorMessage = err?.error?.error || err?.message || 'Transaction capture execution failed.';
-        this.cdr.detectChanges(); // Force Angular to update view
+        this.errorMessage =
+          err?.error?.message ||
+          err?.error?.error ||
+          err?.message ||
+          'Transaction capture execution failed.';
+        this.cdr.detectChanges();
       }
     });
   }
 
   private generateRandomRef(): string {
-    // Generates a mock number like '82910' for high-fidelity matching
     return Math.floor(10000 + Math.random() * 90000).toString();
   }
 

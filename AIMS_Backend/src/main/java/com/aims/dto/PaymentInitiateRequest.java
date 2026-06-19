@@ -20,4 +20,5 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class PaymentInitiateRequest {
     private long amount; // Total payment amount in VND (e.g., 150000)
+    private String orderId;
 }

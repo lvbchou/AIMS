@@ -30,7 +30,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Newspaper extends PrintableProduct {
+public class  Newspaper extends PrintableProduct {
 
     @Column(name = "editor_in_chief")
     private String editorInChief;
@@ -67,42 +67,5 @@ public class Newspaper extends PrintableProduct {
         this.publicationFrequency = publicationFrequency;
         this.ISSN = ISSN;
         this.sections = sections != null ? new ArrayList<>(sections) : new ArrayList<>();
-    }
-
-    @Override
-    public void applyUpdate(ProductInfoDTO dto) {
-        NewspaperInfoDTO newspaper = (NewspaperInfoDTO) dto;
-        this.editorInChief = newspaper.getEditorInChief();
-        this.issueNumber = newspaper.getIssueNumber();
-        this.publicationFrequency = newspaper.getPublicationFrequency();
-        this.ISSN = newspaper.getISSN();
-        this.setPublisher(newspaper.getPublisher());
-        this.setPublicationDate(newspaper.getPublicationDate());
-        this.setLanguage(newspaper.getLanguage());
-
-        if (newspaper.getSections() != null) {
-            this.sections.clear();
-            this.sections.addAll(newspaper.getSections());
-        }
-    }
-
-    @Override
-    public ProductInfoDTO toDTO() {
-
-        NewspaperInfoDTO dto = new NewspaperInfoDTO();
-
-        baseDTO(dto);
-
-        dto.setProductType("NEWSPAPER");
-        dto.setPublisher(getPublisher());
-        dto.setPublicationDate(getPublicationDate());
-        dto.setLanguage(getLanguage());
-        dto.setEditorInChief(editorInChief);
-        dto.setIssueNumber(issueNumber);
-        dto.setPublicationFrequency(publicationFrequency);
-        dto.setISSN(ISSN);
-        dto.setSections(sections);
-
-        return dto;
     }
 }

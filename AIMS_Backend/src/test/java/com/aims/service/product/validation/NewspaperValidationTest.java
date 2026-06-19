@@ -2,7 +2,7 @@ package com.aims.service.product.validation;
 
 import com.aims.dto.product.NewspaperInfoDTO;
 import com.aims.exception.InvalidProductInfoException;
-import com.aims.service.validator.NewspaperValidator;
+import com.aims.service.product.validator.NewspaperValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

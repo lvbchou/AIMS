@@ -10,8 +10,10 @@
 package com.aims.service;
 
 import com.aims.IPaymentGateway;
+import com.aims.constants.OrderStatusValues;
 import com.aims.dto.GatewayTransactionContext;
 import com.aims.dto.GatewayTransactionResult;
+import com.aims.dto.PaymentCompleteResponse;
 import com.aims.entity.Invoice;
 import com.aims.entity.Order;
 import com.aims.entity.PaymentMethod;
@@ -19,7 +21,9 @@ import com.aims.entity.PaymentTransaction;
 import com.aims.entity.TransactionStatus;
 import com.aims.exception.PaymentException;
 import com.aims.repository.IOrderRepository;
+import com.aims.repository.InvoiceRepository;
 import com.aims.repository.JpaInvoiceRepository;
+import com.aims.repository.OrderRepository;
 import com.aims.repository.PaymentTransactionRepository;
 import org.springframework.stereotype.Service;
 
@@ -34,17 +38,23 @@ public class PayThroughPaymentGatewayService {
 
     private final IPaymentGateway paymentGateway;
     private final IOrderRepository orderRepository;
+    private final OrderRepository jpaOrderRepository;
+    private final InvoiceRepository invoiceRepository;
     private final JpaInvoiceRepository jpaInvoiceRepository;
     private final PaymentTransactionRepository paymentTransactionRepository;
 
     public PayThroughPaymentGatewayService(
             IPaymentGateway paymentGateway,
             IOrderRepository orderRepository,
+            OrderRepository jpaOrderRepository,
+            InvoiceRepository invoiceRepository,
             JpaInvoiceRepository jpaInvoiceRepository,
             PaymentTransactionRepository paymentTransactionRepository) {
 
         this.paymentGateway = paymentGateway;
         this.orderRepository = orderRepository;
+        this.jpaOrderRepository = jpaOrderRepository;
+        this.invoiceRepository = invoiceRepository;
         this.jpaInvoiceRepository = jpaInvoiceRepository;
         this.paymentTransactionRepository = paymentTransactionRepository;
     }
@@ -73,11 +83,35 @@ public class PayThroughPaymentGatewayService {
         return context.getApprovalUrl();
     }
 
+    public GatewayTransactionContext createPaymentForOrder(String orderId) throws PaymentException {
+        if (orderId == null || orderId.isBlank()) {
+            throw new IllegalArgumentException("Order ID is required.");
+        }
+
+        Order order = jpaOrderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+        Invoice invoice = invoiceRepository.findByOrderOrderId(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Invoice not found for order: " + orderId));
+        invoice.calculateTotalAmount();
+
+        GatewayTransactionContext context = paymentGateway.createPayment(invoice);
+        order.setStatus(OrderStatusValues.AWAITING_PAYMENT);
+        orderRepository.updateOrder(order);
+
+        String token = context.getPaypalOrderId();
+        if (token == null || token.isBlank()) {
+            token = extractToken(context.getApprovalUrl());
+        }
+        orderRepository.rememberPaymentToken(token, order);
+
+        return context;
+    }
+
     /**
      * Captures/executes the payment via the gateway, updates Order status to PAID,
      * and saves a PaymentTransaction log.
      */
-    public void completePayment(String token) throws PaymentException {
+    public PaymentCompleteResponse completePayment(String token) throws PaymentException {
         // 1. Look up the order using the token
         Order order = orderRepository.findByToken(token);
         if (order == null) {
@@ -101,16 +135,43 @@ public class PayThroughPaymentGatewayService {
 
         // 5. Check result and update status
         if (result.checkSuccess()) {
-            order.setStatus("approved");
-            orderRepository.updateOrder(order); // Save updated Order state
+            if (paymentTransactionRepository.findById(transaction.getTransactionId())
+                    .map(existing -> TransactionStatus.success.equals(existing.getStatus()))
+                    .orElse(false)) {
+                return PaymentCompleteResponse.builder()
+                        .status("SUCCESS")
+                        .message("Payment was already captured successfully.")
+                        .orderId(order.getOrderId())
+                        .transactionId(transaction.getTransactionId())
+                        .build();
+            }
 
             transaction.setStatus(TransactionStatus.success);
-            paymentTransactionRepository.save(transaction); // Persist successful transaction to PostgreSQL database
+            paymentTransactionRepository.save(transaction);
+            return PaymentCompleteResponse.builder()
+                    .status("SUCCESS")
+                    .message("Payment captured successfully. Confirm the paid order through Place Order.")
+                    .orderId(order.getOrderId())
+                    .transactionId(transaction.getTransactionId())
+                    .build();
         } else {
             transaction.setStatus(TransactionStatus.failed);
             paymentTransactionRepository.save(transaction); // Persist failed transaction log to PostgreSQL database
 
             throw new PaymentException(result.getMessage());
         }
+    }
+
+    private String extractToken(String approvalUrl) {
+        if (approvalUrl == null || approvalUrl.isBlank()) {
+            return null;
+        }
+        int idx = approvalUrl.indexOf("token=");
+        if (idx < 0) {
+            return null;
+        }
+        String token = approvalUrl.substring(idx + "token=".length());
+        int amp = token.indexOf('&');
+        return amp >= 0 ? token.substring(0, amp) : token;
     }
 }

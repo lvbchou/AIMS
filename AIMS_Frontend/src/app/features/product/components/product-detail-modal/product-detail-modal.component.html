@@ -1,101 +1,33 @@
 <div class="modal-backdrop" (click)="onClose()"></div>
-<div class="modal" (click)="$event.stopPropagation()">
-  <div *ngIf="loading" class="modal-loading"><div class="spinner"></div></div>
 
-  <ng-container *ngIf="!loading && product">
-    <button class="btn-close" (click)="onClose()">✕</button>
-    <div class="modal-body">
-      <div class="modal-image-wrap">
-        <img [src]="product.image || 'https://picsum.photos/seed/'+product.productId+'/600/600'"
-             [alt]="product.title" class="modal-image" />
+<div class="modal">
+  <button class="btn-close" (click)="onClose()">✕</button>
+
+  <div class="modal-body">
+    <app-product-detail-panel [product]="product">
+
+      <!-- Slot price: customer chỉ thấy selling price -->
+      <div slot="price" class="price-bar">
+        <span class="price">{{ fmt(product.sellingPrice) }}</span>
       </div>
-      <div class="modal-info">
-        <span class="type-badge" [ngClass]="typeClass">{{ typeLabel }}</span>
-        <h2 class="product-title">{{ product.title }}</h2>
-        <div class="price-bar"><span class="price">{{ fmt(product.sellingPrice) }}</span></div>
-        <p class="description" *ngIf="product.description">{{ product.description }}</p>
 
-        <div class="detail-table">
-          <div class="detail-row" *ngIf="product.category">
-            <span class="lbl">Category</span><span class="val">{{ product.category }}</span>
-          </div>
-          <div class="detail-row" *ngIf="product.barcode">
-            <span class="lbl">Barcode</span><span class="val">{{ product.barcode }}</span>
-          </div>
-          <div class="detail-row" *ngIf="product.weight">
-            <span class="lbl">Weight</span><span class="val">{{ product.weight }} kg</span>
-          </div>
-          <div class="detail-row" *ngIf="product.dimensions">
-            <span class="lbl">Dimensions</span><span class="val">{{ product.dimensions }}</span>
-          </div>
-
-          <ng-container *ngIf="isBook && d">
-            <div class="detail-row" *ngIf="d.author"><span class="lbl">Author</span><span class="val">{{ d.author }}</span></div>
-            <div class="detail-row" *ngIf="d.coverType"><span class="lbl">Cover Type</span><span class="val">{{ d.coverType }}</span></div>
-            <div class="detail-row" *ngIf="d.pages"><span class="lbl">Pages</span><span class="val">{{ d.pages }} pages</span></div>
-            <div class="detail-row" *ngIf="d.genre"><span class="lbl">Genre</span><span class="val">{{ d.genre }}</span></div>
-            <div class="detail-row" *ngIf="d.publisher"><span class="lbl">Publisher</span><span class="val">{{ d.publisher }}</span></div>
-            <div class="detail-row" *ngIf="d.publicationDate"><span class="lbl">Publication Date</span><span class="val">{{ d.publicationDate }}</span></div>
-            <div class="detail-row" *ngIf="d.language"><span class="lbl">Language</span><span class="val">{{ d.language }}</span></div>
-          </ng-container>
-
-          <ng-container *ngIf="isCd && d">
-            <div class="detail-row" *ngIf="d.artists?.length"><span class="lbl">Artist</span><span class="val">{{ d.artists.join(', ') }}</span></div>
-            <div class="detail-row" *ngIf="d.recordLabel"><span class="lbl">Record Label</span><span class="val">{{ d.recordLabel }}</span></div>
-            <div class="detail-row" *ngIf="d.genre"><span class="lbl">Genre</span><span class="val">{{ d.genre }}</span></div>
-            <div class="detail-row" *ngIf="d.releaseDate"><span class="lbl">Release Date</span><span class="val">{{ d.releaseDate }}</span></div>
-          </ng-container>
-
-          <ng-container *ngIf="isDvd && d">
-            <div class="detail-row" *ngIf="d.discType"><span class="lbl">Disc Type</span><span class="val">{{ d.discType }}</span></div>
-            <div class="detail-row" *ngIf="d.director"><span class="lbl">Director</span><span class="val">{{ d.director }}</span></div>
-            <div class="detail-row" *ngIf="d.runtime"><span class="lbl">Runtime</span><span class="val">{{ d.runtime }} min</span></div>
-            <div class="detail-row" *ngIf="d.studio"><span class="lbl">Studio</span><span class="val">{{ d.studio }}</span></div>
-            <div class="detail-row" *ngIf="d.language"><span class="lbl">Language</span><span class="val">{{ d.language }}</span></div>
-            <div class="detail-row" *ngIf="d.subtitles"><span class="lbl">Subtitles</span><span class="val">{{ d.subtitles }}</span></div>
-            <div class="detail-row" *ngIf="d.genre"><span class="lbl">Genre</span><span class="val">{{ d.genre }}</span></div>
-            <div class="detail-row" *ngIf="d.releaseDate"><span class="lbl">Release Date</span><span class="val">{{ d.releaseDate }}</span></div>
-          </ng-container>
-
-          <ng-container *ngIf="isNewspaper && d">
-            <div class="detail-row" *ngIf="d.editorInChief"><span class="lbl">Editor in Chief</span><span class="val">{{ d.editorInChief }}</span></div>
-            <div class="detail-row" *ngIf="d.publisher"><span class="lbl">Publisher</span><span class="val">{{ d.publisher }}</span></div>
-            <div class="detail-row" *ngIf="d.issueNumber"><span class="lbl">Issue Number</span><span class="val">{{ d.issueNumber }}</span></div>
-            <div class="detail-row" *ngIf="d.publicationFrequency"><span class="lbl">Publication Frequently</span><span class="val">{{ d.publicationFrequency }}</span></div>
-            <div class="detail-row" *ngIf="d.issn"><span class="lbl">ISSN</span><span class="val">{{ d.issn }}</span></div>
-            <div class="detail-row" *ngIf="d.sections && d.sections.length"><span class="lbl">Sections</span><span class="val">{{ d.sections.join(', ') }}</span></div>
-            <div class="detail-row" *ngIf="d.publicationDate"><span class="lbl">Publication Date</span><span class="val">{{ d.publicationDate }}</span></div>
-            <div class="detail-row" *ngIf="d.language"><span class="lbl">Language</span><span class="val">{{ d.language }}</span></div>
-          </ng-container>
+      <!-- Slot action: cart control -->
+      <div slot="action" class="cart-bar">
+        <div class="qty-ctrl">
+          <button (click)="decrement()">−</button>
+          <span>{{ quantity }}</span>
+          <button (click)="increment()">+</button>
         </div>
-
-        <ng-container *ngIf="isCd && d?.tracks && d.tracks.length">
-          <div class="tracklist">
-            <h4 class="tracklist-title">Tracklist</h4>
-            <div class="track-row" *ngFor="let t of d.tracks; let i=index">
-              <span class="track-num">T{{ i+1 }}.</span>
-              <span class="track-name">{{ t.title }}</span>
-              <span class="track-len">{{ t.length }}</span>
-            </div>
-          </div>
-        </ng-container>
-
-        <div class="cart-bar">
-          <div class="qty-ctrl">
-            <button (click)="decrement()">−</button>
-            <span>{{ quantity }}</span>
-            <button (click)="increment()">+</button>
-          </div>
-          <button class="btn-add-cart" (click)="onAddToCart()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" stroke="currentColor" stroke-width="2"/>
-              <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2"/>
-              <path d="M16 10a4 4 0 01-8 0" stroke="currentColor" stroke-width="2"/>
-            </svg>
-            Add to Cart
-          </button>
-        </div>
+        <button class="btn-add-cart" (click)="onAddToCart()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" stroke="currentColor" stroke-width="2"/>
+            <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2"/>
+            <path d="M16 10a4 4 0 01-8 0" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          Add to Cart
+        </button>
       </div>
-    </div>
-  </ng-container>
+
+    </app-product-detail-panel>
+  </div>
 </div>

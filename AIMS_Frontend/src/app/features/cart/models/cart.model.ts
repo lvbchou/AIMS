@@ -6,6 +6,7 @@ export interface CartItemView {
   quantity: number;
   availableQuantity?: number;
   image?: string;
+  stockError?: string;
 }
 
 export interface CartItemRequest {

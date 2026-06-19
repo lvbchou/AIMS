@@ -14,12 +14,13 @@
             <div class="col-subtotal">SUBTOTAL</div>
           </div>
 
-          <div class="cart-item" *ngFor="let item of cartItems">
+          <div class="cart-item" *ngFor="let item of cartItems" [class.stock-warning]="item.stockError">
             <div class="col-details item-details">
               <img [src]="item.image" alt="Product Image" class="item-image">
               <div class="item-info">
                 <h3 class="item-title">{{ item.title }}</h3>
                 <p class="item-category">{{ item.category }}</p>
+                <p class="stock-error" *ngIf="item.stockError">{{ item.stockError }}</p>
                 <button class="remove-btn" (click)="removeItem(item)">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                   REMOVE
@@ -34,7 +35,14 @@
             <div class="col-quantity item-quantity">
               <div class="quantity-selector">
                 <button class="qty-btn" (click)="decrementQuantity(item)">-</button>
-                <input type="number" class="qty-input" [value]="item.quantity" readonly>
+                <input
+                  type="number"
+                  class="qty-input"
+                  [value]="item.quantity"
+                  min="1"
+                  (input)="updateQuantityFromInput(item, $any($event.target).value)"
+                  (blur)="normalizeQuantityInput(item, $any($event.target))"
+                  aria-label="Quantity">
                 <button class="qty-btn" (click)="incrementQuantity(item)">+</button>
               </div>
             </div>
@@ -70,7 +78,7 @@
           
           <div class="summary-row">
             <span class="summary-label">VAT (10%)</span>
-            <span class="summary-value">{{ vat | number:'1.0-0' }} VND</span>
+            <span class="summary-value shipping-value">CALCULATED AT INVOICE</span>
           </div>
           
           <div class="summary-row">

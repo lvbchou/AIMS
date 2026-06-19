@@ -1,35 +1,39 @@
-<div class="page-layout">
-  <aside class="sidebar" *ngIf="showFilter">
-    <app-product-filter (filterApplied)="onFilterApplied($event)"></app-product-filter>
-  </aside>
-  <main class="main-content" [class.full-width]="!showFilter">
-    <h1 class="page-title">{{ pageTitle }}</h1>
-    <div class="product-grid">
-      <app-product-list
-        [products]="products"
-        [isLoading]="isLoading"
-        [skeletonCount]="10"
-        [mode]="'customer'"
-        (onViewDetail)="onViewDetail($event)"
-        (onAddToCart)="onAddToCart($event)"
-      ></app-product-list>
+<!-- state$ chỉ bọc phần list, không bọc modal -->
+<ng-container *ngIf="catalog.state$ | async as state">
+  <div class="page">
+    <div class="page-header">
+      <h2>{{ catalog.pageTitle }}</h2>
+      <span class="total-count">{{ state.totalElements }} products</span>
     </div>
-    <div *ngIf="mode != 'all' && !isLoading && products.length === 0" class="no-results">
-      <p>No product found!</p>
-    </div>
-    
-    <app-pagination
-      [currentPage]="currentPage"
-      [totalPages]="totalPages"
-      (onPage)="goToPage($event)"
+
+    <app-product-filter
+      *ngIf="catalog.showFilter"
+      [activeFilter]="state.activeFilter"
+      (filterApplied)="onFilterApplied($event)"
     />
 
-  </main>
-</div>
+    <app-product-list
+      [products]="state.products"
+      [isLoading]="state.isLoading"
+      [skeletonCount]="10"
+      [mode]="'customer'"
+      (onViewDetail)="onViewDetail($event)"
+      (onAddToCart)="onAddToCart($event)"
+    />
+
+    <app-pagination
+      [currentPage]="state.currentPage"
+      [totalPages]="state.totalPages"
+      (onPage)="goToPage($event)"
+    />
+  </div>
+</ng-container>
+
+<!-- modal nằm ngoài ng-container — không bị ảnh hưởng khi state$ emit -->
 <app-product-detail-modal
-  *ngIf="viewProductDetail !== null"
-  [product]="viewProductDetail!"
+  *ngIf="viewProductDetail$ | async as detail"
+  [product]="detail"
   (close)="closeModal()"
-  (addToCart)="onAddToCart($event.product.productId)">
-</app-product-detail-modal>
+/>
+
 <app-toast />

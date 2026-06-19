@@ -210,11 +210,6 @@ export class PaymentVietqrComponent implements OnInit, OnDestroy {
                 const txnId = qrResp.transactionId;
                 if (txnId) {
                   this.transactionId = txnId;
-                  // triggerTestCallback gọi backend → backend gọi dev.vietqr.org → VietQR gọi lại transaction-sync
-                  this.vietQRPaymentService.triggerTestCallback(respOrderId).subscribe({
-                    next: (r) => console.log('[VietQR] Test callback triggered:', r),
-                    error: (err) => console.warn('[VietQR] Test callback failed (will still allow polling):', err)
-                  });
                 }
               })
             )
@@ -244,6 +239,11 @@ export class PaymentVietqrComponent implements OnInit, OnDestroy {
 
   confirmPayment(): void {
     if (!this.order || this.isSubmitting) {
+      return;
+    }
+
+    if (this.timerDisplay === '00:00') {
+      this.router.navigate(['/payment/failed'], { state: { result: 'Timeout' } });
       return;
     }
 

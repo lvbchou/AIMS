@@ -1,0 +1,56 @@
+<div class="panel-layout">
+  <div class="modal-image-wrap">
+    <img
+      [src]="product.image || 'https://picsum.photos/seed/' + product.productId + '/600/600'"
+      [alt]="product.title"
+      class="modal-image"
+    />
+  </div>
+
+  <div class="modal-info">
+
+    <span class="type-badge" [ngClass]="vm.typeClass">{{ vm.typeLabel }}</span>
+    <h2 class="product-title">{{ product.title }}</h2>
+
+    <ng-content select="[slot=price]" />
+
+    <p class="description" *ngIf="product.description">{{ product.description }}</p>
+
+    <div class="detail-table">
+      <div class="detail-row" *ngIf="product.category">
+        <span class="detail-label">Category</span>
+        <span class="detail-value">{{ product.category }}</span>
+      </div>
+      <div class="detail-row" *ngIf="product.barcode">
+        <span class="detail-label">Barcode</span>
+        <span class="detail-value">{{ product.barcode }}</span>
+      </div>
+      <div class="detail-row" *ngIf="product.weight">
+        <span class="detail-label">Weight</span>
+        <span class="detail-value">{{ product.weight }} kg</span>
+      </div>
+      <div class="detail-row" *ngIf="product.dimensions">
+        <span class="detail-label">Dimensions</span>
+        <span class="detail-value">{{ product.dimensions }}</span>
+      </div>
+      <div class="detail-row" *ngFor="let row of vm.detailRows">
+        <span class="detail-label">{{ row.label }}</span>
+        <span class="detail-value">{{ row.value }}</span>
+      </div>
+    </div>
+
+    <ng-container *ngIf="vm.tracklist?.length">
+      <div class="tracklist">
+        <h4 class="tracklist-title">Tracklist</h4>
+        <div class="track-row" *ngFor="let t of vm.tracklist; let i = index">
+          <span class="track-num">T{{ i + 1 }}.</span>
+          <span class="track-name">{{ t.title }}</span>
+          <span class="track-length">{{ t.length }}</span>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-content select="[slot=action]" />
+
+  </div>
+</div>

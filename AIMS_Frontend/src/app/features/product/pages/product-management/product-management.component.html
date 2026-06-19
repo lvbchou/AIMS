@@ -3,12 +3,13 @@
   <div class="page-header">
     <div class="page-title">
       <h2>Products</h2>
-      <span class="total-count">Total: {{ totalElements }} products</span>
+      <span class="total-count">
+        Total: {{ listFacade.totalElements$ | async }} products
+      </span>
     </div>
 
     <div class="page-actions">
-      <!-- khi chưa vào selection mode -->
-      <ng-container *ngIf="!selectionMode">
+      <ng-container *ngIf="!(selection.selectionMode$ | async)">
         <button class="btn btn-danger" (click)="enterSelectionMode()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
             <polyline points="3,6 5,6 21,6"/>
@@ -27,18 +28,17 @@
         </button>
       </ng-container>
 
-      <!-- khi đang trong selection mode -->
-      <ng-container *ngIf="selectionMode">
+      <ng-container *ngIf="selection.selectionMode$ | async">
         <button
           class="btn btn-danger"
           (click)="deleteSelected()"
-          [disabled]="selectedIds.size === 0"
+          [disabled]="(selection.selectedCount$ | async) === 0"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
             <polyline points="3,6 5,6 21,6"/>
             <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
           </svg>
-          Delete ({{ selectedIds.size }})
+          Delete ({{ selection.selectedCount$ | async }})
         </button>
         <button class="btn btn-secondary" (click)="cancelSelection()">
           Cancel
@@ -48,36 +48,37 @@
   </div>
 
   <app-product-list
-    [products]="products"
-    [isLoading]="isLoading"
+    [products]="(listFacade.products$ | async) ?? []"
+    [isLoading]="(listFacade.isLoading$ | async) ?? false"
     [skeletonCount]="10"
     [mode]="'manager'"
-    [selectedIds]="selectedIds"
-    [selectionMode]="selectionMode"
-    [isMaxSelected]="isMaxSelected"
+    [selectedIds]="(selection.selectedIds$ | async) ?? emptySet"
+    [selectionMode]="(selection.selectionMode$ | async) ?? false"
+    [isMaxSelected]="(selection.isMaxSelected$ | async) ?? false"
     (toggleSelect)="onToggle($event)"
     (onUpdate)="onUpdate($event)"
     (onDelete)="onDelete($event)"
     (onViewDetail)="onViewDetail($event)"
-  ></app-product-list>
+  />
 
   <app-pagination
-    [currentPage]="currentPage"
-    [totalPages]="totalPages"
+    [currentPage]="(listFacade.currentPage$ | async) ?? 0"
+    [totalPages]="(listFacade.totalPages$ | async) ?? 0"
     (onPage)="goToPage($event)"
   />
 
 </div>
+
 <app-product-form
-  *ngIf="showProductForm"
-  [product]="selectedProduct"
+  *ngIf="showProductForm$ | async"
+  [product]="(selectedProduct$ | async)"
   (submitted)="onFormSubmitted($event)"
   (cancelled)="onCreateCancelled()"
 />
 
 <app-manager-product-view-modal
-  *ngIf="viewDetailProduct !== null"
-  [product]="viewDetailProduct!"
+  *ngIf="viewDetailProduct$ | async"
+  [product]="(viewDetailProduct$ | async)!"
   (close)="closeViewDetail()"
 />
 

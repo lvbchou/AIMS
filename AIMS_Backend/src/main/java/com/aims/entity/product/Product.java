@@ -78,36 +78,4 @@ public abstract class Product {
     public void changeQuantity(int amount) {
         this.quantityInStock += amount;
     }
-
-    public void applyCommonUpdate(ProductInfoDTO dto) {
-        this.title = dto.getTitle();
-        this.category = dto.getCategory();
-        this.barcode = dto.getBarcode();
-        this.image = dto.getImage();
-        this.status = "active";
-        this.originalValue = dto.getOriginalValue();
-        this.sellingPrice = dto.getSellingPrice();
-        this.weight = dto.getWeight();
-        this.description = dto.getDescription();
-        this.dimensions = dto.getDimensions();
-    }
-
-    protected void baseDTO(ProductInfoDTO dto) {
-        dto.setProductId(productId);
-        dto.setTitle(title);
-        dto.setCategory(category);
-        dto.setBarcode(barcode);
-        dto.setImage(image);
-        dto.setStatus(status);
-        dto.setOriginalValue(originalValue);
-        dto.setSellingPrice(sellingPrice);
-        dto.setWeight(weight);
-        dto.setDescription(description);
-        dto.setDimensions(dimensions);
-        dto.setQuantityInStock(quantityInStock);
-    }
-
-    public abstract ProductInfoDTO toDTO();
-
-    public abstract void applyUpdate(ProductInfoDTO dto);
 }

@@ -14,7 +14,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class InvoiceLineItemDTO {
 
+    private Integer productId;
     private String productTitle;
+    private String category;
+    private String image;
     private int quantity;
     private long unitSellingPrice;
     private long lineTotalSellingPrice;

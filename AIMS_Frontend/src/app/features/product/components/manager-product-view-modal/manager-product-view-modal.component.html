@@ -1,204 +1,23 @@
 <div class="modal-backdrop" (click)="onClose()"></div>
 
 <div class="modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
-
-  <!-- Close button -->
   <button class="btn-close" (click)="onClose()" aria-label="Close">✕</button>
 
   <div class="modal-body">
+    <app-product-detail-panel [product]="product">
 
-    <!-- ── Left: Image ───────────────────────────────────────────── -->
-    <div class="modal-image-wrap">
-      <img
-        [src]="base.imageUrl || 'https://picsum.photos/seed/' + base.productId + '/600/600'"
-        [alt]="base.title"
-        class="modal-image" />
-    </div>
-
-    <!-- ── Right: Details ────────────────────────────────────────── -->
-    <div class="modal-info">
-
-      <!-- Type badge + title -->
-      <span class="type-badge" [ngClass]="typeClass">{{ typeLabel }}</span>
-      <h2 class="product-title">{{ base.title }}</h2>
-
-      <!-- Price section: manager sees BOTH original + selling price -->
-      <div class="price-section">
-        <div class="price-row selling">
-          <span class="price-label">Selling Price</span>
-          <span class="price-value selling-price">{{ formatPrice(base.sellingPrice) }}</span>
+      <!-- Slot price: manager thấy original trên, selling dưới — cùng màu đỏ -->
+      <div slot="price" class="price-section">
+        <div class="price-row" *ngIf="product.originalValue">
+          <span class="price-label">Original Value:</span>
+          <span class="original-price">{{ fmt(product.originalValue) }}</span>
         </div>
-        <div class="price-row original" *ngIf="base.originalValue">
-          <span class="price-label">Original Value</span>
-          <span class="price-value original-price">{{ formatPrice(base.originalValue) }}</span>
+        <div class="price-row">
+          <span class="price-label">Selling Price:</span>
+          <span class="selling-price">{{ fmt(product.sellingPrice) }}</span>
         </div>
       </div>
 
-      <!-- Description -->
-      <p class="description" *ngIf="base.description">{{ base.description }}</p>
-
-      <!-- ── Common fields ──────────────────────────────────────── -->
-      <div class="detail-table">
-
-        <div class="detail-row" *ngIf="base.barcode">
-          <span class="detail-label">Barcode</span>
-          <span class="detail-value">{{ base.barcode }}</span>
-        </div>
-
-        <div class="detail-row" *ngIf="base.weight">
-          <span class="detail-label">Weight</span>
-          <span class="detail-value">{{ base.weight }} kg</span>
-        </div>
-
-        <div class="detail-row" *ngIf="base.dimensions">
-          <span class="detail-label">Dimensions</span>
-          <span class="detail-value">{{ base.dimensions }}</span>
-        </div>
-
-        <div class="detail-row" *ngIf="base.category">
-          <span class="detail-label">Category</span>
-          <span class="detail-value">{{ base.category }}</span>
-        </div>
-
-        <!-- ── BOOK ──────────────────────────────────────────────── -->
-        <ng-container *ngIf="isBook && bookDetails">
-          <div class="detail-row" *ngIf="bookDetails.author">
-            <span class="detail-label">Author</span>
-            <span class="detail-value">{{ bookDetails.author }}</span>
-          </div>
-          <div class="detail-row" *ngIf="bookDetails.coverType">
-            <span class="detail-label">Cover Type</span>
-            <span class="detail-value">{{ bookDetails.coverType }}</span>
-          </div>
-          <div class="detail-row" *ngIf="bookDetails.pages">
-            <span class="detail-label">Pages</span>
-            <span class="detail-value">{{ bookDetails.pages }} pages</span>
-          </div>
-          <div class="detail-row" *ngIf="bookDetails.genre">
-            <span class="detail-label">Genre</span>
-            <span class="detail-value">{{ bookDetails.genre }}</span>
-          </div>
-          <div class="detail-row" *ngIf="bookDetails.publisher">
-            <span class="detail-label">Publisher</span>
-            <span class="detail-value">{{ bookDetails.publisher }}</span>
-          </div>
-          <div class="detail-row" *ngIf="bookDetails.publicationDate">
-            <span class="detail-label">Publication Date</span>
-            <span class="detail-value">{{ bookDetails.publicationDate }}</span>
-          </div>
-          <div class="detail-row" *ngIf="bookDetails.language">
-            <span class="detail-label">Language</span>
-            <span class="detail-value">{{ bookDetails.language }}</span>
-          </div>
-        </ng-container>
-
-        <!-- ── CD ────────────────────────────────────────────────── -->
-        <ng-container *ngIf="isCd && cdDetails">
-          <div class="detail-row" *ngIf="cdDetails!.artists && cdDetails!.artists.length">
-            <span class="detail-label">Artist</span>
-            <span class="detail-value">{{ cdDetails.artists.join(', ') }}</span>
-          </div>
-          <div class="detail-row" *ngIf="cdDetails.recordLabel">
-            <span class="detail-label">Record Label</span>
-            <span class="detail-value">{{ cdDetails.recordLabel }}</span>
-          </div>
-          <div class="detail-row" *ngIf="cdDetails.genre">
-            <span class="detail-label">Genre</span>
-            <span class="detail-value">{{ cdDetails.genre }}</span>
-          </div>
-          <div class="detail-row" *ngIf="cdDetails.releaseDate">
-            <span class="detail-label">Release Date</span>
-            <span class="detail-value">{{ cdDetails.releaseDate }}</span>
-          </div>
-        </ng-container>
-
-        <!-- ── DVD ───────────────────────────────────────────────── -->
-        <ng-container *ngIf="isDvd && dvdDetails">
-          <div class="detail-row" *ngIf="dvdDetails.discType">
-            <span class="detail-label">Disc Type</span>
-            <span class="detail-value">{{ dvdDetails.discType }}</span>
-          </div>
-          <div class="detail-row" *ngIf="dvdDetails.director">
-            <span class="detail-label">Director</span>
-            <span class="detail-value">{{ dvdDetails.director }}</span>
-          </div>
-          <div class="detail-row" *ngIf="dvdDetails.runtime">
-            <span class="detail-label">Runtime</span>
-            <span class="detail-value">{{ dvdDetails.runtime }} min</span>
-          </div>
-          <div class="detail-row" *ngIf="dvdDetails.studio">
-            <span class="detail-label">Studio</span>
-            <span class="detail-value">{{ dvdDetails.studio }}</span>
-          </div>
-          <div class="detail-row" *ngIf="dvdDetails.language">
-            <span class="detail-label">Language</span>
-            <span class="detail-value">{{ dvdDetails.language }}</span>
-          </div>
-          <div class="detail-row" *ngIf="dvdDetails.subtitles">
-            <span class="detail-label">Subtitles</span>
-            <span class="detail-value">{{ dvdDetails.subtitles }}</span>
-          </div>
-          <div class="detail-row" *ngIf="dvdDetails.genre">
-            <span class="detail-label">Genre</span>
-            <span class="detail-value">{{ dvdDetails.genre }}</span>
-          </div>
-          <div class="detail-row" *ngIf="dvdDetails.releaseDate">
-            <span class="detail-label">Release Date</span>
-            <span class="detail-value">{{ dvdDetails.releaseDate }}</span>
-          </div>
-        </ng-container>
-
-        <!-- ── NEWSPAPER ─────────────────────────────────────────── -->
-        <ng-container *ngIf="isNewspaper && npDetails">
-          <div class="detail-row" *ngIf="npDetails.editorInChief">
-            <span class="detail-label">Editor in Chief</span>
-            <span class="detail-value">{{ npDetails.editorInChief }}</span>
-          </div>
-          <div class="detail-row" *ngIf="npDetails.publisher">
-            <span class="detail-label">Publisher</span>
-            <span class="detail-value">{{ npDetails.publisher }}</span>
-          </div>
-          <div class="detail-row" *ngIf="npDetails.issueNumber">
-            <span class="detail-label">Issue Number</span>
-            <span class="detail-value">{{ npDetails.issueNumber }}</span>
-          </div>
-          <div class="detail-row" *ngIf="npDetails.publicationFrequency">
-            <span class="detail-label">Publication Frequently</span>
-            <span class="detail-value">{{ npDetails.publicationFrequency }}</span>
-          </div>
-          <div class="detail-row" *ngIf="npDetails.issn">
-            <span class="detail-label">ISSN</span>
-            <span class="detail-value">{{ npDetails.issn }}</span>
-          </div>
-          <div class="detail-row" *ngIf="npDetails.sections && npDetails.sections.length">
-            <span class="detail-label">Sections</span>
-            <span class="detail-value">{{ npDetails.sections!.join(', ') }}</span>
-          </div>
-          <div class="detail-row" *ngIf="npDetails.publicationDate">
-            <span class="detail-label">Publication Date</span>
-            <span class="detail-value">{{ npDetails.publicationDate }}</span>
-          </div>
-          <div class="detail-row" *ngIf="npDetails.language">
-            <span class="detail-label">Language</span>
-            <span class="detail-value">{{ npDetails.language }}</span>
-          </div>
-        </ng-container>
-
-      </div>
-
-      <!-- ── CD Tracklist ───────────────────────────────────────── -->
-      <ng-container *ngIf="isCd && cdDetails && cdDetails.tracks && cdDetails.tracks.length">
-        <div class="tracklist">
-          <h4 class="tracklist-title">Tracklist</h4>
-          <div class="track-row" *ngFor="let track of cdDetails!.tracks; let i = index">
-            <span class="track-num">T{{ i + 1 }}.</span>
-            <span class="track-name">{{ track.title }}</span>
-            <span class="track-length">{{ track.length }}</span>
-          </div>
-        </div>
-      </ng-container>
-
-    </div><!-- /modal-info -->
-  </div><!-- /modal-body -->
-
+    </app-product-detail-panel>
+  </div>
 </div>

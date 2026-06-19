@@ -76,10 +76,10 @@
               type="url"
               formControlName="image"
               placeholder="https://"
-              [class.invalid]="generalForm.get('imageUrl')?.invalid && generalForm.get('imageUrl')?.touched"
+              [class.invalid]="generalForm.get('image')?.invalid && generalForm.get('image')?.touched"
             />
             <span class="error-msg"
-              *ngIf="generalForm.get('imageUrl')?.invalid && generalForm.get('imageUrl')?.touched">
+              *ngIf="generalForm.get('image')?.invalid && generalForm.get('image')?.touched">
               Image URL is required
             </span>
           </div>

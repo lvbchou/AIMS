@@ -2,7 +2,7 @@ package com.aims.service.product.validation;
 
 import com.aims.dto.product.BookInfoDTO;
 import com.aims.exception.InvalidProductInfoException;
-import com.aims.service.validator.BookValidator;
+import com.aims.service.product.validator.BookValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.aims.constants.OrderStatusValues;
-import com.aims.dto.InvoiceScreenDTO;
 import com.aims.dto.OrderConfirmationDTO;
 import com.aims.dto.VietQRCodeResponseDTO;
 import com.aims.dto.VietQRCallbackRequestDTO;
@@ -34,19 +33,19 @@ import com.aims.subsystem.vietqr.QRAccessTokenRequest;
  *
  * SOLID VIOLATION: Single Responsibility Principle (SRP)
  *
- * Problem: This class handles at least 7 distinct responsibilities that should be separated:
- *   1. Invoice data assembly for pre-payment display (getInvoiceScreen)
- *   2. QR code generation orchestration (requestVietQrDisplay)
- *   3. Payment transaction completion and order status update (completeVietQrPayment)
- *   4. Raw webhook payload processing (handleVietQrWebhook)
- *   5. DTO-mapped callback processing (handleVietQrPaymentCallback)
- *   6. Test/mock callback simulation (triggerVietQRTestCallback)
- *   7. Post-payment confirmation data assembly (getOrderConfirmation)
+ * Problem: This class handles several distinct responsibilities that should be separated:
+ *   1. QR code generation orchestration (requestVietQrDisplay)
+ *   2. Payment transaction completion (completeVietQrPayment)
+ *   3. Raw webhook payload processing (handleVietQrWebhook)
+ *   4. DTO-mapped callback processing (handleVietQrPaymentCallback)
+ *   5. Test/mock callback simulation (triggerVietQRTestCallback)
+ *   6. Post-payment confirmation data assembly (getOrderConfirmation)
  * Impact: A change to invoice display logic could inadvertently affect callback processing.
  *   The class has low cohesion because it combines presentation-data assembly,
  *   payment processing, and order status management in one place.
  * Improvement:
- *   - Extract InvoiceQueryService for getInvoiceScreen and getOrderConfirmation
+ *   - Keep invoice screen assembly in PlaceOrderService and extract an OrderConfirmationQueryService
+ *     for getOrderConfirmation if payment confirmation presentation grows.
  *   - Extract VietQrPaymentProcessor for completeVietQrPayment, handleVietQrWebhook,
  *     handleVietQrPaymentCallback, and triggerVietQRTestCallback
  *   - Extract PaymentStatusQueryService for isPaymentSuccessful and getOrderPaymentStatus
@@ -129,62 +128,6 @@ public class PayOrderService {
         this.paymentQRCode = paymentQRCode;
         this.vietQRController = vietQRController;
         this.vietQRBoundary = vietQRBoundary;
-    }
-
-    /**
-     * Returns the invoice screen data before payment.
-     *
-     * @param orderId the order identifier to look up.
-     * @return invoice data to display to the user.
-     * @throws com.aims.exception.OrderNotFoundException   if the order does not
-     *                                                     exist.
-     * @throws com.aims.exception.InvoiceNotFoundException if the invoice does not
-     *                                                     exist.
-     * @throws com.aims.exception.OrderNotPayableException if the order is not
-     *                                                     payable.
-     */
-    @Transactional(readOnly = true)
-    public InvoiceScreenDTO getInvoiceScreen(String orderId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new com.aims.exception.OrderNotFoundException(orderId));
-
-        if (!OrderStatusValues.AWAITING_PAYMENT.equals(order.getStatus())) {
-            throw new com.aims.exception.OrderNotPayableException("order not payable");
-        }
-
-        Invoice invoice = invoiceRepository.findByOrderOrderId(orderId)
-                .orElseThrow(() -> new com.aims.exception.InvoiceNotFoundException(orderId));
-
-        deliveryRepository.findById(orderId)
-                .orElseThrow(() -> new com.aims.exception.OrderNotPayableException("delivery missing"));
-
-        long totalEx = invoice.getSubTotalExVAT();
-        long totalInc = invoice.getSubTotalIncVAT();
-        long deliveryFee = invoice.getShippingFee();
-        long totalToPay = totalInc + deliveryFee;
-
-        List<com.aims.entity.OrderItem> items = orderItemRepository.findAllWithProductByOrderId(orderId);
-        java.util.List<com.aims.dto.InvoiceLineItemDTO> lines = new java.util.ArrayList<>();
-        for (com.aims.entity.OrderItem oi : items) {
-            com.aims.dto.InvoiceLineItemDTO line = com.aims.dto.InvoiceLineItemDTO.builder()
-                    .productTitle(oi.getProduct().getTitle())
-                    .quantity(oi.getQuantity())
-                    .unitSellingPrice(oi.getProduct().getSellingPrice())
-                    .lineTotalSellingPrice(oi.getProduct().getSellingPrice() * oi.getQuantity())
-                    .build();
-            lines.add(line);
-        }
-
-        InvoiceScreenDTO dto = InvoiceScreenDTO.builder()
-                .orderId(orderId)
-                .invoiceId(invoice.getInvoiceId())
-                .lineItems(lines)
-                .totalProductPriceExclVat(totalEx)
-                .totalProductPriceInclVat(totalInc)
-                .deliveryFee(deliveryFee)
-                .totalAmountToBePaid(totalToPay)
-                .build();
-        return dto;
     }
 
     /**
@@ -280,17 +223,12 @@ public class PayOrderService {
                 .orElseThrow(() -> new com.aims.exception.PaymentTransactionNotFoundException(
                         "no pending transaction for order " + orderId));
 
-        txn.setStatus(TransactionStatus.success);
         txn.setTransactionTime(transactionTimeMillis == null ? LocalDateTime.now()
                 : LocalDateTime.ofEpochSecond(transactionTimeMillis / 1000,
                         (int) ((transactionTimeMillis % 1000) * 1_000_000),
                         java.time.ZoneOffset.UTC));
+        txn.setStatus(TransactionStatus.success);
         paymentTransactionRepository.save(txn);
-
-        orderRepository.findById(orderId).ifPresent(o -> {
-            o.setStatus(OrderStatusValues.PENDING_PROCESSING);
-            orderRepository.save(o);
-        });
 
         return txn.getTransactionId();
     }
@@ -391,20 +329,9 @@ public class PayOrderService {
         }
 
         if ("SUCCESS".equals(normalized)) {
-            txn.setStatus(TransactionStatus.success);
             txn.setTransactionTime(LocalDateTime.now());
+            txn.setStatus(TransactionStatus.success);
             paymentTransactionRepository.save(txn);
-
-            // update order status
-            java.util.Optional<com.aims.entity.Invoice> invOpt = invoiceRepository
-                    .findById(txn.getInvoice().getInvoiceId());
-            if (invOpt.isPresent()) {
-                String orderId = invOpt.get().getOrder().getOrderId();
-                orderRepository.findById(orderId).ifPresent(o -> {
-                    o.setStatus(com.aims.constants.OrderStatusValues.PENDING_PROCESSING);
-                    orderRepository.save(o);
-                });
-            }
         } else {
             // FAILED
             txn.setStatus(TransactionStatus.failed);

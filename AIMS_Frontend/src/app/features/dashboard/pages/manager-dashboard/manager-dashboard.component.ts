@@ -16,4 +16,9 @@ export class ManagerDashboardComponent {
   navigate(section: string) {
     this.router.navigate(['/product-manager', section]);
   }
+
+  getUsername(): string {
+    // In a real application, you would fetch the username from an authentication service or user profile
+    return localStorage.getItem('username') || 'Manager';
+  }
 }

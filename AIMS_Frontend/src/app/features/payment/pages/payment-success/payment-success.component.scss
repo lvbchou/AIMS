@@ -1,180 +1,195 @@
-// ============================================================
-// FILE: src/app/features/payment/pages/payment-success/payment-success.component.scss
-// ============================================================
+$red: #C62828;
+$teal: #00657C;
+$bg: #F7F7F7;
+$text: #1F2933;
+$muted: #6F7782;
+$border: #E7E7E7;
+$panel: #F4F4F4;
 
-$red: #D32F2F;
-$teal: #005F7B;
-$bg: #F9F9F9;
-$text: #171717;
-
-// ── Main content area (spec: 1728×1044, centered) ────────────
-.success-page {
-  width: 100%;
-  max-width: 1728px;
-  min-height: 1006px;
-  height: 1044px;
-  margin: 0 auto;                  // căn giữa ngang
-  background: $bg;
-  display: flex;
-  align-items: flex-start;          // content từ trên xuống
-  justify-content: center;          // căn giữa ngang
-  padding-top: 114.38px;            // spec
-  padding-bottom: 50.37px;          // spec
-  font-family: 'Manrope', 'Inter', 'Roboto', sans-serif;
-
-  @media (max-width: 1728px) {
-    height: auto;
-    min-height: 1006px;
-  }
+:host {
+  display: block;
 }
 
-// ── Centered content block ─────────────────────────────────────
+.success-page {
+  min-height: calc(100vh - 73px);
+  background: $bg;
+  display: flex;
+  justify-content: center;
+  padding: 48px 20px 28px;
+  font-family: 'Manrope', 'Inter', 'Roboto', sans-serif;
+}
+
 .success-content {
-  max-width: 520px;
-  width: 100%;
+  width: min(100%, 470px);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0;
 }
 
-// ── Check icon ───────────────────────────────────────────────
 .success-icon {
   width: 64px;
   height: 64px;
-  background: rgba($teal, 0.12); // Light teal square
-  border-radius: 12px;
+  border-radius: 8px;
+  background: rgba($teal, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24px;
+  margin-bottom: 22px;
 
   .material-icons {
-    font-size: 34px;
+    font-size: 31px;
     color: $teal;
   }
 }
 
-// ── Title ────────────────────────────────────────────────────
 .success-title {
-  font-size: 36px; // H1 — per spec
-  font-weight: 700;
-  color: $teal; // Teal title matches screenshot
-  margin: 0 0 12px;
-  line-height: 1.2;
+  margin: 0 0 8px;
+  color: $teal;
+  font-size: 34px;
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: 0;
 }
 
-// ── Description ──────────────────────────────────────────────
 .success-desc {
-  font-size: 13px; // Body — per spec
-  color: #555;
-  line-height: 1.65;
-  margin: 0 0 24px;
+  margin: 0 0 22px;
+  max-width: 440px;
+  color: $muted;
+  font-size: 12px;
+  line-height: 1.55;
 }
 
-// ── Order reference box ──────────────────────────────────────
-.order-ref {
-  background: #f0f0f0;
-  border-radius: 8px;
-  border-left: 4px solid $red; // Red left accent
-  padding: 16px 20px;
+.receipt-card {
+  width: 100%;
+  background: #fff;
+  border: 1px solid $border;
+  padding: 22px 22px 24px;
   margin-bottom: 28px;
+}
+
+.receipt-section + .receipt-section {
+  margin-top: 30px;
+}
+
+.section-title {
+  margin: 0 0 18px;
+  color: $red;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 42px;
+  row-gap: 18px;
+}
+
+.detail-block {
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  max-width: 360px;
-
-  &__label {
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #999;
-    font-weight: 700;
-  }
-
-  &__value {
-    font-size: 20px;
-    font-weight: 600;
-    color: $text;
-    letter-spacing: 0.02em;
-    font-variant-numeric: tabular-nums;
-  }
-}
-
-// ── Back link ────────────────────────────────────────────────
-.back-link {
-  background: none;
-  border: none;
-  color: $text;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  padding: 0;
-  font-family: inherit;
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  transition: color 0.18s ease;
-
-  &:hover {
-    color: $red;
-    text-decoration: underline;
-  }
-}
-
-// ── Confirmation detail rows ──────────────────────────────────
-.confirmation-details {
-  width: 100%;
-  margin-bottom: 28px;
-}
-
-.detail-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 9px 0;
-  border-bottom: 1px solid #ebebeb;
-  gap: 12px;
-
-  &:last-child {
-    border-bottom: none;
-  }
+  gap: 6px;
 }
 
 .detail-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #999;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  white-space: nowrap;
-  flex-shrink: 0;
+  color: $muted;
+  font-size: 10px;
+  line-height: 1.25;
+  font-weight: 800;
 }
 
 .detail-value {
-  font-size: 13.5px;
-  font-weight: 500;
   color: $text;
-  text-align: right;
+  font-size: 12px;
+  line-height: 1.45;
+  font-weight: 600;
   word-break: break-word;
+}
 
-  &.amount {
-    font-size: 15px;
-    font-weight: 700;
-    color: $teal;
-  }
+.amount-block {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-  &.mono {
-    font-family: 'Courier New', monospace;
-    font-size: 12.5px;
-    color: #444;
-    letter-spacing: 0.03em;
+.amount-value {
+  color: $red;
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.transaction-panel {
+  background: $panel;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  column-gap: 28px;
+  row-gap: 16px;
+  padding: 14px 16px 16px;
+
+  .detail-block:nth-child(3) {
+    grid-column: 1;
   }
 }
 
-// ── Loading ───────────────────────────────────────────────────
+.mono {
+  font-family: 'Courier New', monospace;
+  font-weight: 800;
+}
+
 .loading-indicator {
-  color: #999;
+  width: 100%;
+  margin: 0 0 20px;
+  color: $muted;
   font-size: 13px;
-  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.error-msg {
+  color: $red;
+}
+
+.back-link {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid $red;
+  background: #fff;
+  color: $red;
+  padding: 11px 18px;
+  border-radius: 2px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+
+  &:hover {
+    background: $red;
+    color: #fff;
+  }
+}
+
+@media (max-width: 560px) {
+  .success-page {
+    padding: 32px 16px 24px;
+  }
+
+  .success-title {
+    font-size: 30px;
+  }
+
+  .receipt-card {
+    padding: 18px;
+  }
+
+  .details-grid,
+  .transaction-panel {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 }

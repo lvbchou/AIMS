@@ -4,12 +4,10 @@ import { Router, RouterLink } from '@angular/router';
 
 import { OrderStepperComponent } from '../../../order/components/order-stepper/order-stepper.component';
 
-import { CartItemRequest, CartItemView } from '../../models/cart.model';
+import { CartItemView } from '../../models/cart.model';
 
-import { CartService } from '../../services/cart.service';
-import { ProductService } from '../../../product/services/product.service';
-import { OrderService } from '../../../order/services/order.service';
 import { ChangeDetectorRef } from '@angular/core';
+import { CartPageFacade } from '../../services/cart-page.facade';
 
 @Component({
   selector: 'app-cart',
@@ -20,15 +18,12 @@ import { ChangeDetectorRef } from '@angular/core';
 })
 export class CartComponent implements OnInit {
 
-  private cartService = inject(CartService);
-  private productService = inject(ProductService);
-  private orderService = inject(OrderService);
+  private cartPageFacade = inject(CartPageFacade);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
   cartItems: CartItemView[] = [];
 
-  vatRate = 0.1;
   errorMsg = '';
   isLoading = false;
 
@@ -37,32 +32,8 @@ export class CartComponent implements OnInit {
   }
 
   private loadCart(): void {
-    const cart = this.cartService.getCart();
-
-    if (!cart.length) {
-      this.cartItems = [];
-      return;
-    }
-
-    const ids = cart.map(i => i.productId);
-
-    this.productService.getByIds(ids).subscribe(products => {
-      this.cartItems = products.map(product => {
-
-        const cartItem =
-          cart.find(c => c.productId === product.productId)!;
-
-        return {
-          productId: product.productId,
-          title: product.title,
-          category: product.productType,
-          image: product.image,
-          unitPriceExVat: product.sellingPrice,
-          availableQuantity: product.quantityInStock,
-          quantity: cartItem.quantity
-        };
-      });
-      console.log('cartItems', this.cartItems);
+    this.cartPageFacade.loadCartItems().subscribe(items => {
+      this.cartItems = items;
       this.cdr.detectChanges(); 
     });
   }
@@ -74,26 +45,15 @@ export class CartComponent implements OnInit {
     );
   }
 
-  get vat(): number {
-    return Math.round(this.subtotal * this.vatRate);
-  }
-
   get totalPayable(): number {
-    return this.subtotal + this.vat;
+    return this.subtotal;
   }
 
   incrementQuantity(item: CartItemView): void {
-    if(item.availableQuantity === undefined) {
-      return;
-    }
-
-    if (item.quantity >= item.availableQuantity) {
-      return;
-    }
-
     item.quantity++;
+    item.stockError = undefined;
 
-    this.cartService.updateQuantity(
+    this.cartPageFacade.updateQuantity(
       item.productId,
       item.quantity
     );
@@ -106,11 +66,33 @@ export class CartComponent implements OnInit {
     }
 
     item.quantity--;
+    item.stockError = undefined;
 
-    this.cartService.updateQuantity(
+    this.cartPageFacade.updateQuantity(
       item.productId,
       item.quantity
     );
+  }
+
+  updateQuantityFromInput(item: CartItemView, rawValue: string): void {
+    if (rawValue.trim() === '') {
+      return;
+    }
+
+    const parsedQuantity = Number(rawValue);
+    if (!Number.isFinite(parsedQuantity)) {
+      return;
+    }
+
+    const nextQuantity = this.normalizeQuantity(item, parsedQuantity);
+    this.setItemQuantity(item, nextQuantity);
+  }
+
+  normalizeQuantityInput(item: CartItemView, input: HTMLInputElement): void {
+    const parsedQuantity = Number(input.value);
+    const nextQuantity = this.normalizeQuantity(item, parsedQuantity);
+    this.setItemQuantity(item, nextQuantity);
+    input.value = String(nextQuantity);
   }
 
   removeItem(item: CartItemView): void {
@@ -119,7 +101,7 @@ export class CartComponent implements OnInit {
       i => i.productId !== item.productId
     );
 
-    this.cartService.remove(item.productId);
+    this.cartPageFacade.remove(item.productId);
   }
 
   proceedToCheckout(): void {
@@ -131,10 +113,7 @@ export class CartComponent implements OnInit {
     this.isLoading = true;
     this.errorMsg = '';
 
-    const requestItems: CartItemRequest[] =
-      this.cartService.toRequestItems();
-
-    this.orderService.placeOrder(requestItems).subscribe({
+    this.cartPageFacade.checkout().subscribe({
 
       next: (res) => {
 
@@ -157,9 +136,71 @@ export class CartComponent implements OnInit {
           err.error?.message ??
           'An error occurred while validating the order.';
 
+        this.applyStockIssues(err.error?.data);
+
         console.error(err);
         this.cdr.detectChanges();
       }
     });
+  }
+
+  private applyStockIssues(issues: any): void {
+    if (!Array.isArray(issues) || issues.length === 0) {
+      return;
+    }
+
+    const issueByProductId = new Map<number, any>(
+      issues.map(issue => [Number(issue.productId), issue])
+    );
+
+    const nextItems: CartItemView[] = [];
+
+    for (const item of this.cartItems) {
+      const issue = issueByProductId.get(item.productId);
+      if (!issue) {
+        nextItems.push({ ...item, stockError: undefined });
+        continue;
+      }
+
+      const availableQuantity = Number(issue.availableQuantity ?? 0);
+      const requestedQuantity = Number(issue.requestedQuantity ?? item.quantity);
+      const lackingQuantity = Math.max(requestedQuantity - availableQuantity, 0);
+
+      if (availableQuantity <= 0) {
+        nextItems.push({
+          ...item,
+          availableQuantity,
+          stockError: `Requested ${requestedQuantity}, available ${availableQuantity}, lacking ${lackingQuantity}. Please remove this item or update your cart.`
+        });
+        continue;
+      }
+
+      nextItems.push({
+        ...item,
+        availableQuantity,
+        stockError: `Requested ${requestedQuantity}, available ${availableQuantity}, lacking ${lackingQuantity}. Please update your cart and checkout again.`
+      });
+    }
+
+    this.cartItems = nextItems;
+  }
+
+  private normalizeQuantity(item: CartItemView, rawQuantity: number): number {
+    let nextQuantity = Math.floor(rawQuantity);
+    if (!Number.isFinite(nextQuantity) || nextQuantity < 1) {
+      nextQuantity = 1;
+    }
+
+    item.stockError = undefined;
+
+    return nextQuantity;
+  }
+
+  private setItemQuantity(item: CartItemView, quantity: number): void {
+    item.quantity = quantity;
+    this.cartPageFacade.updateQuantity(
+      item.productId,
+      quantity
+    );
   }
 }

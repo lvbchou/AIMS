@@ -55,34 +55,4 @@ public class Book extends PrintableProduct {
         this.pages = pages;
         this.genre = genre;
     }
-
-    @Override
-    public void applyUpdate(ProductInfoDTO dto) {
-        BookInfoDTO book = (BookInfoDTO) dto;
-        this.author = book.getAuthor();
-        this.coverType = book.getCoverType();
-        this.pages = book.getPages();
-        this.genre = book.getGenre();
-        this.setPublisher(book.getPublisher());
-        this.setPublicationDate(book.getPublicationDate());
-        this.setLanguage(book.getLanguage());
-    }
-
-    @Override
-    public ProductInfoDTO toDTO() {
-        BookInfoDTO dto = new BookInfoDTO();
-
-        baseDTO(dto);
-
-        dto.setProductType("BOOK");
-        dto.setAuthor(author);
-        dto.setPublisher(getPublisher());
-        dto.setPublicationDate(getPublicationDate());
-        dto.setPages(pages);
-        dto.setCoverType(coverType);
-        dto.setLanguage(getLanguage());
-        dto.setGenre(genre);
-
-        return dto;
-    }
 }

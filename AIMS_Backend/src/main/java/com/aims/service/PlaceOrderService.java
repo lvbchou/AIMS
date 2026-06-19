@@ -1,33 +1,45 @@
-/*
- * LAB12 SOLID REVIEW:
- * Violated principles:
- * - ISP: one interface exposes all steps of the Place Order workflow
- *   (cart validation, shipping calculation, invoice creation, paid-order
- *   confirmation). A caller that only needs shipping still depends on invoice
- *   and confirmation operations.
- * - DIP: the use-case service abstraction depends directly on HttpSession,
- *   which is a web-framework detail. This couples application logic to the
- *   servlet layer and makes tests/reuse outside HTTP harder.
- * Impact: the contract is broad, changes in one workflow step can ripple to
- * unrelated clients, and the domain use case is harder to test without servlet
- * infrastructure.
- * Improvement direction: split into smaller ports such as CartValidationService,
- * ShippingFeeService, InvoiceCreationService, and PaidOrderConfirmationService;
- * pass a domain Cart/CartContext instead of HttpSession.
- */
 package com.aims.service;
 
-import com.aims.dto.request.DeliveryInfoRequest;
+import com.aims.dto.InvoiceScreenDTO;
+import com.aims.dto.request.CalculateShippingRequest;
+import com.aims.dto.request.CreateInvoiceRequest;
 import com.aims.dto.request.PlaceOrderRequest;
 import com.aims.dto.response.InvoiceResponse;
-import jakarta.servlet.http.HttpSession;
+import com.aims.service.placeorder.CheckoutCartService;
+import com.aims.service.placeorder.CheckoutShippingFeeService;
+import com.aims.service.placeorder.InvoiceCreationService;
+import com.aims.service.placeorder.InvoiceQueryService;
+import com.aims.service.placeorder.PaidOrderConfirmationService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
-public interface PlaceOrderService {
-    void processOrder(PlaceOrderRequest placeOrderRequest, HttpSession session);
+@Service
+@RequiredArgsConstructor
+public class PlaceOrderService {
+    private final CheckoutCartService checkoutCartService;
+    private final CheckoutShippingFeeService checkoutShippingFeeService;
+    private final InvoiceCreationService invoiceCreationService;
+    private final InvoiceQueryService invoiceQueryService;
+    private final PaidOrderConfirmationService paidOrderConfirmationService;
 
-    Long calculateShippingFee(DeliveryInfoRequest deliveryInfoRequest, HttpSession session);
+    public void processOrder(PlaceOrderRequest placeOrderRequest) {
+        checkoutCartService.validateAndBuildCartContext(
+                placeOrderRequest == null ? null : placeOrderRequest.getItems());
+    }
 
-    InvoiceResponse createInvoice(DeliveryInfoRequest deliveryInfoRequest, HttpSession session);
+    public Long calculateShippingFee(CalculateShippingRequest request) {
+        return checkoutShippingFeeService.calculateShippingFee(request);
+    }
 
-    InvoiceResponse confirmPaidOrder(String orderId, HttpSession session);
+    public InvoiceResponse createInvoice(CreateInvoiceRequest request) {
+        return invoiceCreationService.createInvoice(request);
+    }
+
+    public InvoiceScreenDTO getInvoiceScreen(String orderId) {
+        return invoiceQueryService.getInvoiceScreen(orderId);
+    }
+
+    public InvoiceResponse confirmPaidOrder(String orderId) {
+        return paidOrderConfirmationService.confirmPaidOrder(orderId);
+    }
 }

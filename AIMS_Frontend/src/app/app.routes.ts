@@ -4,7 +4,7 @@ import { ManagerLayoutComponent } from './layouts/manager-layout/manager-layout.
 import { ManagerDashboardComponent } from './features/dashboard/pages/manager-dashboard/manager-dashboard.component';
 import { ProductManagementComponent } from './features/product/pages/product-management/product-management.component';
 import { StockManagementComponent } from './features/stock/pages/stock-management/stock-management.component';
-import { HomeComponent } from './features/product/pages/home/home.component';
+import { HomeComponent } from '../app/features/home/pages/home/home.component';
 import { ProductListCustomerComponent } from './features/product/pages/product-list-customer/product-list-customer.component';
 import { PaymentVietqrComponent } from './features/payment/pages/payment-vietqr/payment-vietqr.component';
 import { PaymentRedirectComponent } from './features/payment/pages/payment-redirect/payment-redirect.component';
@@ -15,6 +15,9 @@ import { CartComponent } from './features/cart/pages/cart/cart.component';
 import { DeliveryComponent } from './features/order/pages/delivery/delivery.component';
 import { InvoiceComponent } from './features/order/pages/invoice/invoice.component';
 import { PaymentResultComponent } from './features/payment/pages/payment-result/payment-result.component';
+import { LoginComponent } from './features/auth/pages/login/login.component';
+import { authGuard } from './core/guards/auth-guard';
+import { roleGuard } from './core/guards/role-guard';
 
 export const routes: Routes = [
 
@@ -83,6 +86,8 @@ export const routes: Routes = [
   // MANAGER
   {
     path: 'product-manager',
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'PRODUCT_MANAGER' },
     component: ManagerLayoutComponent,
     children: [
       {
@@ -99,4 +104,14 @@ export const routes: Routes = [
       }
     ]
   },
+  {
+    path: 'login',
+    component: LoginComponent
+  },
+
+  {
+    path: '',
+    redirectTo: 'login',
+    pathMatch: 'full'
+  }
 ];

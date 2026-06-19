@@ -1,11 +1,6 @@
-<!-- ============================================================
-  FILE: src/app/features/payment/pages/payment-success/payment-success.component.html
-  ============================================================ -->
-
 <div class="success-page">
   <div class="success-content">
 
-    <!-- Check icon -->
     <div class="success-icon" aria-hidden="true">
       <span class="material-icons">check_circle</span>
     </div>
@@ -17,15 +12,71 @@
       being processed by our curation team.
     </p>
 
-    <!-- Order name box — always visible -->
-    <div class="order-ref">
-      <span class="order-ref__label">ORDER REFERENCE</span>
-      <span class="order-ref__value">{{ orderReference }}</span>
+    <div class="loading-indicator" *ngIf="isLoading">
+      Loading order details...
     </div>
 
-    <!-- Back to shop link -->
+    <div class="loading-indicator error-msg" *ngIf="!isLoading && errorMsg">
+      {{ errorMsg }}
+    </div>
+
+    <div class="receipt-card" *ngIf="confirmation">
+      <section class="receipt-section">
+        <h2 class="section-title">ORDER DETAILS</h2>
+
+        <div class="details-grid">
+          <div class="detail-block">
+            <span class="detail-label">Customer Name</span>
+            <span class="detail-value">{{ confirmation.customerName }}</span>
+          </div>
+
+          <div class="detail-block">
+            <span class="detail-label">Phone Number</span>
+            <span class="detail-value">{{ confirmation.phoneNumber }}</span>
+          </div>
+
+          <div class="detail-block">
+            <span class="detail-label">Shipping Address</span>
+            <span class="detail-value">{{ confirmation.shippingAddress }}</span>
+          </div>
+
+          <div class="detail-block">
+            <span class="detail-label">Province</span>
+            <span class="detail-value">{{ confirmation.province }}</span>
+          </div>
+        </div>
+
+        <div class="amount-block">
+          <span class="detail-label">Total Amount</span>
+          <span class="amount-value">{{ formatCurrency(confirmation.totalAmountToBePaid) }}</span>
+        </div>
+      </section>
+
+      <section class="receipt-section">
+        <h2 class="section-title">TRANSACTION INFORMATION</h2>
+
+        <div class="transaction-panel">
+          <div class="detail-block">
+            <span class="detail-label">Transaction ID</span>
+            <span class="detail-value mono">{{ confirmation.transactionId }}</span>
+          </div>
+
+          <div class="detail-block">
+            <span class="detail-label">Transaction Content</span>
+            <span class="detail-value">{{ confirmation.transactionContent }}</span>
+          </div>
+
+          <div class="detail-block">
+            <span class="detail-label">Transaction Datetime</span>
+            <span class="detail-value">{{ confirmation.transactionDatetimeDisplay }}</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
     <button class="back-link" (click)="backToShop()">
-      Back to Shop &nbsp;&rarr;
+      <span aria-hidden="true">&larr;</span>
+      Back to Shop
     </button>
 
   </div>

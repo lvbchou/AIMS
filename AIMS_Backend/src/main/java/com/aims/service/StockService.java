@@ -5,7 +5,7 @@ import com.aims.entity.StockHistory;
 import com.aims.entity.product.Product;
 import com.aims.exception.InvalidProductInfoException;
 import com.aims.exception.ProductNotFoundException;
-import com.aims.repository.ProductRepository;
+import com.aims.repository.product.ProductRepository;
 import com.aims.repository.StockHistoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

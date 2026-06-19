@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 /**
  * Coupling level: Data Coupling.
@@ -25,9 +26,15 @@ public class InvoiceScreenDTO {
 
     private String orderId;
     private String invoiceId;
+    private LocalDateTime issueDate;
     private List<InvoiceLineItemDTO> lineItems;
     private long totalProductPriceExclVat;
     private long totalProductPriceInclVat;
     private long deliveryFee;
     private long totalAmountToBePaid;
+    private String recipientName;
+    private String phoneNumber;
+    private String email;
+    private String detailAddress;
+    private String province;
 }

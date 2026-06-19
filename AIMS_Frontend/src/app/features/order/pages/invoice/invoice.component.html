@@ -1,8 +1,11 @@
 <div class="invoice-page">
   <div class="invoice-container">
     <app-order-stepper [currentStep]="3"></app-order-stepper>
+
+    <div class="invoice-state" *ngIf="isLoading">Loading invoice...</div>
+    <div class="invoice-state invoice-error" *ngIf="!isLoading && errorMsg">{{ errorMsg }}</div>
     
-    <div class="invoice-layout">
+    <div class="invoice-layout" *ngIf="!isLoading && !errorMsg && invoice">
       <!-- Left side: Invoice Details -->
       <div class="invoice-details-section">
         

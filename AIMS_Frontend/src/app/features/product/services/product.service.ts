@@ -41,9 +41,7 @@ export class ProductService {
 
   // ── Add ───────────────────────────────────────────────────────────
   add(product: Product): Observable<Product> {
-    return this.http.post<any>(this.BASE_URL, mapToPayload(product)).pipe(
-      map(mapToProduct)  // ← response flat → nested
-    );
+    return this.http.post<any>(this.BASE_URL, mapToPayload(product));
   }
 
   // ── Update ────────────────────────────────────────────────────────

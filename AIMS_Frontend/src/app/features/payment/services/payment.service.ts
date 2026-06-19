@@ -6,11 +6,14 @@ import { environment } from '../../../../environments/environment';
 export interface PaymentInitiateResponse {
   approvalUrl: string;
   orderId: string;
+  transactionId?: string;
 }
 
 export interface PaymentCompleteResponse {
   status: string;
   message: string;
+  orderId?: string;
+  transactionId?: string;
 }
 
 @Injectable({
@@ -25,8 +28,8 @@ export class PaymentService {
    * Calls backend POST /api/payment/initiate to start a payment session.
    * Returns the approval checkout redirect URL and the local Order ID.
    */
-  initiatePayment(amount: number): Observable<PaymentInitiateResponse> {
-    return this.http.post<PaymentInitiateResponse>(`${this.BASE_URL}/initiate`, { amount });
+  initiatePayment(amount: number, orderId: string): Observable<PaymentInitiateResponse> {
+    return this.http.post<PaymentInitiateResponse>(`${this.BASE_URL}/initiate`, { amount, orderId });
   }
 
   /**

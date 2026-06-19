@@ -2,7 +2,6 @@ import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProductCardComponent } from '../product-card/product-card.component';
 import { ProductSummary } from '../../models/product.model';
-import { ProductType } from '../../models/product-type.enum';
 import { ProductCardSkeletonComponent } from '../../skeleton/product-card-skeleton/product-card-skeleton.component';
 
 @Component({

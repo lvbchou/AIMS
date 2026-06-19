@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.aims.dto.InvoiceScreenDTO;
 import com.aims.dto.OrderConfirmationDTO;
 import com.aims.dto.VietQRCodeResponseDTO;
 import com.aims.dto.VietQRCallbackRequestDTO;
@@ -78,18 +77,6 @@ public class PayOrderController {
 
     public PayOrderController(PayOrderService payOrderService) {
         this.payOrderService = payOrderService;
-    }
-
-    /**
-     * Returns the invoice view before payment.
-     *
-     * @param orderId the order identifier.
-     * @return invoice data.
-     */
-    @GetMapping("/orders/{orderId}/pay/invoice")
-    public ResponseEntity<InvoiceScreenDTO> getInvoiceForPayment(@PathVariable String orderId) {
-        InvoiceScreenDTO dto = payOrderService.getInvoiceScreen(orderId);
-        return ResponseEntity.ok(dto);
     }
 
     /**

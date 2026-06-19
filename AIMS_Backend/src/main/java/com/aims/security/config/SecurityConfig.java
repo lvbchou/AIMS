@@ -25,7 +25,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/api/**").permitAll()
-                        .requestMatchers("/api/products/**").permitAll() // customer xem được
                         .requestMatchers("/api/product-manager/**").hasAnyAuthority("MANAGER")
                         .requestMatchers("/api/admin/**").hasAnyAuthority("ADMIN")
                         .anyRequest().authenticated()

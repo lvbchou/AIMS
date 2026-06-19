@@ -9,15 +9,15 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { finalize, switchMap } from 'rxjs';
+import { finalize } from 'rxjs';
 
 import { OrderStepperComponent } from '../../components/order-stepper/order-stepper.component';
 
 import { CartService } from '../../../cart/services/cart.service';
-import { CartItemRequest } from '../../../cart/models/cart.model';
+import { CartItemView } from '../../../cart/models/cart.model';
 
-import { OrderService } from '../../services/order.service';
 import { DeliveryInfoRequest } from '../../models/order.model';
+import { CheckoutFlowFacade } from '../../services/checkout-flow.facade';
 
 import { ProductService } from '../../../product/services/product.service';
 
@@ -35,7 +35,7 @@ import { ProductService } from '../../../product/services/product.service';
 export class DeliveryComponent implements OnInit {
 
   private cartService = inject(CartService);
-  private orderService = inject(OrderService);
+  private checkoutFlowFacade = inject(CheckoutFlowFacade);
   private productService = inject(ProductService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
@@ -50,11 +50,47 @@ export class DeliveryComponent implements OnInit {
   };
 
   subtotal = 0;
-  vat = 0;
-  shippingFee: number | null = null;
+  cartItems: CartItemView[] = [];
 
   errorMsg = '';
   isLoading = false;
+
+  readonly provinces = [
+    'An Giang',
+    'Bac Ninh',
+    'Ca Mau',
+    'Cao Bang',
+    'Can Tho City',
+    'Da Nang City',
+    'Dak Lak',
+    'Dien Bien',
+    'Dong Nai',
+    'Dong Thap',
+    'Gia Lai',
+    'Ha Noi',
+    'Ha Tinh',
+    'Hai Phong City',
+    'Ho Chi Minh City',
+    'Hue City',
+    'Hung Yen',
+    'Khanh Hoa',
+    'Lai Chau',
+    'Lam Dong',
+    'Lang Son',
+    'Lao Cai',
+    'Nghe An',
+    'Ninh Binh',
+    'Phu Tho',
+    'Quang Ngai',
+    'Quang Ninh',
+    'Quang Tri',
+    'Son La',
+    'Tay Ninh',
+    'Thai Nguyen',
+    'Thanh Hoa',
+    'Tuyen Quang',
+    'Vinh Long'
+  ];
 
   ngOnInit(): void {
 
@@ -71,19 +107,26 @@ export class DeliveryComponent implements OnInit {
       .subscribe({
         next: products => {
 
-          this.subtotal = products.reduce((sum, product) => {
-
+          this.cartItems = products.map(product => {
             const cartItem =
               cart.find(c => c.productId === product.productId)!;
 
-            return (
-              sum +
-              product.sellingPrice * cartItem.quantity
-            );
+            return {
+              productId: product.productId,
+              title: product.title,
+              category: product.productType,
+              image: product.image,
+              unitPriceExVat: product.sellingPrice,
+              availableQuantity: product.quantityInStock,
+              quantity: cartItem.quantity
+            };
+          });
+
+          this.subtotal = this.cartItems.reduce((sum, item) => {
+
+            return sum + item.unitPriceExVat * item.quantity;
 
           }, 0);
-
-          this.vat = Math.round(this.subtotal * 0.1);
 
           this.cdr.detectChanges();
         },
@@ -96,43 +139,7 @@ export class DeliveryComponent implements OnInit {
   }
 
   get totalPayable(): number {
-    return (
-      this.subtotal +
-      this.vat +
-      (this.shippingFee ?? 0)
-    );
-  }
-
-  onProvinceChange(): void {
-
-    if (!this.deliveryInfo.deliveryProvince) {
-      return;
-    }
-
-    this.orderService
-      .calculateShipping(this.deliveryInfo)
-      .subscribe({
-        next: res => {
-
-          if (res.success) {
-            this.shippingFee = res.data;
-          } else {
-            this.shippingFee = null;
-            this.errorMsg = res.message;
-          }
-
-        },
-        error: err => {
-
-          this.shippingFee = null;
-
-          this.errorMsg =
-            err.error?.message ??
-            'Unable to calculate shipping fee.';
-
-          console.error(err);
-        }
-      });
+    return this.subtotal;
   }
 
   reviewInvoice(): void {
@@ -150,6 +157,17 @@ export class DeliveryComponent implements OnInit {
       return;
     }
 
+    if (!this.deliveryInfo.phoneNumber.trim().match(/^\d{10}$/)) {
+      this.errorMsg = 'Phone number must contain exactly 10 digits.';
+      return;
+    }
+
+    const email = this.deliveryInfo.email?.trim();
+    if (email && !email.match(/^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$/)) {
+      this.errorMsg = 'Email address is invalid.';
+      return;
+    }
+
     const requestItems =
       this.cartService.toRequestItems();
 
@@ -161,14 +179,9 @@ export class DeliveryComponent implements OnInit {
     this.isLoading = true;
     this.errorMsg = '';
 
-    this.orderService
-      .placeOrder(requestItems)
+    this.checkoutFlowFacade
+      .createInvoiceFromCurrentCart(this.deliveryInfo)
       .pipe(
-        switchMap(() =>
-          this.orderService.createInvoice(
-            this.deliveryInfo
-          )
-        ),
         finalize(() => {
           this.isLoading = false;
           this.cdr.detectChanges();
@@ -182,17 +195,19 @@ export class DeliveryComponent implements OnInit {
             return;
           }
 
-          this.orderService
-            .setCurrentDeliveryInfo(
-              this.deliveryInfo
-            );
+          const orderId = res.data?.orderId;
+          if (!orderId) {
+            this.errorMsg = 'Invoice was created but the order ID was not returned.';
+            return;
+          }
 
-          this.orderService
-            .setCurrentInvoice(
-              res.data
-            );
+          this.checkoutFlowFacade.setCurrentOrderId(orderId);
 
-          this.router.navigate(['/invoice']);
+          this.router.navigate(['/invoice'], {
+            queryParams: {
+              orderId
+            }
+          });
         },
         error: err => {
 

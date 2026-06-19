@@ -1,7 +1,7 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule, AsyncPipe } from '@angular/common';
+import { BehaviorSubject, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import { ProductDetailModalComponent } from '../../components/product-detail-modal/product-detail-modal.component';
 import { ProductFilterComponent, PriceRange } from '../../components/product-filter/product-filter.component';
@@ -9,18 +9,17 @@ import { ProductListComponent } from '../../components/product-list/product-list
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { ToastComponent } from '../../../../shared/components/toast/toast/toast.component';
 
-import { ProductService } from '../../services/product.service';
+import { Product } from '../../models/product.model';
 import { ToastService } from '../../../../core/services/toast/toast.service';
-import { Product, ProductSummary } from '../../models/product.model';
+import { ProductCatalogFacade } from '../../facades/product-catalog.facade';
 import { CartService } from '../../../cart/services/cart.service';
-
-type Mode = 'all' | 'search' | 'filter';
 
 @Component({
   selector: 'app-product-list-customer',
   standalone: true,
   imports: [
     CommonModule,
+    AsyncPipe,
     ProductListComponent,
     ProductDetailModalComponent,
     ProductFilterComponent,
@@ -28,52 +27,24 @@ type Mode = 'all' | 'search' | 'filter';
     ToastComponent,
   ],
   templateUrl: './product-list-customer.component.html',
-  styleUrl: './product-list-customer.component.scss'
+  styleUrl: './product-list-customer.component.scss',
+  providers: [ProductCatalogFacade], // scoped — không share state với trang khác
 })
 export class ProductListCustomerComponent implements OnInit, OnDestroy {
 
-  products:      ProductSummary[] = [];
-  isLoading      = false;
-  mode: Mode     = 'all';
-  keyword        = '';
-  activeFilter:  PriceRange | null = null;
-  viewProductDetail: Product | null = null;
+  private readonly _viewProductDetail$ = new BehaviorSubject<Product | null>(null);
+  readonly viewProductDetail$ = this._viewProductDetail$.asObservable();
 
-  currentPage   = 0;
-  pageSize      = 10;
-  totalPages    = 0;
-  totalElements = 0;
-
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
   constructor(
-    private api:          ProductService,
-    private route:        ActivatedRoute,
-    private router:       Router,
-    private cdr:          ChangeDetectorRef,
+    readonly catalog: ProductCatalogFacade,
     private toastService: ToastService,
     private cartService: CartService,
   ) {}
 
   ngOnInit(): void {
-    // Đọc page + query từ URL → giữ được trang khi reload
-    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
-      this.currentPage = (params['page'] ?? 1) - 1;
-      const q = (params['q'] ?? '') as string;
-      this.keyword = q;
-
-      if (this.activeFilter) {
-        // Đang filter → load lại với page mới
-        this.mode = 'filter';
-        this.apiFilter(this.activeFilter);
-      } else if (q) {
-        this.mode = 'search';
-        this.apiSearch(q);
-      } else {
-        this.mode = 'all';
-        this.loadProducts();
-      }
-    });
+    this.catalog.init(this.destroy$.asObservable());
   }
 
   ngOnDestroy(): void {
@@ -81,132 +52,36 @@ export class ProductListCustomerComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // ── Pagination ─────────────────────────────────────────────────────────────
-  goToPage(page: number): void {
-    if (page < 0 || page >= this.totalPages) return;
-
-    // Cập nhật URL → queryParams subscribe tự trigger load đúng mode
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { page: page + 1 },
-      queryParamsHandling: 'merge',
-    });
-  }
-
   // ── Filter ─────────────────────────────────────────────────────────────────
+
   onFilterApplied(range: PriceRange | null): void {
-    this.activeFilter = range;
-    this.currentPage  = 0;
-
-    // Reset page về 0 trên URL
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { page: 1 },
-      queryParamsHandling: 'merge',
-    });
-
-    if (range) {
-      this.mode = 'filter';
-      this.apiFilter(range);
-    } else if (this.keyword) {
-      this.mode = 'search';
-      this.apiSearch(this.keyword);
-    } else {
-      this.mode = 'all';
-      this.loadProducts();
-    }
+    this.catalog.applyFilter(range);
   }
 
-  // ── Getters ────────────────────────────────────────────────────────────────
-  get showFilter(): boolean {
-    return this.mode === 'search' || this.mode === 'filter';
-  }
+  // ── Pagination ─────────────────────────────────────────────────────────────
 
-  get pageTitle(): string {
-    switch (this.mode) {
-      case 'search': return `Search results for "${this.keyword}"`;
-      case 'filter': return 'Filter results';
-      default:       return 'New Arrivals';
-    }
-  }
-
-  // ── Load all ───────────────────────────────────────────────────────────────
-  private loadProducts(): void {
-    this.isLoading = true;
-    this.api.getAll(this.currentPage, this.pageSize).subscribe({
-      next: (data) => {
-        this.products      = data.content;
-        this.totalPages    = data.totalPages;
-        this.totalElements = data.totalElements;
-        this.isLoading     = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error(err);
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  // ── Search ─────────────────────────────────────────────────────────────────
-  private apiSearch(kw: string): void {
-    this.isLoading = true;
-    this.api.search(kw, undefined, this.currentPage, this.pageSize).subscribe({
-      next: (data) => {
-        this.products      = data.content;
-        this.totalPages    = data.totalPages;
-        this.totalElements = data.totalElements;
-        this.isLoading     = false;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  // ── Filter by price (áp dụng lên kết quả search hiện tại) ────────────────
-  private apiFilter(range: PriceRange): void {
-    this.isLoading = true;
-    this.api.filterByPrice(
-      range.min, range.max,
-      this.keyword || undefined,  // truyền keyword nếu đang search
-      undefined,
-      this.currentPage,
-      this.pageSize
-    ).subscribe({
-      next: (data) => {
-        this.products = data.content;
-        this.totalPages = data.totalPages;
-        this.totalElements = data.totalElements;
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      }
-    });
+  goToPage(page: number): void {
+    this.catalog.goToPage(page);
   }
 
   // ── Detail modal ───────────────────────────────────────────────────────────
+
   onViewDetail(id: number): void {
-    this.api.getById(id).subscribe({
-      next: (product) => {
-        this.viewProductDetail = product;
-        this.cdr.detectChanges();
-      },
-      error: () => this.toastService.show('Failed to load product details'),
-    });
+    this.catalog.loadDetail(id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next:  (product) => { 
+          console.log('Loaded product detail:', product);
+          this._viewProductDetail$.next(product);
+        },
+        error: () => this.toastService.show('Failed to load product details'),
+      });
   }
 
   closeModal(): void {
-    this.viewProductDetail = null;
+    this._viewProductDetail$.next(null);
   }
 
-  // ── Cart ───────────────────────────────────────────────────────────────────
   onAddToCart(id: number): void {
     this.cartService.addToCart(id, 1);
     this.toastService.show('Added to cart');

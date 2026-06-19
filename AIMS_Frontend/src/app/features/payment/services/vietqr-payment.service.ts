@@ -240,7 +240,7 @@ export class VietQRPaymentService {
    * Get invoice details for payment screen.
    */
   getInvoiceScreen(orderId: string): Observable<any> {
-    const url = `${this.apiBaseUrl}/orders/${orderId}/pay/invoice`;
+    const url = `${this.apiBaseUrl}/orders/${orderId}/invoice`;
     return this.http.get<any>(url).pipe(
       catchError((error) => {
         console.error('Get Invoice Error:', error);

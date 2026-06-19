@@ -12,6 +12,7 @@ import { PaymentService } from '../../services/payment.service';
 })
 export class PaymentRedirectComponent implements OnInit {
   amount = 126500;
+  orderId = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -20,12 +21,19 @@ export class PaymentRedirectComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    const state = history.state;
+    this.orderId = state?.orderId || '';
+    if (state?.amount && Number(state.amount) > 0) {
+      this.amount = Number(state.amount);
+    }
+
     // 1. Get amount from query parameters
     this.route.queryParams.subscribe(params => {
       const amt = Number(params['amount']);
       if (!isNaN(amt) && amt > 0) {
         this.amount = amt;
       }
+      this.orderId = params['orderId'] || this.orderId;
       
       // 2. Initiate payment session
       this.initiatePayPalPayment();
@@ -33,7 +41,12 @@ export class PaymentRedirectComponent implements OnInit {
   }
 
   private initiatePayPalPayment(): void {
-    this.paymentService.initiatePayment(this.amount).subscribe({
+    if (!this.orderId) {
+      this.handleError('Missing order information for PayPal payment.');
+      return;
+    }
+
+    this.paymentService.initiatePayment(this.amount, this.orderId).subscribe({
       next: (response) => {
         if (response?.approvalUrl) {
           // Redirect the browser window to PayPal Sandbox

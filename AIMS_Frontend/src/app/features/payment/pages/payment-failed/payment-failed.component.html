@@ -55,6 +55,8 @@
           <span class="material-icons">refresh</span>
           Retry Payment
         </button>
+        <button class="home-link" *ngIf="orderId" (click)="changeDelivery()">Change delivery</button>
+        <button class="home-link" *ngIf="orderId" (click)="updateCart()">Update cart</button>
         <button class="home-link" (click)="goHome()">Go home</button>
       </div>
 

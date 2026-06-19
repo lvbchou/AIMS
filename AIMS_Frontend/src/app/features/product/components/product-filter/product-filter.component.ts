@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export interface PriceRange { label: string; min: number; max: number; }
@@ -17,10 +17,18 @@ export const PRICE_RANGES: PriceRange[] = [
   templateUrl: './product-filter.component.html',
   styleUrls: ['./product-filter.component.scss']
 })
-export class ProductFilterComponent {
+export class ProductFilterComponent implements OnInit {
+  @Input() activeFilter: PriceRange | null = null;
   @Output() filterApplied = new EventEmitter<PriceRange | null>();
+
   ranges = PRICE_RANGES;
   selected: PriceRange | null = null;
+
+  ngOnInit(): void {
+    this.selected = this.activeFilter;
+  }
+
   select(r: PriceRange): void { this.selected = this.selected === r ? null : r; }
   apply(): void { this.filterApplied.emit(this.selected); }
 }
+

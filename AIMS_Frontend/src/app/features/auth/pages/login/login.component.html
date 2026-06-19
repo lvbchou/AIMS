@@ -1,0 +1,40 @@
+<div class="login-wrapper">
+  <div class="login-card">
+
+    <div class="logo-section">
+      <div class="logo">A</div>
+      <h1>AIMS</h1>
+      <p>Advanced Internet Media Store</p>
+    </div>
+
+    <div class="form-group">
+      <label>Username</label>
+      <input
+        type="text"
+        placeholder="Enter username"
+        [(ngModel)]="username">
+    </div>
+
+    <div class="form-group">
+      <label>Password</label>
+      <input
+        type="password"
+        placeholder="Enter password"
+        [(ngModel)]="password">
+    </div>
+
+    <button
+      class="login-btn"
+      (click)="login()"
+      [disabled]="loading">
+
+      <span *ngIf="!loading">Login</span>
+      <span *ngIf="loading">Logging in...</span>
+    </button>
+
+    <div class="error-message" *ngIf="error">
+      {{ error }}
+    </div>
+
+  </div>
+</div>

@@ -2,7 +2,7 @@ package com.aims.service.product.validation;
 
 import com.aims.dto.product.DVDInfoDTO;
 import com.aims.exception.InvalidProductInfoException;
-import com.aims.service.validator.DVDValidator;
+import com.aims.service.product.validator.DVDValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

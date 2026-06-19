@@ -57,49 +57,4 @@ public class CD extends DiscProduct {
         this.artists = artists != null ? new ArrayList<>(artists) : new ArrayList<>();
         this.recordLabel = recordLabel;
     }
-
-    @Override
-    public void applyUpdate(ProductInfoDTO dto) {
-        CDInfoDTO cd = (CDInfoDTO) dto;
-        this.recordLabel = cd.getRecordLabel();
-        this.setGenre(cd.getGenre());
-        this.setReleaseDate(cd.getReleaseDate());
-
-        if (cd.getArtists() != null) {
-            this.artists.clear();
-            this.artists.addAll(cd.getArtists());
-        }
-
-        if (cd.getTracks() != null) {
-            this.tracks.clear();
-            cd.getTracks().forEach(t ->
-                    this.tracks.add(new Track(t.getTrackTitle(), t.getTrackLength(), this))
-            );
-        }
-    }
-
-    @Override
-    public ProductInfoDTO toDTO() {
-
-        CDInfoDTO dto = new CDInfoDTO();
-
-        baseDTO(dto);
-
-        dto.setProductType("CD");
-        dto.setGenre(getGenre());
-        dto.setReleaseDate(getReleaseDate());
-        dto.setRecordLabel(recordLabel);
-        dto.setArtists(artists);
-
-        dto.setTracks(
-                tracks.stream()
-                        .map(track -> new CDInfoDTO.TrackDTO(
-                                track.getTrackTitle(),
-                                track.getTrackLength()
-                        ))
-                        .toList()
-        );
-
-        return dto;
-    }
 }

@@ -28,11 +28,9 @@
             <div class="form-group">
               <label for="city">CITY/PROVINCE</label>
               <div class="select-wrapper">
-                <select id="city" name="city" [(ngModel)]="deliveryInfo.deliveryProvince" (change)="onProvinceChange()">
-                  <option value="" disabled selected>Select City</option>
-                  <option value="Ha Noi">Ha Noi</option>
-                  <option value="Ho Chi Minh">Ho Chi Minh</option>
-                  <option value="Da Nang">Da Nang</option>
+                <select id="city" name="city" [(ngModel)]="deliveryInfo.deliveryProvince">
+                  <option value="" disabled>Select City/Province</option>
+                  <option *ngFor="let province of provinces" [value]="province">{{ province }}</option>
                 </select>
                 <div class="select-arrow">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -59,7 +57,7 @@
       <div class="order-summary-section">
         <div class="summary-card">
           <h2 class="summary-title">Order Summary</h2>
-          
+
           <div class="summary-row">
             <span class="summary-label">Subtotal</span>
             <span class="summary-value">{{ subtotal | number:'1.0-0' }} VND</span>
@@ -67,7 +65,7 @@
           
           <div class="summary-row">
             <span class="summary-label">VAT (10%)</span>
-            <span class="summary-value">{{ vat | number:'1.0-0' }} VND</span>
+            <span class="summary-value shipping-value">CALCULATED AT INVOICE</span>
           </div>
           
           <div class="summary-row">
@@ -75,8 +73,7 @@
               Shipping Fee
               <span class="shipping-subtitle">BASED ON ADDRESS</span>
             </span>
-            <span class="summary-value shipping-value" *ngIf="shippingFee === null">CALCULATED AT INVOICE</span>
-            <span class="summary-value" *ngIf="shippingFee !== null">{{ shippingFee | number:'1.0-0' }} VND</span>
+            <span class="summary-value shipping-value">CALCULATED AT INVOICE</span>
           </div>
           
           <div class="summary-divider"></div>

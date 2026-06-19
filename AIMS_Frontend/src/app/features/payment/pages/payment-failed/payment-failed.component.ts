@@ -3,8 +3,9 @@
 // ============================================================
 
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { OrderService } from '../../../order/services/order.service';
 
 @Component({
   selector: 'app-payment-failed',
@@ -20,15 +21,23 @@ export class PaymentFailedComponent implements OnInit {
   orderId = '';
   orderReference = '';
 
-  constructor(private readonly router: Router) { }
+  constructor(
+    private readonly router: Router,
+    private readonly route: ActivatedRoute,
+    private readonly orderService: OrderService
+  ) { }
 
   ngOnInit(): void {
     const state = history.state;
+    const queryOrderId = this.route.snapshot.queryParamMap.get('orderId') || '';
     if (state?.errorMessage) this.errorMessage = state.errorMessage;
     if (state?.reason) this.errorMessage = state.reason;
     if (state?.errorCode) this.errorCode = state.errorCode;
 
-    this.orderId = state?.orderId || '';
+    this.orderId = state?.orderId || queryOrderId || this.orderService.getCurrentOrderId() || '';
+    if (this.orderId) {
+      this.orderService.setCurrentOrderId(this.orderId);
+    }
 
     if (this.orderId) {
       // Build short friendly reference from orderId
@@ -40,12 +49,29 @@ export class PaymentFailedComponent implements OnInit {
   }
 
   retryPayment(): void {
-    // Navigate back to VietQR screen with same orderId if available
     if (this.orderId) {
       this.router.navigate(['/payment/vietqr'], { queryParams: { orderId: this.orderId } });
     } else {
       this.router.navigate(['/payment/vietqr']);
     }
+  }
+
+  changeDelivery(): void {
+    if (this.orderId) {
+      this.orderService.setCurrentOrderId(this.orderId);
+      this.router.navigate(['/delivery'], { queryParams: { orderId: this.orderId } });
+      return;
+    }
+    this.router.navigate(['/delivery']);
+  }
+
+  updateCart(): void {
+    if (this.orderId) {
+      this.orderService.setCurrentOrderId(this.orderId);
+      this.router.navigate(['/cart'], { queryParams: { orderId: this.orderId } });
+      return;
+    }
+    this.router.navigate(['/cart']);
   }
 
   goHome(): void {

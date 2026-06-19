@@ -4,68 +4,37 @@
 // ==========================================================
 
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, timer } from 'rxjs';
-import { switchMap, catchError, map } from 'rxjs/operators';
-import { of } from 'rxjs';
-import { environment } from '../../../../environments/environment';
-import { CartItemRequest, CartItemView } from '../models/cart.model';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { CartItemRequest } from '../models/cart.model';
+import { CartMutationPolicy } from './cart-mutation.policy';
+import { CartStorageGateway } from './cart-storage.gateway';
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
+  private cartSubject: BehaviorSubject<CartItemRequest[]>;
 
-  private readonly STORAGE_KEY = 'aims_cart';
+  cart$: Observable<CartItemRequest[]>;
 
-  private cartSubject = new BehaviorSubject<CartItemRequest[]>(this.load());
-
-  cart$ = this.cartSubject.asObservable();
-
-  constructor() {}
+  constructor(
+    private storage: CartStorageGateway,
+    private mutationPolicy: CartMutationPolicy
+  ) {
+    this.cartSubject = new BehaviorSubject<CartItemRequest[]>(this.storage.load());
+    this.cart$ = this.cartSubject.asObservable();
+  }
 
   getCart(): CartItemRequest[] {
     return this.cartSubject.value;
   }
 
   setCart(items: CartItemRequest[]): void {
-    localStorage.setItem(
-      this.STORAGE_KEY,
-      JSON.stringify(items)
-    );
-
+    this.storage.save(items);
     this.cartSubject.next(items);
   }
 
   addToCart(productId: number, quantity: number = 1): void {
 
-    const current = this.getCart();
-
-    const existing = current.find(
-      i => i.productId === productId
-    );
-
-    if (existing) {
-
-      const next = current.map(i =>
-        i.productId === productId
-          ? {
-              ...i,
-              quantity: i.quantity + quantity
-            }
-          : i
-      );
-
-      this.setCart(next);
-
-      return;
-    }
-
-    this.setCart([
-      ...current,
-      {
-        productId,
-        quantity
-      }
-    ]);
+    this.setCart(this.mutationPolicy.add(this.getCart(), productId, quantity));
   }
 
   updateQuantity(
@@ -73,26 +42,16 @@ export class CartService {
     quantity: number
   ): void {
 
-    const next = this.getCart().map(i =>
-      i.productId === productId
-        ? { ...i, quantity }
-        : i
-    );
-
-    this.setCart(next);
+    this.setCart(this.mutationPolicy.updateQuantity(this.getCart(), productId, quantity));
   }
 
   remove(productId: number): void {
 
-    const next = this.getCart().filter(
-      i => i.productId !== productId
-    );
-
-    this.setCart(next);
+    this.setCart(this.mutationPolicy.remove(this.getCart(), productId));
   }
 
   clear(): void {
-    localStorage.removeItem(this.STORAGE_KEY);
+    this.storage.clear();
     this.cartSubject.next([]);
   }
 
@@ -103,30 +62,6 @@ export class CartService {
 
   getDifferentItemCount(): number {
     return this.getCart().length;
-  }
-
-  private load(): CartItemRequest[] {
-
-    try {
-
-      const raw = localStorage.getItem(
-        this.STORAGE_KEY
-      );
-
-      if (!raw) {
-        return [];
-      }
-
-      return JSON.parse(raw);
-
-    } catch {
-
-      localStorage.removeItem(
-        this.STORAGE_KEY
-      );
-
-      return [];
-    }
   }
 
   toRequestItems(): CartItemRequest[] {

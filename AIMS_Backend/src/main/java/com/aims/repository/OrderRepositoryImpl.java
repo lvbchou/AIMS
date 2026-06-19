@@ -33,6 +33,14 @@ public class OrderRepositoryImpl implements IOrderRepository {
     }
 
     @Override
+    public void rememberPaymentToken(String token, Order order) {
+        if (token != null && !token.isBlank() && order != null) {
+            orders.put(token, order);
+            lastOrder = order;
+        }
+    }
+
+    @Override
     public Order findByToken(String token) {
         if (orders.containsKey(token)) {
             return orders.get(token);

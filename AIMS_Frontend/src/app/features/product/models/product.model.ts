@@ -74,22 +74,22 @@ export interface NewspaperDetails {
 
 // ── Full product union ────────────────────────────────────────────────────────
 export interface DvdProduct extends ProductBase {
-  type: ProductType.DVD;
+  productType: ProductType.DVD;
   typeDetails: DvdDetails;
 }
 
 export interface CdProduct extends ProductBase {
-  type: ProductType.CD;
+  productType: ProductType.CD;
   typeDetails: CdDetails;
 }
 
 export interface BookProduct extends ProductBase {
-  type: ProductType.BOOK;
+  productType: ProductType.BOOK;
   typeDetails: BookDetails;
 }
 
 export interface NewspaperProduct extends ProductBase {
-  type: ProductType.NEWSPAPER;
+  productType: ProductType.NEWSPAPER;
   typeDetails: NewspaperDetails;
 }
 
