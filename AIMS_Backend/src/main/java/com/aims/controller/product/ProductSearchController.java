@@ -2,7 +2,6 @@ package com.aims.controller.product;
 
 import com.aims.dto.product.ProductSummaryDTO;
 import com.aims.service.product.IProductSearchService;
-import com.aims.service.product.ProductSearchService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,7 +17,8 @@ public class ProductSearchController {
 
     private final IProductSearchService productSearchService;
 
-    public ProductSearchController(ProductSearchService productSearchService) {
+    //DIP: Controller nhận interface thay vì class cụ thể -> solve
+    public ProductSearchController(IProductSearchService productSearchService) {
         this.productSearchService = productSearchService;
     }
 

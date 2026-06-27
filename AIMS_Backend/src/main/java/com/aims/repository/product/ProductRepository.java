@@ -43,6 +43,23 @@ Page<Product> searchByKeywordAndCategory(
         @Param("category") String category,
         Pageable pageable);
 
+    /**
+     * Search theo title HOẶC category, đồng thời lọc khoảng giá ở tầng DB.
+     * Dùng cho UC FilterProduct: filter áp TRÊN tập đã search nhưng để DB tự
+     * phân trang (không kéo toàn bộ về RAM như cách in-memory cũ).
+     */
+    @Query("SELECT p FROM Product p WHERE p.status = 'active' " +
+            "AND ( (:keyword IS NULL AND :category IS NULL) " +
+            "      OR (:keyword  IS NOT NULL AND LOWER(p.title)    LIKE LOWER(CONCAT('%', :keyword,  '%'))) " +
+            "      OR (:category IS NOT NULL AND LOWER(p.category) LIKE LOWER(CONCAT('%', :category, '%'))) ) " +
+            "AND p.sellingPrice >= :minPrice AND p.sellingPrice <= :maxPrice")
+    Page<Product> searchByKeywordCategoryAndPriceRange(
+            @Param("keyword") String keyword,
+            @Param("category") String category,
+            @Param("minPrice") long minPrice,
+            @Param("maxPrice") long maxPrice,
+            Pageable pageable);
+    
     @Query("SELECT p FROM Product p WHERE p.status = 'active'")
     Page<Product> findAllActive(Pageable pageable);
 
