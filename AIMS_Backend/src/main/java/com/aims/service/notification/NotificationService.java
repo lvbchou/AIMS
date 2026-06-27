@@ -1,6 +1,6 @@
 package com.aims.service.notification;
 
-import com.aims.dto.OrderConfirmationDTO;
+import com.aims.dto.order.OrderConfirmationDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;

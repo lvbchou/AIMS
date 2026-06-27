@@ -1,7 +1,7 @@
 package com.aims.exception;
 
 import com.aims.controller.PayOrderController;
-import com.aims.subsystem.vietqr.VietQRCallbackEndpoint;
+import com.aims.subsystem.vietqr.callback.VietQRCallbackEndpoint;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;

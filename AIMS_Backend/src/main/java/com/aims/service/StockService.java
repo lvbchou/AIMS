@@ -1,6 +1,6 @@
 package com.aims.service;
 
-import com.aims.dto.StockHistoryDTO;
+import com.aims.dto.stock.StockHistoryDTO;
 import com.aims.entity.StockHistory;
 import com.aims.entity.product.Product;
 import com.aims.exception.InvalidProductInfoException;

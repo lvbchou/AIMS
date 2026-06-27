@@ -35,7 +35,7 @@ public abstract class Product {
     @Column(name = "barcode", unique = true)
     private String barcode;
 
-    @Column(name = "image")
+    @Column(name = "image", columnDefinition = "TEXT")
     private String image;
 
     @Column(name = "original_value")

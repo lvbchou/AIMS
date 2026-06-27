@@ -1,6 +1,6 @@
 package com.aims.exception;
 
-import com.aims.dto.response.StockAvailabilityIssue;
+import com.aims.dto.order.StockAvailabilityIssue;
 
 import java.util.List;
 

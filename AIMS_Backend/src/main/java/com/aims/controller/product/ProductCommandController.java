@@ -1,6 +1,6 @@
 package com.aims.controller.product;
 
-import com.aims.dto.ApiResponse;
+import com.aims.dto.common.ApiResponse;
 import com.aims.dto.product.ProductInfoDTO;
 import com.aims.service.product.IProductCommandService;
 import com.aims.service.product.ProductCommandService;

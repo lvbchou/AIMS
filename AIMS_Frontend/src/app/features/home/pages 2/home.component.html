@@ -1,0 +1,83 @@
+<div class="home-container">
+  <div class="home-content">
+    <h1>AIMS E-commerce - Payment Demo</h1>
+    <p class="subtitle">VietQR Payment Gateway Integration</p>
+
+    <div class="demo-section">
+      <h2>Payment Flow Demo</h2>
+      <p class="description">
+        This demo showcases the VietQR payment flow for the AIMS e-commerce platform.
+        Click on a scenario to test the complete payment experience.
+      </p>
+
+      <div class="demo-buttons">
+        <!-- VietQR Payment -->
+        <div class="demo-card">
+          <h3>💳 VietQR Payment</h3>
+          <p>Test the QR code scanning and payment flow</p>
+          <a routerLink="/payment/vietqr" class="btn-demo btn-primary">
+            Start Payment
+          </a>
+        </div>
+
+        <!-- Success Flow -->
+        <div class="demo-card">
+          <h3>✓ Payment Success</h3>
+          <p>View the successful payment confirmation screen</p>
+          <a routerLink="/payment/success" class="btn-demo btn-success">
+            View Success
+          </a>
+        </div>
+
+        <!-- Failed Flow -->
+        <div class="demo-card">
+          <h3>✕ Payment Failed</h3>
+          <p>View the failed payment screen with error handling</p>
+          <a routerLink="/payment/failed" class="btn-demo btn-error">
+            View Error
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-section">
+      <h2>Features Implemented</h2>
+      <ul class="feature-list">
+        <li>✓ VietQR QR Code Display with Timer</li>
+        <li>✓ Payment Information Panel</li>
+        <li>✓ Alternative Payment Method (PayPal)</li>
+        <li>✓ Success Confirmation Screen</li>
+        <li>✓ Error Handling & Retry Mechanism</li>
+        <li>✓ Mock Data Service</li>
+        <li>✓ Responsive Design (1366×768 and above)</li>
+        <li>✓ Design Standards Compliance (Colors, Typography, Spacing)</li>
+      </ul>
+    </div>
+
+    <div class="tech-section">
+      <h2>Technical Stack</h2>
+      <ul class="tech-list">
+        <li><strong>Framework:</strong> Angular 21.2.0</li>
+        <li><strong>Language:</strong> TypeScript 5.9.2</li>
+        <li><strong>Styling:</strong> SCSS</li>
+        <li><strong>Components:</strong> Standalone Components</li>
+        <li><strong>State Management:</strong> Mock Data Service with RxJS</li>
+      </ul>
+    </div>
+
+    <div class="guidelines-section">
+      <h2>Design Guidelines Implemented</h2>
+      <ul class="guidelines-list">
+        <li>Resolution: Min 1366×768px, Recommended 1920×1080px</li>
+        <li>Color Scheme:
+          <span class="color-primary">Primary (#D32F2F)</span>
+          <span class="color-secondary">Secondary (#005F7B)</span>
+          <span class="color-success">Success (#4CAF50)</span>
+        </li>
+        <li>Typography: Manrope/Inter/Roboto (H1: 36px, H2: 24px, H3: 16px, Body: 13px)</li>
+        <li>Icons: Material Icons, FontAwesome</li>
+        <li>Data Formatting: Currency with VND, DateTime as DD/MM/YYYY HH:mm:ss</li>
+      </ul>
+    </div>
+  </div>
+</div>

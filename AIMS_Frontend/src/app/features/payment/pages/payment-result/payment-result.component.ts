@@ -55,38 +55,55 @@ export class PaymentResultComponent implements OnInit {
   private capturePayment(token: string): void {
     this.paymentService.completePayment(token).subscribe({
       next: (res) => {
-        this.loading = false;
-        this.success = true;
-        if (res.orderId) {
-          this.orderService.setCurrentOrderId(res.orderId);
+        if (!res.orderId) {
+          this.showFailure('Payment was captured, but the order information was missing.');
+          return;
         }
 
-        setTimeout(() => {
-          this.cartService.clear();
-          this.router.navigate(['/payment/success'], {
-            queryParams: {
-              orderId: res.orderId,
-            },
-            state: {
-              orderId: res.orderId,
-              transactionId: res.transactionId,
-            },
-          });
-        }, 0);
-        this.cdr.detectChanges();
+        this.orderService.confirmPaidOrder(res.orderId).subscribe({
+          next: () => {
+            this.loading = false;
+            this.success = true;
+            this.orderService.setCurrentOrderId(res.orderId!);
+            this.cartService.clear();
+            this.router.navigate(['/payment/success'], {
+              queryParams: {
+                orderId: res.orderId,
+              },
+              state: {
+                orderId: res.orderId,
+                transactionId: res.transactionId,
+              },
+            });
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            this.showFailure(
+              err?.error?.message ||
+              err?.error?.error ||
+              err?.message ||
+              'Unable to confirm paid order.'
+            );
+          }
+        });
       },
       error: (err) => {
-        this.loading = false;
-        this.success = false;
-        this.orderReference = '#AIMS-' + this.generateRandomRef() + '-ERR';
-        this.errorMessage =
+        this.showFailure(
           err?.error?.message ||
           err?.error?.error ||
           err?.message ||
-          'Transaction capture execution failed.';
-        this.cdr.detectChanges();
+          'Transaction capture execution failed.'
+        );
       }
     });
+  }
+
+  private showFailure(message: string): void {
+    this.loading = false;
+    this.success = false;
+    this.orderReference = '#AIMS-' + this.generateRandomRef() + '-ERR';
+    this.errorMessage = message;
+    this.cdr.detectChanges();
   }
 
   private generateRandomRef(): string {

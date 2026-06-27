@@ -1,0 +1,230 @@
+// Color variables
+$color-primary: #D32F2F;
+$color-secondary: #005F7B;
+$color-success: #4CAF50;
+$color-error: #D32F2F;
+$color-dark: #171717;
+$color-bg: #F9F9F9;
+$color-text: #222;
+$color-text-light: #666;
+$color-border: #ddd;
+
+.home-container {
+  min-height: 100vh;
+  background: $color-bg;
+  padding: 40px 20px;
+  font-family: 'Inter', 'Roboto', 'Manrope', sans-serif;
+}
+
+.home-content {
+  max-width: 1200px;
+  margin: 0 auto;
+
+  h1 {
+    font-size: 48px;
+    font-weight: 700;
+    color: $color-dark;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .subtitle {
+    font-size: 18px;
+    color: $color-text-light;
+    text-align: center;
+    margin-bottom: 40px;
+  }
+}
+
+// Demo Section
+.demo-section {
+  background: white;
+  border-radius: 8px;
+  padding: 40px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  h2 {
+    font-size: 28px;
+    font-weight: 600;
+    color: $color-dark;
+    margin-bottom: 15px;
+  }
+
+  .description {
+    font-size: 14px;
+    color: $color-text-light;
+    margin-bottom: 30px;
+    line-height: 1.6;
+  }
+}
+
+// Demo Buttons
+.demo-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+
+  .demo-card {
+    background: #F5F5F5;
+    border-radius: 8px;
+    padding: 25px;
+    text-align: center;
+    border: 1px solid $color-border;
+    transition: all 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: $color-dark;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 13px;
+      color: $color-text-light;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+  }
+}
+
+// Demo Button Styles
+.btn-demo {
+  display: inline-block;
+  padding: 12px 24px;
+  border-radius: 6px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  color: white;
+
+  &.btn-primary {
+    background: $color-primary;
+
+    &:hover {
+      background: #AF101A;
+    }
+  }
+
+  &.btn-success {
+    background: $color-success;
+
+    &:hover {
+      background: #45a049;
+    }
+  }
+
+  &.btn-error {
+    background: $color-error;
+
+    &:hover {
+      background: #AF101A;
+    }
+  }
+}
+
+// Feature Section
+.feature-section,
+.tech-section,
+.guidelines-section {
+  background: white;
+  border-radius: 8px;
+  padding: 40px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: $color-dark;
+    margin-bottom: 20px;
+  }
+}
+
+// Lists
+.feature-list,
+.tech-list,
+.guidelines-list {
+  list-style-position: inside;
+  list-style: none;
+  padding: 0;
+
+  li {
+    font-size: 14px;
+    color: $color-text;
+    margin-bottom: 12px;
+    padding-left: 20px;
+    position: relative;
+    line-height: 1.6;
+
+    &:before {
+      content: '✓';
+      color: $color-success;
+      font-weight: bold;
+      position: absolute;
+      left: 0;
+    }
+
+    strong {
+      color: $color-dark;
+    }
+  }
+}
+
+// Color indicators
+.color-primary,
+.color-secondary,
+.color-success {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  margin: 0 5px;
+}
+
+.color-primary {
+  background: $color-primary;
+}
+
+.color-secondary {
+  background: $color-secondary;
+}
+
+.color-success {
+  background: $color-success;
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .home-content {
+    h1 {
+      font-size: 32px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+    }
+  }
+
+  .demo-section,
+  .feature-section,
+  .tech-section,
+  .guidelines-section {
+    padding: 25px;
+  }
+}

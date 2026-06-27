@@ -1,0 +1,71 @@
+Starting a Gradle Daemon, 1 stopped Daemon could not be reused, use --status for details
+
+> Task :compileJava
+Management of bidirectional association persistent attributes is deprecated and will be removed. Set the value to 'false' to get rid of this warning
+
+> Task :processResources UP-TO-DATE
+> Task :classes
+> Task :resolveMainClassName
+
+> Task :processAot FAILED
+No .env file found from working directory /Users/batman/Desktop/ISD.20252-03/Programming/AIMS_Backend
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.6)
+
+2026-06-19T11:05:29.223+07:00  INFO 80059 --- [AIMS_Backend] [           main] com.aims.AimsBackendApplication          : Starting AimsBackendApplication using Java 24.0.2 with PID 80059 (/Users/batman/Desktop/ISD.20252-03/Programming/AIMS_Backend/build/classes/java/main started by batman in /Users/batman/Desktop/ISD.20252-03/Programming/AIMS_Backend)
+2026-06-19T11:05:29.224+07:00  INFO 80059 --- [AIMS_Backend] [           main] com.aims.AimsBackendApplication          : No active profile set, falling back to 1 default profile: "default"
+2026-06-19T11:05:29.744+07:00  INFO 80059 --- [AIMS_Backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-06-19T11:05:29.783+07:00  INFO 80059 --- [AIMS_Backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 36 ms. Found 11 JPA repository interfaces.
+Exception in thread "main" java.lang.IllegalStateException: Failed to introspect Class [org.springdoc.core.customizers.QuerydslPredicateOperationCustomizer] from ClassLoader [jdk.internal.loader.ClassLoaders$AppClassLoader@1369b299]
+	at org.springframework.util.ReflectionUtils.getDeclaredMethods(ReflectionUtils.java:483)
+	at org.springframework.util.ReflectionUtils.doWithLocalMethods(ReflectionUtils.java:320)
+	at org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor.buildPersistenceMetadata(PersistenceAnnotationBeanPostProcessor.java:440)
+	at org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor.findPersistenceMetadata(PersistenceAnnotationBeanPostProcessor.java:411)
+	at org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor.findInjectionMetadata(PersistenceAnnotationBeanPostProcessor.java:370)
+	at org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor.postProcessMergedBeanDefinition(PersistenceAnnotationBeanPostProcessor.java:347)
+	at org.springframework.context.support.PostProcessorRegistrationDelegate$MergedBeanDefinitionPostProcessorInvoker.lambda$postProcessRootBeanDefinition$0(PostProcessorRegistrationDelegate.java:482)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.springframework.context.support.PostProcessorRegistrationDelegate$MergedBeanDefinitionPostProcessorInvoker.postProcessRootBeanDefinition(PostProcessorRegistrationDelegate.java:482)
+	at org.springframework.context.support.PostProcessorRegistrationDelegate$MergedBeanDefinitionPostProcessorInvoker.invokeMergedBeanDefinitionPostProcessors(PostProcessorRegistrationDelegate.java:472)
+	at org.springframework.context.support.PostProcessorRegistrationDelegate.invokeMergedBeanDefinitionPostProcessors(PostProcessorRegistrationDelegate.java:322)
+	at org.springframework.context.support.GenericApplicationContext.refreshForAotProcessing(GenericApplicationContext.java:416)
+	at org.springframework.context.aot.ApplicationContextAotGenerator.lambda$processAheadOfTime$0(ApplicationContextAotGenerator.java:55)
+	at org.springframework.context.aot.ApplicationContextAotGenerator.withCglibClassHandler(ApplicationContextAotGenerator.java:68)
+	at org.springframework.context.aot.ApplicationContextAotGenerator.processAheadOfTime(ApplicationContextAotGenerator.java:54)
+	at org.springframework.context.aot.ContextAotProcessor.performAotProcessing(ContextAotProcessor.java:107)
+	at org.springframework.context.aot.ContextAotProcessor.doProcess(ContextAotProcessor.java:84)
+	at org.springframework.context.aot.ContextAotProcessor.doProcess(ContextAotProcessor.java:49)
+	at org.springframework.context.aot.AbstractAotProcessor.process(AbstractAotProcessor.java:84)
+	at org.springframework.boot.SpringApplicationAotProcessor.main(SpringApplicationAotProcessor.java:96)
+Caused by: java.lang.NoClassDefFoundError: org/springframework/data/util/TypeInformation
+	at java.base/java.lang.Class.getDeclaredMethods0(Native Method)
+	at java.base/java.lang.Class.privateGetDeclaredMethods(Class.java:3035)
+	at java.base/java.lang.Class.getDeclaredMethods(Class.java:2331)
+	at org.springframework.util.ReflectionUtils.getDeclaredMethods(ReflectionUtils.java:465)
+	... 19 more
+Caused by: java.lang.ClassNotFoundException: org.springframework.data.util.TypeInformation
+	at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:580)
+	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:490)
+	... 23 more
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':processAot' (registered by plugin class 'org.springframework.boot.gradle.plugin.SpringBootAotPlugin').
+> Process 'command '/Library/Java/JavaVirtualMachines/jdk-24.jdk/Contents/Home/bin/java'' finished with non-zero exit value 1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 5s
+4 actionable tasks: 3 executed, 1 up-to-date

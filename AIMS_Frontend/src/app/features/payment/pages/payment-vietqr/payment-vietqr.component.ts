@@ -139,7 +139,7 @@ export class PaymentVietqrComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.startCountdown(300); // 5 minutes countdown
+    this.startCountdown(10); // 5 minutes countdown
     // Get orderId dynamically from query parameters, e.g. /payment/vietqr?orderId=ORD-002
     // Fallback to ORD-1K if none provided.
     const orderId = this.route.snapshot.queryParamMap.get('orderId') || 'ORD-1K';
@@ -221,6 +221,9 @@ export class PaymentVietqrComponent implements OnInit, OnDestroy {
           this.qrError = true;
           this.isLoading = false;
           this.cdr.detectChanges();
+          this.router.navigate(['/payment/failed'], {
+            state: { reason: 'Không thể khởi tạo mã QR thanh toán từ VietQR.' }
+          });
         },
       });
   }
@@ -321,6 +324,9 @@ export class PaymentVietqrComponent implements OnInit, OnDestroy {
         remaining--;
       } else {
         clearInterval(this.timerInterval);
+        this.router.navigate(['/payment/failed'], {
+          state: { result: 'Thời gian thanh toán qua mã QR đã hết hạn.' }
+        });
       }
       this.isUrgent = remaining <= 60;
       this.updateTimerDisplay(remaining);

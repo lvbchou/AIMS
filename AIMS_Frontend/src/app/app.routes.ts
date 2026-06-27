@@ -16,6 +16,7 @@ import { DeliveryComponent } from './features/order/pages/delivery/delivery.comp
 import { InvoiceComponent } from './features/order/pages/invoice/invoice.component';
 import { PaymentResultComponent } from './features/payment/pages/payment-result/payment-result.component';
 import { LoginComponent } from './features/auth/pages/login/login.component';
+import { ChangePasswordComponent } from './features/auth/pages/change-password/change-password.component';
 import { authGuard } from './core/guards/auth-guard';
 import { roleGuard } from './core/guards/role-guard';
 
@@ -101,6 +102,31 @@ export const routes: Routes = [
       {
         path: 'stock',
         component: StockManagementComponent
+      },
+      {
+        // UC-CP: Change Password — protected under manager layout so the
+        // header dropdown is rendered on top, giving the modal-overlay effect.
+        path: 'change-password',
+        component: ChangePasswordComponent,
+        canActivate: [authGuard]
+      }
+    ]
+  },
+  // ADMIN
+  {
+    path: 'admin',
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'ADMIN' },
+    component: ManagerLayoutComponent,
+    children: [
+      {
+        path: '',
+        component: ManagerDashboardComponent
+      },
+      {
+        path: 'change-password',
+        component: ChangePasswordComponent,
+        canActivate: [authGuard]
       }
     ]
   },

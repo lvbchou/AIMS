@@ -15,19 +15,17 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @Table(name = "order_item")
+@IdClass(OrderItemId.class)
 @Data
 public class OrderItem {
 
-    @EmbeddedId
-    private OrderItemId id;
-
+    @Id
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("orderId")
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
+    @Id
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("productId")
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 

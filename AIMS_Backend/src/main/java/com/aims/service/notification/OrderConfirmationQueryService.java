@@ -1,6 +1,6 @@
 package com.aims.service.notification;
 
-import com.aims.dto.OrderConfirmationDTO;
+import com.aims.dto.order.OrderConfirmationDTO;
 import com.aims.entity.Delivery;
 import com.aims.entity.Invoice;
 import com.aims.entity.PaymentTransaction;

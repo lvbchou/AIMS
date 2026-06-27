@@ -7,13 +7,13 @@
  */
 package com.aims.controller;
 
-import com.aims.dto.InvoiceScreenDTO;
-import com.aims.dto.request.CalculateShippingRequest;
-import com.aims.dto.request.ConfirmPaidOrderRequest;
-import com.aims.dto.request.CreateInvoiceRequest;
-import com.aims.dto.request.PlaceOrderRequest;
-import com.aims.dto.response.ApiResponse;
-import com.aims.dto.response.InvoiceResponse;
+import com.aims.dto.order.InvoiceScreenDTO;
+import com.aims.dto.order.CalculateShippingRequest;
+import com.aims.dto.order.ConfirmPaidOrderRequest;
+import com.aims.dto.order.CreateInvoiceRequest;
+import com.aims.dto.order.PlaceOrderRequest;
+import com.aims.dto.common.ApiResponse;
+import com.aims.dto.order.InvoiceResponse;
 import com.aims.service.PlaceOrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -41,7 +41,7 @@ public class PlaceOrderController {
     )
     public ResponseEntity<ApiResponse<String>> placeOrder(
             @RequestBody(required = false) PlaceOrderRequest request) {
-        placeOrderService.processOrder(request);
+        placeOrderService.placeOrder(request);
         return ResponseEntity.ok(new ApiResponse<>(
                 true,
                 "Order is valid. Please enter delivery information.",
@@ -56,7 +56,7 @@ public class PlaceOrderController {
     )
     public ResponseEntity<ApiResponse<Long>> calculateShipping(
             @RequestBody CalculateShippingRequest request) {
-        Long shippingFee = placeOrderService.calculateShippingFee(request);
+        Long shippingFee = placeOrderService.calculateShipping(request);
         return ResponseEntity.ok(new ApiResponse<>(true, "Shipping fee calculated successfully.", shippingFee));
     }
 

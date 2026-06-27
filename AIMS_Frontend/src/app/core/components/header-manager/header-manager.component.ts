@@ -25,9 +25,10 @@ export class HeaderManagerComponent {
 
   accountOpen = false;
   accountMenuItems = [
-    { label: 'Profile',  route: '/product-manager/profile', action: () => console.log('Profile clicked') },
-    { label: 'Settings', route: '/product-manager/settings', action: () => console.log('Settings clicked') },
-    { label: 'Logout',   route: '/login', action: () => this.onLogout() },
+    { label: 'Profile',         route: '/product-manager/profile',          action: () => console.log('Profile clicked') },
+    { label: 'Change Password', route: null,                                 action: () => this.goToChangePassword() },
+    { label: 'Settings',        route: '/product-manager/settings',          action: () => console.log('Settings clicked') },
+    { label: 'Logout',          route: '/login',                             action: () => this.onLogout() },
   ];
 
   toggleAccount() {
@@ -43,5 +44,13 @@ export class HeaderManagerComponent {
 
   onLogout(): void {
     this.authService.logout();
+  }
+
+  goToChangePassword(): void {
+    if (this.router.url.startsWith('/admin')) {
+      this.router.navigate(['/admin/change-password']);
+    } else {
+      this.router.navigate(['/product-manager/change-password']);
+    }
   }
 }

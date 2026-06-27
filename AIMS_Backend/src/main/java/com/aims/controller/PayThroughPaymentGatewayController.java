@@ -9,12 +9,13 @@
  */
 package com.aims.controller;
 
-import com.aims.dto.GatewayTransactionContext;
-import com.aims.dto.PaymentCompleteResponse;
-import com.aims.dto.PaymentCompleteRequest;
-import com.aims.dto.PaymentInitiateRequest;
+import com.aims.dto.payment.GatewayTransactionContext;
+import com.aims.dto.payment.PaymentCompleteResponse;
+import com.aims.dto.payment.PaymentCompleteRequest;
+import com.aims.dto.payment.PaymentInitiateRequest;
 import com.aims.exception.PaymentException;
 import com.aims.service.PayThroughPaymentGatewayService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +29,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/payment")
+@Tag(name = "Payment Gateway", description = "PayPal payment initiation and completion")
 public class PayThroughPaymentGatewayController {
 
     private final PayThroughPaymentGatewayService paymentService;

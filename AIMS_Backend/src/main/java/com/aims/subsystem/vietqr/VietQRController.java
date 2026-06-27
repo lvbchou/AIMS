@@ -1,7 +1,10 @@
 package com.aims.subsystem.vietqr;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+import com.aims.subsystem.vietqr.dto.QRAccessToken;
+import com.aims.subsystem.vietqr.callback.OrderIdResolver;
+import com.aims.subsystem.vietqr.callback.VietQRCallbackHandler;
+import com.aims.subsystem.vietqr.security.ICallbackAuthGuard;
+
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,111 +22,41 @@ import com.aims.subsystem.IPaymentQRCode;
 import com.aims.exception.CallbackVerificationException;
 
 /**
- * Coupling level: Stamp Coupling.
- * Cohesion level: Functional Cohesion.
- *
- * This facade groups QR generation and callback validation under one payment
- * responsibility, but it still receives the full order object to build QR data.
- *
- * SOLID VIOLATION: Single Responsibility Principle (SRP)
- *
- * Problem: This class handles three distinct responsibilities:
- *   1. QR code generation orchestration (getQRCode) — building QR data from
- *      order, invoice, and delivery entities
- *   2. Callback payload verification (checkPaymentStatus) — parsing and
- *      validating VietQR webhook payloads
- *   3. Authentication token management (validateBearerToken, getPartnerTokenSecret)
- *      — validating Basic/Bearer authorization headers
- * Impact: Modifying the authentication mechanism (e.g. switching from Basic to
- *   OAuth2) requires changing the same class that generates QR codes. Testing
- *   QR generation in isolation requires mocking authentication-related fields.
- * Improvement:
- *   - Extract a VietQRAuthValidator class for validateBearerToken and
- *     getPartnerTokenSecret
- *   - Keep VietQRController focused solely on QR generation and callback parsing
- *     as defined by the IPaymentQRCode interface contract
- *
- * SOLID VIOLATION: Open/Closed Principle (OCP)
- *
- * Problem: The validateBearerToken method uses if-else branching to handle
- *   different authentication schemes (Basic and Bearer). Adding a new auth
- *   scheme (e.g. API-Key, OAuth2) requires modifying this method directly.
- * Impact: Each new authentication mechanism requires editing a stable, tested
- *   method, increasing regression risk.
- * Improvement:
- *   - Define an AuthSchemeValidator interface with method boolean validate(String header)
- *   - Implement BasicAuthValidator and BearerTokenValidator separately
- *   - Use a chain-of-responsibility or registry pattern to evaluate validators
- *
- * SOLID: Liskov Substitution Principle (LSP) - Not Violated
- *
- * VietQRController implements IPaymentQRCode faithfully. Both getQRCode and
- * checkPaymentStatus honor the interface contract without throwing unexpected
- * exceptions or weakening postconditions.
- *
- * SOLID: Interface Segregation Principle (ISP) - Not Violated
- *
- * IPaymentQRCode defines only two methods (getQRCode and checkPaymentStatus),
- * both of which are relevant to and implemented by this class. The interface
- * is appropriately narrow.
- *
- * SOLID VIOLATION: Dependency Inversion Principle (DIP)
- *
- * Problem: This class directly depends on concrete repository implementations
- *   (InvoiceRepository, DeliveryRepository) and the concrete VietQRBoundary
- *   class. A high-level subsystem controller should depend on abstractions
- *   rather than concrete data-access and HTTP-transport classes.
- * Impact: Replacing the data source (e.g. switching from JPA to a remote API)
- *   or the HTTP client library requires modifying this class. Unit testing
- *   requires mocking concrete classes rather than interfaces.
- * Improvement:
- *   - Inject an IPaymentDataProvider interface instead of raw repositories
- *   - Define an IVietQRBoundary interface for the HTTP boundary layer
- *   - VietQRController should only depend on these abstractions
- *
- * @author Team 03
- * @since 1.0.0
+ * Controller class to handle VietQR payment processing.
+ * Implements IPaymentQRCode interface to generate QR codes and verify payment statuses.
  */
 @Service
 public class VietQRController implements IPaymentQRCode {
 
     private static final Logger log = LoggerFactory.getLogger(VietQRController.class);
 
-    private final VietQRBoundary boundary;
+    private final IVietQRBoundary boundary;
     private final InvoiceRepository invoiceRepository;
     private final DeliveryRepository deliveryRepository;
+    private final OrderIdResolver orderIdResolver;
     private final String merchantId;
     private final String apiKey;
-    private final String partnerUsername;
-    private final String partnerPassword;
-    private final String partnerTokenSecret;
 
     public VietQRController(
-            VietQRBoundary boundary,
+            IVietQRBoundary boundary,
             InvoiceRepository invoiceRepository,
             DeliveryRepository deliveryRepository,
+            OrderIdResolver orderIdResolver,
             @Value("${vietqr.merchant-id:}") String merchantId,
-            @Value("${vietqr.api-key:}") String apiKey,
-            @Value("${vietqr.partner-username:}") String partnerUsername,
-            @Value("${vietqr.partner-password:}") String partnerPassword,
-            @Value("${vietqr.partner-token-secret:}") String partnerTokenSecret) {
+            @Value("${vietqr.api-key:}") String apiKey) {
         this.boundary = boundary;
         this.invoiceRepository = invoiceRepository;
         this.deliveryRepository = deliveryRepository;
+        this.orderIdResolver = orderIdResolver;
         this.merchantId = merchantId;
         this.apiKey = apiKey;
-        this.partnerUsername = partnerUsername;
-        this.partnerPassword = partnerPassword;
-        this.partnerTokenSecret = partnerTokenSecret;
     }
 
     /**
-     * Generates a payment QR from order data.
+     * Generates a payment QR code from the order information.
      *
-     * @param order source order; it must exist and have matching invoice and
-     *              delivery records.
-     * @return the VietQR payload built from the order.
-     * @throws IllegalArgumentException if {@code order} or related data is missing.
+     * @param order the order to generate QR code for.
+     * @return the generated QRCode object.
      */
     @Override
     public QRCode getQRCode(Order order) {
@@ -146,27 +79,11 @@ public class VietQRController implements IPaymentQRCode {
         }
         String content = "Order " + safeOrderId;
 
-        // If token retrieval fails, still allow a static QR fallback so the payment
-        // flow continues.
-        QRAccessTokenRequest tokenRequest = new QRAccessTokenRequest(merchantId, apiKey);
-        QRAccessToken accessToken = new QRAccessToken();
-        try {
-            accessToken = boundary.requestAccessToken(tokenRequest);
-        } catch (RuntimeException ex) {
-            log.warn("VietQR token request failed, using static QR fallback: {}", ex.getMessage());
-        }
-
-        // Build the QR request from the current order and recipient details.
-        QRGenerateRequest generateRequest = boundary.createGenerateRequest(
-                content,
-                amountToPay,
-                orderId,
-                delivery.getRecipientName());
-        generateRequest.setAccessToken(accessToken.getAccessToken());
+        QRAccessToken accessToken = boundary.requestAccessToken();
 
         // Call the boundary for the QR payload; it will fallback if the VietQR API
         // fails.
-        String response = boundary.getQRCode(generateRequest);
+        String response = boundary.getQRCode(content, amountToPay, orderId, delivery.getRecipientName(), accessToken.getAccessToken());
 
         // Parse the returned payload into a domain object for direct use by callers.
         QRCode qrCode = new QRCode();
@@ -201,7 +118,23 @@ public class VietQRController implements IPaymentQRCode {
             throw new CallbackVerificationException("Invalid VietQR callback checksum");
         }
 
-        return handler.toPaymentResult();
+        // Use OrderIdResolver to resolve and restore the canonical order ID
+        String rawContent = handler.getRawContent();
+        String directOrderId = handler.getDirectOrderId();
+        String resolvedOrderId = orderIdResolver.resolve(directOrderId, rawContent);
+
+        String status = handler.getStatus();
+        String transactionId = handler.getTransactionId();
+        int successFlag = handler.checkSuccess() ? 1 : 0;
+
+        // Construct the system domain entity inside the Controller (DIP compliance)
+        return new PaymentResult(
+                status,
+                "VietQR Callback Payload",
+                resolvedOrderId,
+                transactionId,
+                successFlag
+        );
     }
 
     /**
@@ -222,46 +155,44 @@ public class VietQRController implements IPaymentQRCode {
         return null;
     }
 
-    /**
-     * Validates the Authorization header sent by VietQR callbacks.
-     *
-     * Supports either {@code Basic} authentication using the configured
-     * username/password pair or a {@code Bearer} token matching the configured
-     * secret.
-     *
-     * @param authorizationHeader the Authorization header value.
-     * @return {@code true} if the header is valid; otherwise {@code false}.
-     */
-    public boolean validateBearerToken(String authorizationHeader) {
-        if (authorizationHeader == null || authorizationHeader.isBlank()) {
-            return false;
+    @Override
+    public java.util.Map<String, Object> triggerTestCallback(String orderId) {
+        if (orderId == null || orderId.isBlank()) {
+            throw new IllegalArgumentException("orderId is required");
         }
-        if (authorizationHeader.startsWith("Basic ")) {
-            try {
-                String b64 = authorizationHeader.substring("Basic ".length()).trim();
-                byte[] decoded = Base64.getDecoder().decode(b64);
-                String creds = new String(decoded, StandardCharsets.UTF_8);
-                String expected = (partnerUsername == null ? "" : partnerUsername) + ":"
-                        + (partnerPassword == null ? "" : partnerPassword);
-                return creds.equals(expected);
-            } catch (IllegalArgumentException ex) {
-                return false;
-            }
-        }
-        if (authorizationHeader.startsWith("Bearer ")) {
-            String token = authorizationHeader.substring("Bearer ".length()).trim();
-            return token.equals(partnerTokenSecret == null ? "" : partnerTokenSecret);
-        }
-        return false;
-    }
 
-    /**
-     * Exposes the partner token secret for use by the callback endpoint.
-     *
-     * @return the configured partner token secret.
-     */
-    public String getPartnerTokenSecret() {
-        return partnerTokenSecret == null ? "" : partnerTokenSecret;
-    }
+        Invoice invoice = invoiceRepository.findByOrderOrderId(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("invoice is required for order " + orderId));
 
+        long amountToPay = invoice.getSubTotalIncVAT() + invoice.getShippingFee();
+
+        // String OrderId to 13
+        String safeOrderId = orderId.replace("-", "");
+        if (safeOrderId.length() > 13) {
+            safeOrderId = safeOrderId.substring(safeOrderId.length() - 13);
+        }
+        String content = "Order " + safeOrderId;
+
+        QRAccessToken accessToken = boundary.requestAccessToken();
+
+        try {
+            String apiResponse = boundary.callTestCallbackApi(
+                content,
+                amountToPay,
+                "C",
+                accessToken.getAccessToken()
+            );
+            java.util.Map<String, Object> res = new java.util.HashMap<>();
+            res.put("status", "SUCCESS");
+            res.put("message", "Callback triggered successfully");
+            res.put("vietqrResponse", apiResponse);
+            return res;
+        } catch (Exception e) {
+            log.error("Failed to trigger VietQR test callback", e);
+            java.util.Map<String, Object> res = new java.util.HashMap<>();
+            res.put("status", "FAILED");
+            res.put("message", e.getMessage());
+            return res;
+        }
+    }
 }

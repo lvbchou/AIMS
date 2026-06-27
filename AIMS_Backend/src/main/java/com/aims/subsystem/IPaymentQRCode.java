@@ -65,4 +65,15 @@ public interface IPaymentQRCode {
      * @return the parsed and verified callback result.
      */
     PaymentResult checkPaymentStatus(String callbackData);
+
+    /**
+     * Triggers a mock payment callback for testing/development purposes.
+     *
+     * @param orderId the order identifier to trigger the callback for.
+     * @return a map containing status and response details.
+     * @throws UnsupportedOperationException if this provider does not support test callbacks.
+     */
+    default java.util.Map<String, Object> triggerTestCallback(String orderId) {
+        throw new UnsupportedOperationException("Test callback not supported by this payment provider");
+    }
 }

@@ -58,6 +58,17 @@
         <div class="summary-card">
           <h2 class="summary-title">Order Summary</h2>
 
+          <!-- List of products in cart -->
+          <div class="summary-products" *ngIf="cartItems && cartItems.length > 0">
+            <div class="summary-product" *ngFor="let item of cartItems">
+              <img [src]="item.image" [alt]="item.title" class="summary-product-image">
+              <div class="summary-product-info">
+                <div class="summary-product-title" [title]="item.title">{{ item.title }}</div>
+                <div class="summary-product-meta">{{ item.quantity }} x {{ item.unitPriceExVat | number:'1.0-0' }} VND</div>
+              </div>
+            </div>
+          </div>
+
           <div class="summary-row">
             <span class="summary-label">Subtotal</span>
             <span class="summary-value">{{ subtotal | number:'1.0-0' }} VND</span>

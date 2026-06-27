@@ -31,7 +31,9 @@
 
       <div class="dropdown" *ngIf="accountOpen">
         <ng-container *ngFor="let m of accountMenuItems">
-          <a class="dropdown-item" [routerLink]="m.route" (click)="m.action()">{{ m.label }}</a>
+          <a class="dropdown-item" 
+             [routerLink]="m.route ? m.route : []" 
+             (click)="m.action()">{{ m.label }}</a>
         </ng-container>
       </div>
     </div>

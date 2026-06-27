@@ -1,0 +1,61 @@
+
+> aims-frontend@0.0.0 start
+> ng serve
+
+❯ Building...
+✔ Building...
+Initial chunk files | Names         |  Raw size
+main.js             | main          | 761.83 kB | 
+styles.css          | styles        | 753 bytes | 
+
+                    | Initial total | 762.59 kB
+
+Application bundle generation complete. [2.059 seconds] - 2026-06-19T04:07:08.730Z
+
+▲ [WARNING] Deprecation [plugin angular-sass]
+
+    src/app/features/product/components/product-detail-modal/product-detail-modal.component.scss:125:24:
+      125 │   &:hover { background: darken($red, 8%); }
+          ╵                         ^
+
+
+  Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+  Use color.adjust instead.
+  
+  More info and automated migrator: https://sass-lang.com/d/import
+
+
+▲ [WARNING] Deprecation [plugin angular-sass]
+
+    src/app/features/product/components/product-detail-modal/product-detail-modal.component.scss:125:24:
+      125 │   &:hover { background: darken($red, 8%); }
+          ╵                         ^
+
+
+  darken() is deprecated. Suggestions:
+  
+  color.scale($color, $lightness: -15.8139534884%)
+  color.adjust($color, $lightness: -8%)
+  
+  More info: https://sass-lang.com/d/color-functions
+
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  ➜  Local:   http://localhost:4200/
+1:39:44 PM [vite] http proxy error: /api/orders/7a8a7c9f-5d25-409e-b8d1-79c5ed721ffe/invoice
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1134:18)
+    at afterConnectMultiple (node:net:1715:7)
+1:39:47 PM [vite] http proxy error: /api/products/batch?ids=18
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1134:18)
+    at afterConnectMultiple (node:net:1715:7)
+1:39:50 PM [vite] http proxy error: /api/products/batch?ids=18
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1134:18)
+    at afterConnectMultiple (node:net:1715:7)
+1:39:52 PM [vite] http proxy error: /api/products?page=0&size=10
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1134:18)
+    at afterConnectMultiple (node:net:1715:7)

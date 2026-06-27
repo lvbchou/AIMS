@@ -1,7 +1,8 @@
 package com.aims.controller;
 
-import com.aims.dto.StockHistoryDTO;
+import com.aims.dto.stock.StockHistoryDTO;
 import com.aims.service.StockService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,6 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/stock")
+@Tag(name = "Stock", description = "Adjust inventory and view stock history")
 public class StockController {
 
     private final StockService stockService;

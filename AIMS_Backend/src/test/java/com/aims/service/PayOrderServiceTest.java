@@ -91,9 +91,8 @@ class PayOrderServiceTest {
         product.setSellingPrice(18_000);
         product.setStatus("active");
 
-        OrderItemId itemId = new OrderItemId(ORDER_ID, 1);
         orderItem = new OrderItem();
-        orderItem.setId(itemId);
+        orderItem.setId(1L);
         orderItem.setOrder(awaitingOrder);
         orderItem.setProduct(product);
         orderItem.setQuantity(2);

@@ -1,6 +1,6 @@
 package com.aims.service.notification;
 
-import com.aims.dto.OrderConfirmationDTO;
+import com.aims.dto.order.OrderConfirmationDTO;
 import org.springframework.stereotype.Component;
 
 import java.text.NumberFormat;

@@ -1,334 +1,104 @@
-
 package com.aims.subsystem.vietqr;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
+import com.aims.subsystem.vietqr.config.VietQRProperties;
+import com.aims.subsystem.vietqr.dto.QRAccessToken;
+import com.aims.subsystem.vietqr.client.VietQRHttpClient;
+import com.aims.subsystem.vietqr.client.VietQRRequestBuilder;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Coupling level: Data Coupling.
- * Cohesion level: Functional Cohesion.
- *
- * This boundary isolates HTTP request construction, transport, and fallback
- * handling for the VietQR integration.
- *
- * SOLID VIOLATION: Single Responsibility Principle (SRP)
- *
- * Problem: This class handles four distinct responsibilities:
- *   1. HTTP request construction and transport (getAccessTokenResponse, callGenerateCustomerApi)
- *   2. QR request data assembly (createGenerateRequest) — building domain-specific
- *      request objects from raw parameters
- *   3. Static QR fallback generation (buildStaticQrPayload, buildStaticQrImageUrl)
- *      — constructing a fallback URL when the live API is unavailable
- *   4. Configuration value exposure (getMerchantId, getApiKey) — acting as a
- *      configuration holder
- * Impact: A change to the fallback URL format could inadvertently affect the
- *   HTTP transport logic. The class mixes infrastructure concerns (HTTP) with
- *   domain concerns (request assembly and fallback strategy).
- * Improvement:
- *   - Extract VietQRHttpClient for HTTP transport (requestAccessToken, callGenerateCustomerApi)
- *   - Extract VietQRFallbackProvider for static QR URL generation
- *   - Keep VietQRBoundary as a facade coordinating these components
- *
- * SOLID VIOLATION: Open/Closed Principle (OCP)
- *
- * Problem: The getQRCode and generateQrCode methods embed the fallback
- *   strategy directly via if-else logic: "try live API, if fails, use static URL".
- *   Adding a new fallback strategy (e.g. cached QR from Redis, or a secondary
- *   QR provider) requires modifying these methods.
- * Impact: New fallback strategies force modification of stable, tested methods.
- * Improvement:
- *   - Define a QRCodeFallbackStrategy interface
- *   - Implement StaticUrlFallback, CachedQRFallback, etc.
- *   - Inject the fallback strategy via constructor, making the boundary open
- *     for extension but closed for modification
- *
- * SOLID: Liskov Substitution Principle (LSP) - Not Violated
- *
- * This class does not participate in an inheritance hierarchy.
- *
- * SOLID: Interface Segregation Principle (ISP) - Not Violated
- *
- * This class does not implement any interface. It is a standalone component.
- *
- * SOLID: Dependency Inversion Principle (DIP) - Not Violated
- *
- * This class is a low-level boundary module that directly handles HTTP
- * communication with the external VietQR API. It uses Java's built-in
- * HttpClient which is appropriate for a boundary layer. Higher-level modules
- * depend on this class through injection, and the boundary itself has no
- * internal dependencies on other application modules.
- *
- * @author Team 03
- * @since 1.0.0
+ * Concrete implementation of IVietQRBoundary interface.
+ * Coordinates outbound HTTP communications with VietQR API endpoints.
  */
 @Component
-public class VietQRBoundary {
+public class VietQRBoundary implements IVietQRBoundary {
 
     private static final Logger log = LoggerFactory.getLogger(VietQRBoundary.class);
 
-    private static final String TOKEN_ENDPOINT = "/api/token_generate";
-    private static final String QR_ENDPOINT = "/api/qr/generate-customer";
-    private final String host;
-    private final String basePath;
-    private final HttpClient httpClient;
-    private final Duration httpTimeout;
-
-    
-    @Value("${vietqr.merchant-id:customer-testaimvd-user26586}")
-    private String merchantId;
-
-    @Value("${vietqr.api-key:Y3VzdG9tZXItdGVzdGFpbXZkLXVzZXIyNjU4Ng==}")
-    private String apiKey;
-
-    @Value("${vietqr.bank-code:970418}")   
-    private String bankCode;
-
-    @Value("${vietqr.bank-account:8823302684}")
-    private String bankAccount;
-
-    @Value("${vietqr.bank-name:BIDV}")
-    private String bankName;
+    private final VietQRProperties properties;
+    private final VietQRHttpClient httpClient;
+    private final VietQRRequestBuilder requestBuilder;
 
     public VietQRBoundary(
-            @Value("${vietqr.host:https://dev.vietqr.org}") String host,
-            @Value("${vietqr.base-path:/vqr}") String basePath,
-            @Value("${vietqr.http-timeout-seconds:10}") int httpTimeoutSeconds) {
-        this.host = normalizeHost(host);
-        this.basePath = normalizeBasePath(basePath);
-        Duration timeout = Duration.ofSeconds(Math.max(1, httpTimeoutSeconds));
-        this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(timeout)
-                .build();
-        this.httpTimeout = timeout;
+            VietQRProperties properties,
+            VietQRHttpClient httpClient,
+            VietQRRequestBuilder requestBuilder) {
+        this.properties = properties;
+        this.httpClient = httpClient;
+        this.requestBuilder = requestBuilder;
     }
 
-    /**
-     * Requests an access token from VietQR.
-     *
-     * @param request authentication data used to obtain the token.
-     * @return the parsed VietQR token.
-     */
-    public QRAccessToken requestAccessToken(QRAccessTokenRequest request) {
+    @Override
+    public QRAccessToken requestAccessToken() {
+        String url = properties.getHost() + properties.getBasePath() + "/api/token_generate";
+        
+        // Construct Basic Auth header
+        String credentials = properties.getMerchantId() + ":" + properties.getApiKey();
+        String authHeader = "Basic " + Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+        
+        log.debug("Requesting access token: merchantId={}, apiKey={}, authHeader={}", 
+                 properties.getMerchantId(), properties.getApiKey(), authHeader);
         try {
-            return getAccessTokenResponse(request.buildAuthorizationHeader());
+            String responseBody = httpClient.post(url, authHeader, "");
+            QRAccessToken token = new QRAccessToken();
+            token.parseResponseString(responseBody);
+            return token;
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException("Error getting access token from VietQR: " + e.getMessage(), e);
         }
     }
 
-    /**
-     * Extracts the access token string from the authentication request.
-     *
-     * @param request request containing merchantId and apiKey.
-     * @return the access token, or an empty string if the token is missing.
-     */
-    public String getAccessToken(QRAccessTokenRequest request) {
-        QRAccessToken token = requestAccessToken(request);
-        if (token.getAccessToken() != null && !token.getAccessToken().isBlank()) {
-            return token.getAccessToken();
-        }
-        return "";
-    }
-
-    /** Returns the configured merchant ID. */
-    public String getMerchantId() {
-        return merchantId;
-    }
-
-    /** Returns the configured API key. */
-    public String getApiKey() {
-        return apiKey;
-    }
-
-    /**
-     * Sends a token request using a prebuilt Authorization header.
-     *
-     * @param authorizationHeader VietQR-compliant Authorization header.
-     * @return the parsed VietQR token.
-     * @throws IOException if an I/O error occurs during the HTTP call.
-     * @throws InterruptedException if the request is interrupted.
-     */
-    public QRAccessToken getAccessTokenResponse(String authorizationHeader) throws IOException, InterruptedException {
-        log.info("Calling VietQR token endpoint: {}{}{}", host, basePath, TOKEN_ENDPOINT);
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(buildUrl(TOKEN_ENDPOINT)))
-                .timeout(httpTimeout)
-                .header("Content-Type", "application/json")
-                .header("Accept", "application/json")
-                .header("Authorization", authorizationHeader)
-                .POST(HttpRequest.BodyPublishers.noBody())
-                .build();
-
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        log.info("VietQR token endpoint response: status={}", response.statusCode());
-        log.debug("VietQR token endpoint response body: {}", response.body());
-        if (response.statusCode() < 200 || response.statusCode() >= 300) {
-            throw new RuntimeException("VietQR token request failed with status " + response.statusCode() + ": " + response.body());
-        }
-
-        QRAccessToken token = new QRAccessToken();
-        token.parseResponseString(response.body());
-        return token;
-    }
-
-    /**
-     * Returns the access token string from the VietQR API.
-     *
-     * @param authorizationHeader Basic Authorization header value.
-     * @return the access token, or an empty string if the response does not contain one.
-     * @throws IOException if the HTTP request fails.
-     * @throws InterruptedException if the request is interrupted.
-     */
-    public String getAccessToken(String authorizationHeader) throws IOException, InterruptedException {
-        QRAccessToken token = getAccessTokenResponse(authorizationHeader);
-        if (token.getAccessToken() != null && !token.getAccessToken().isBlank()) {
-            return token.getAccessToken();
-        }
-        return "";
-    }
-
-    /**
-     * Creates a QR request from order data and configured bank details.
-     *
-     * @param content transfer content.
-     * @param amount payment amount.
-     * @param orderId order identifier.
-     * @param userBankName recipient name shown on the QR.
-     * @return a QR request populated with data.
-     */
-    public QRGenerateRequest createGenerateRequest(String content, long amount, String orderId, String userBankName) {
-        QRGenerateRequest request = new QRGenerateRequest();
-        request.setBankAccount(bankAccount);
-        request.setBankName(bankName);
-        request.setAmount(amount);
-        request.setContent(content);
-        request.setBankCode(bankCode);
-        request.setOrderId(orderId);
-        request.setUserBankName(userBankName);
-        return request;
-    }
-
-    /**
-     * Generates a QR payload, preferring the live API before falling back to a static URL.
-     *
-     * @param request QR request to generate.
-     * @return a QR payload or fallback URL.
-     */
-    public String generateQrCode(QRGenerateRequest request) {
+    @Override
+    public String getQRCode(String content, long amount, String orderId, String userBankName, String accessToken) {
+        String url = properties.getHost() + properties.getBasePath() + "/api/qr/generate-customer";
+        String authHeader = "Bearer " + accessToken;
+        String body = requestBuilder.buildGenerateRequest(
+                content,
+                amount,
+                orderId,
+                properties.getBankCode(),
+                properties.getBankAccount(),
+                userBankName
+        );
         try {
-            QRAccessTokenRequest tokenRequest = new QRAccessTokenRequest(merchantId, apiKey);
-            String accessToken = getAccessToken(tokenRequest.buildAuthorizationHeader());
-            if (accessToken != null && !accessToken.isBlank()) {
-                String apiResponse = callGenerateCustomerApi(request, accessToken);
-                if (apiResponse != null && !apiResponse.isBlank()) {
-                    return apiResponse;
-                }
-            }
+            return httpClient.post(url, authHeader, body);
         } catch (Exception e) {
-            log.warn("VietQR generate API unavailable, falling back to static QR URL: {}", e.getMessage());
+            log.error("VietQR generate API unavailable", e);
+            throw new RuntimeException("VietQR generate API unavailable: " + e.getMessage(), e);
         }
-        return buildStaticQrPayload(request);
     }
 
-    /**
-     * Sends a QR generation request to VietQR with fallback support.
-     *
-     * @param request QR request to send.
-     * @return the QR payload or fallback data.
-     */
-    public String getQRCode(QRGenerateRequest request) {
-        try {
-            String accessToken = request.getAccessToken();
-            if (accessToken != null && !accessToken.isBlank()) {
-                String apiResponse = callGenerateCustomerApi(request, accessToken);
-                if (apiResponse != null && !apiResponse.isBlank()) {
-                    return apiResponse;
-                }
-            }
-        } catch (Exception e) {
-            log.warn("VietQR generate API unavailable, falling back to static QR URL: {}", e.getMessage());
-        }
-        return buildStaticQrPayload(request);
+    @Override
+    public String callTestCallbackApi(
+            String content,
+            long amount,
+            String transType,
+            String accessToken) throws IOException, InterruptedException {
+        String url = properties.getHost() + properties.getBasePath() + "/bank/api/test/transaction-callback";
+        String authHeader = "Bearer " + accessToken;
+        String body = requestBuilder.buildTestCallbackRequest(
+                properties.getBankAccount(),
+                content,
+                amount,
+                transType,
+                properties.getBankCode()
+        );
+        return httpClient.post(url, authHeader, body);
     }
 
-    private String callGenerateCustomerApi(QRGenerateRequest request, String accessToken)
-            throws IOException, InterruptedException {
-        request.setAccessToken(accessToken);
-        HttpRequest httpRequest = HttpRequest.newBuilder()
-                .uri(URI.create(buildUrl(QR_ENDPOINT)))
-                .timeout(httpTimeout)
-                .header("Content-Type", "application/json")
-                .header("Accept", "application/json")
-                .header("Authorization", "Bearer " + accessToken)
-                .POST(HttpRequest.BodyPublishers.ofString(request.buildRequestString()))
-                .build();
-
-        HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-        log.info("VietQR generate endpoint response: status={}", response.statusCode());
-        if (response.statusCode() < 200 || response.statusCode() >= 300) {
-            log.debug("VietQR generate response body: {}", response.body());
-            return null;
-        }
-        return response.body();
+    @Override
+    public String getBankCode() {
+        return properties.getBankCode();
     }
 
-    private String buildStaticQrPayload(QRGenerateRequest request) {
-        String qrImageUrl = buildStaticQrImageUrl(request);
-        return "qrCode=" + qrImageUrl
-                + ";qrLink=" + qrImageUrl
-                + ";bankCode=" + safeValue(request.getBankCode())
-                + ";bankName=" + safeValue(request.getBankName())
-                + ";bankAccount=" + safeValue(request.getBankAccount())
-                + ";content=" + safeValue(request.getContent())
-                + ";orderId=" + safeValue(request.getOrderId());
-    }
-
-    private String buildUrl(String endpoint) {
-        return host + basePath + endpoint;
-    }
-
-    private String buildStaticQrImageUrl(QRGenerateRequest request) {
-        String accountName = safeValue(request.getUserBankName() != null ? request.getUserBankName() : bankName);
-        String content = safeValue(request.getContent());
-        return "https://img.vietqr.io/image/"
-                + safeValue(request.getBankCode()) + "-"
-                + safeValue(request.getBankAccount()) + "-compact2.jpg"
-                + "?amount=" + request.getAmount()
-                + "&addInfo=" + encode(content)
-                + "&accountName=" + encode(accountName);
-    }
-
-    private String encode(String value) {
-        return URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8);
-    }
-
-    private String safeValue(String value) {
-        return value == null ? "" : value;
-    }
-
-    private String normalizeHost(String value) {
-        if (value == null || value.isBlank()) {
-            return "https://dev.vietqr.org";
-        }
-        return value.endsWith("/") ? value.substring(0, value.length() - 1) : value;
-    }
-
-    private String normalizeBasePath(String value) {
-        if (value == null || value.isBlank()) {
-            return "/vqr";
-        }
-        String normalized = value.startsWith("/") ? value : "/" + value;
-        return normalized.endsWith("/") ? normalized.substring(0, normalized.length() - 1) : normalized;
+    @Override
+    public String getBankAccount() {
+        return properties.getBankAccount();
     }
 }

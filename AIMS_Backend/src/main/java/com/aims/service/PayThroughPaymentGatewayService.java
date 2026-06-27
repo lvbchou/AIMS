@@ -11,9 +11,9 @@ package com.aims.service;
 
 import com.aims.IPaymentGateway;
 import com.aims.constants.OrderStatusValues;
-import com.aims.dto.GatewayTransactionContext;
-import com.aims.dto.GatewayTransactionResult;
-import com.aims.dto.PaymentCompleteResponse;
+import com.aims.dto.payment.GatewayTransactionContext;
+import com.aims.dto.payment.GatewayTransactionResult;
+import com.aims.dto.payment.PaymentCompleteResponse;
 import com.aims.entity.Invoice;
 import com.aims.entity.Order;
 import com.aims.entity.PaymentMethod;
