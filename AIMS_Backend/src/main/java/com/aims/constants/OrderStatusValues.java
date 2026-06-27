@@ -16,4 +16,9 @@ public final class OrderStatusValues {
      * Persisted as {@code approved} per aims.orders constraint ({@code pending|approved|rejected|cancelled}).
      */
     public static final String PENDING_PROCESSING = "approved";
+
+    /**
+     * Order has been cancelled and refunded.
+     */
+    public static final String CANCELLED = "cancelled";
 }

@@ -129,21 +129,21 @@ public class PaymentTransaction {
         return "TXN-" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
     }
 
-    /**
-     * Creates a PENDING transaction for the VietQR payment flow.
-     *
-     * @param invoice invoice identifier.
-     * @param orderId order identifier.
-     * @return a new transaction in the pending-payment state.
-     */
-    public static PaymentTransaction pendingVietQr(Invoice invoice, String orderId) {
-        PaymentTransaction txn = new PaymentTransaction();
-        txn.setTransactionId(newTransactionId());
-        txn.setInvoice(invoice);
-        txn.setContent("Order #" + orderId);
-        txn.setMethod(PaymentMethod.VIET_QR);
-        txn.setTransactionTime(LocalDateTime.now());
-        txn.setStatus(TransactionStatus.pending);
-        return txn;
-    }
+    // -------------------------------------------------------------------------
+    // P2.3 Refactoring Note
+    // -------------------------------------------------------------------------
+    // The static factory method pendingVietQr(Invoice, String) has been removed.
+    //
+    // Reason: It encoded VietQR-specific business rules (PaymentMethod.VIET_QR,
+    //   content format) inside a generic JPA entity, violating both SRP and OCP.
+    //   Adding a new payment method (MoMo, ZaloPay) would have grown this entity
+    //   with more unrelated factory methods.
+    //
+    // Replacement: Use com.aims.factory.PaymentTransactionFactory.createPending()
+    //   which accepts a PaymentMethod parameter and is not tied to any specific
+    //   payment provider.
+    //
+    // Call-site migration:
+    //   BEFORE: PaymentTransaction.pendingVietQr(invoice, orderId)
+    //   AFTER:  PaymentTransactionFactory.createPending(invoice, orderId, PaymentMethod.VIET_QR)
 }

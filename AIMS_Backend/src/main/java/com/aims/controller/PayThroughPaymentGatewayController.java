@@ -14,7 +14,7 @@ import com.aims.dto.payment.PaymentCompleteResponse;
 import com.aims.dto.payment.PaymentCompleteRequest;
 import com.aims.dto.payment.PaymentInitiateRequest;
 import com.aims.exception.PaymentException;
-import com.aims.service.PayThroughPaymentGatewayService;
+import com.aims.service.IPayThroughPaymentGatewayService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,9 +32,19 @@ import java.util.Map;
 @Tag(name = "Payment Gateway", description = "PayPal payment initiation and completion")
 public class PayThroughPaymentGatewayController {
 
-    private final PayThroughPaymentGatewayService paymentService;
+    private final IPayThroughPaymentGatewayService paymentService;
 
-    public PayThroughPaymentGatewayController(PayThroughPaymentGatewayService paymentService) {
+    /**
+     * Constructs the controller with the payment service abstraction injected.
+     *
+     * <p><strong>DIP (P3.1):</strong> Depends on {@link IPayThroughPaymentGatewayService}
+     * rather than on the concrete {@link com.aims.service.PayThroughPaymentGatewayService}.
+     * This allows the controller to be tested in isolation with a mock service and
+     * allows future service implementations to be swapped without modifying this class.</p>
+     *
+     * @param paymentService the payment service abstraction.
+     */
+    public PayThroughPaymentGatewayController(IPayThroughPaymentGatewayService paymentService) {
         this.paymentService = paymentService;
     }
 

@@ -14,7 +14,9 @@ import com.aims.dto.payment.VietQRCodeResponseDTO;
 import com.aims.entity.Invoice;
 import com.aims.entity.Order;
 import com.aims.entity.PaymentTransaction;
-import com.aims.entity.PaymentResult;
+import com.aims.entity.PaymentMethod;
+import com.aims.factory.PaymentTransactionFactory;
+import com.aims.subsystem.vietqr.VietQrPaymentResult;
 import com.aims.entity.QRCode;
 import com.aims.entity.TransactionStatus;
 import com.aims.exception.InvoiceNotFoundException;
@@ -104,7 +106,7 @@ public class VietQrPaymentService {
             }
         } else {
             // 5b. Create a new pending transaction for this QR session
-            PaymentTransaction toSave = PaymentTransaction.pendingVietQr(invoice, orderId);
+            PaymentTransaction toSave = PaymentTransactionFactory.createPending(invoice, orderId, PaymentMethod.VIET_QR);
             toSave.ensureTransactionId();
             txnToReturn = paymentTransactionRepository.save(toSave);
         }
@@ -207,7 +209,7 @@ public class VietQrPaymentService {
      */
     public void handleVietQrWebhook(String callbackData) {
         // 1. Parse the raw callback payload via the payment subsystem abstraction
-        PaymentResult result = paymentQRCode.checkPaymentStatus(callbackData);
+        VietQrPaymentResult result = paymentQRCode.checkPaymentStatus(callbackData);
 
         // 2. Resolve the orderId from the transfer content field
         String orderId = resolveOrderId(result.getOrderId());

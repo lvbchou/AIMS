@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import com.aims.entity.Delivery;
 import com.aims.entity.Invoice;
 import com.aims.entity.Order;
-import com.aims.entity.PaymentResult;
 import com.aims.entity.QRCode;
 import com.aims.repository.DeliveryRepository;
 import com.aims.repository.InvoiceRepository;
@@ -108,7 +107,7 @@ public class VietQRController implements IPaymentQRCode {
      * @throws CallbackVerificationException if the checksum is invalid.
      */
     @Override
-    public PaymentResult checkPaymentStatus(String callbackData) {
+    public VietQrPaymentResult checkPaymentStatus(String callbackData) {
         if (callbackData == null || callbackData.isBlank()) {
             throw new IllegalArgumentException("callback payload is required");
         }
@@ -128,7 +127,7 @@ public class VietQRController implements IPaymentQRCode {
         int successFlag = handler.checkSuccess() ? 1 : 0;
 
         // Construct the system domain entity inside the Controller (DIP compliance)
-        return new PaymentResult(
+        return new VietQrPaymentResult(
                 status,
                 "VietQR Callback Payload",
                 resolvedOrderId,

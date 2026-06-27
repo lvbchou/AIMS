@@ -75,3 +75,28 @@ export interface InvoiceScreenResponse {
   detailAddress?: string;
   province?: string;
 }
+
+export interface OrderCancellationDetails {
+  orderId: string;
+  orderStatus: string;
+  eligibleForCancellation: boolean;
+  
+  invoiceId: string;
+  issueDate: string;
+  lineItems: InvoiceScreenLineItem[];
+  totalProductPriceExclVat: number;
+  totalProductPriceInclVat: number;
+  deliveryFee: number;
+  totalAmountToBePaid: number;
+  
+  recipientName: string;
+  phoneNumber: string;
+  email: string;
+  detailAddress: string;
+  province: string;
+  
+  paymentMethod: string;
+  transactionId: string;
+  transactionContent: string;
+  transactionTimeDisplay: string;
+}

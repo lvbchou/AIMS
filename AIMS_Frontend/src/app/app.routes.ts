@@ -19,6 +19,7 @@ import { LoginComponent } from './features/auth/pages/login/login.component';
 import { ChangePasswordComponent } from './features/auth/pages/change-password/change-password.component';
 import { authGuard } from './core/guards/auth-guard';
 import { roleGuard } from './core/guards/role-guard';
+import { OrderCancelComponent } from './features/order/pages/cancel/cancel.component';
 
 export const routes: Routes = [
 
@@ -80,6 +81,10 @@ export const routes: Routes = [
       {
         path: 'payment/result',
         component: PaymentResultComponent
+      },
+      {
+        path: 'orders/:orderId/cancel',
+        component: OrderCancelComponent
       }
     ]
   },

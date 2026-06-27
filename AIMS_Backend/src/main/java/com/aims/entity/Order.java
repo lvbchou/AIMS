@@ -2,14 +2,13 @@ package com.aims.entity;
 
 import com.aims.exception.EmptyCartException;
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.Data;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
-
-import java.time.Instant;
 
 /**
  * Entity for {@code aims.orders}. Used by UC003 Pay Order.
@@ -21,14 +20,20 @@ import java.time.Instant;
 @NoArgsConstructor
 @Data
 public class Order {
+
     @Id
     @Column(name = "order_id", length = 45)
     private String orderId;
 
     @Column(name = "status", nullable = false, length = 45)
     private String status;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "payment_method", length = 45)
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
 
     @Transient
     private Cart cart;

@@ -1,41 +1,46 @@
 // Coupling Level: Data Coupling
 // Cohesion Level: Functional Cohesion
-// Reason for Coupling: The methods pass and receive simple parameter types (takes a raw JSON String to parse and returns basic/primitive types via getters).
-// Reason for Cohesion: The class has a single, well-defined function: parsing and representing the PayPal OAuth2 access token response.
+// Reason for Coupling: Carries only simple primitive fields; all JSON parsing
+//   has been moved to PayPalResponseMapper (SRP fix).
+// Reason for Cohesion: Solely responsible for holding access-token data.
 /**
- * SOLID Principles Analysis:
- * - **SRP (Single Responsibility Principle) Violation**: The DTO contains internal parsing logic (`ObjectMapper` tree mapping) in `parseResponse()`. A DTO should be a pure data container; serialization and parsing logic should reside in the client or mapping layers.
- * 
- * **Improvement Direction**: Move JSON parsing out of the DTO into the `PayPalBoundary` or a dedicated mapper class.
+ * SOLID Principles Analysis (refactored):
+ * - **SRP Compliance**: Previously violated SRP by owning an ObjectMapper and
+ *   a parseResponse() method. The DTO is now a pure data holder. All parsing
+ *   logic lives in {@link PayPalResponseMapper}.
  */
 package com.aims.subsystem.paypal;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
-
+/**
+ * AccessTokenResponse — immutable data holder for a PayPal OAuth2 access-token
+ * response.
+ *
+ * <p>Instances are created exclusively by
+ * {@link PayPalResponseMapper#parseAccessToken(String)}.</p>
+ */
 class AccessTokenResponse {
 
-    private String accessToken;
-    private long expiresIn;
+    private final String accessToken;
+    private final long expiresIn;
 
-    void parseResponse(String response) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode rootNode = mapper.readTree(response);
-
-            this.accessToken = rootNode.path("access_token").asText();
-            this.expiresIn = rootNode.path("expires_in").asLong();
-
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to parse PayPal access token response", e);
-        }
+    /**
+     * Constructs a fully populated access-token response.
+     *
+     * @param accessToken the bearer token string returned by PayPal.
+     * @param expiresIn   the token lifetime in seconds.
+     */
+    AccessTokenResponse(String accessToken, long expiresIn) {
+        this.accessToken = accessToken;
+        this.expiresIn = expiresIn;
     }
 
+    /** @return the bearer access token. */
     String getAccessToken() {
-        return this.accessToken;
+        return accessToken;
     }
 
+    /** @return the token lifetime in seconds. */
     long getExpiresIn() {
-        return this.expiresIn;
+        return expiresIn;
     }
 }

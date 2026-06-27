@@ -54,4 +54,16 @@ public class GlobalExceptionHandler {
                         null
                 ));
     }
+
+    @ExceptionHandler(EmptySearchInputException.class)
+    public ResponseEntity<ApiResponse<Void>> handleEmptySearchInput(EmptySearchInputException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ApiResponse<>(false, ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(InvalidProductInfoException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidProductInfo(InvalidProductInfoException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ApiResponse<>(false, ex.getMessage(), null));
+    }
 }

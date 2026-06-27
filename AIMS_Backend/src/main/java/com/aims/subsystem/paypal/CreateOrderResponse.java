@@ -1,55 +1,49 @@
 // Coupling Level: Data Coupling
 // Cohesion Level: Functional Cohesion
-// Reason for Coupling: It interacts via simple input data passing (a JSON String in parseResponse) and returns basic types through getters, remaining decoupled from domain entities.
-// Reason for Cohesion: The entire class is dedicated solely to parsing and reading the PayPal order creation response payload, extracting only key details like the order ID and approval link.
+// Reason for Coupling: Carries only simple primitive fields; all JSON parsing
+//   has been moved to PayPalResponseMapper (SRP fix).
+// Reason for Cohesion: Solely responsible for holding create-order response data.
 /**
- * SOLID Principles Analysis:
- * - **SRP (Single Responsibility Principle) Violation**: Mixes data modeling with JSON structural parsing in `parseResponse()`.
- * 
- * **Improvement Direction**: Delegate the parsing concern to a JSON deserializer or HTTP client adapter.
+ * SOLID Principles Analysis (refactored):
+ * - **SRP Compliance**: Previously violated SRP by owning an ObjectMapper and
+ *   a parseResponse() method. The DTO is now a pure data holder. All parsing
+ *   logic lives in {@link PayPalResponseMapper}.
  */
 package com.aims.subsystem.paypal;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+/**
+ * CreateOrderResponse — immutable data holder for a PayPal Create Order response.
+ *
+ * <p>Instances are created exclusively by
+ * {@link PayPalResponseMapper#parseCreateOrder(String)}.</p>
+ */
 public class CreateOrderResponse {
 
-    private String paypalOrderId;
-    private String status;
-    private String approveUrl;
+    private final String paypalOrderId;
+    private final String status;
+    private final String approveUrl;
+    private final String errorName;
+    private final String errorMessage;
+    private final String errorDebugId;
 
-    // Error fields
-    private String errorName;
-    private String errorMessage;
-    private String errorDebugId;
-
-    public void parseResponse(String response) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode rootNode = mapper.readTree(response);
-
-            this.paypalOrderId = rootNode.path("id").asText(null);
-            this.status = rootNode.path("status").asText(null);
-
-            this.errorName = rootNode.path("name").asText(null);
-            this.errorMessage = rootNode.path("message").asText(null);
-            this.errorDebugId = rootNode.path("debug_id").asText(null);
-
-            JsonNode links = rootNode.path("links");
-            if (links.isArray()) {
-                for (JsonNode link : links) {
-                    String rel = link.path("rel").asText("");
-                    if ("payer-action".equals(rel) || "approve".equals(rel)) {
-                        this.approveUrl = link.path("href").asText(null);
-                        break;
-                    }
-                }
-            }
-
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to parse PayPal create order response", e);
-        }
+    /**
+     * Constructs a fully populated create-order response.
+     *
+     * @param paypalOrderId  the PayPal-issued order ID (success field).
+     * @param status         the order status (e.g., {@code "CREATED"}).
+     * @param approveUrl     the payer-action URL the customer must visit.
+     * @param errorName      the error name if the call failed; {@code null} on success.
+     * @param errorMessage   the error message if the call failed; {@code null} on success.
+     * @param errorDebugId   the PayPal debug ID for tracing; {@code null} on success.
+     */
+    public CreateOrderResponse(String paypalOrderId, String status, String approveUrl,
+                                String errorName, String errorMessage, String errorDebugId) {
+        this.paypalOrderId = paypalOrderId;
+        this.status = status;
+        this.approveUrl = approveUrl;
+        this.errorName = errorName;
+        this.errorMessage = errorMessage;
+        this.errorDebugId = errorDebugId;
     }
 
     public String getPaypalOrderId() {

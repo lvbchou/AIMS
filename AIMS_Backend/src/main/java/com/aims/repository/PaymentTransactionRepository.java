@@ -15,4 +15,8 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
     Optional<PaymentTransaction> findFirstByInvoiceIdAndStatusOrderByTransactionTimeDesc(
             String invoiceId,
             TransactionStatus status);
+
+    Optional<PaymentTransaction> findFirstByInvoiceIdAndStatusInOrderByTransactionTimeDesc(
+            String invoiceId,
+            java.util.Collection<TransactionStatus> statuses);
 }

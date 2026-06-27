@@ -1,8 +1,8 @@
 package com.aims.subsystem;
 
 import com.aims.entity.Order;
-import com.aims.entity.PaymentResult;
 import com.aims.entity.QRCode;
+import com.aims.subsystem.vietqr.VietQrPaymentResult;
 
 /**
  * Coupling level: Data Coupling.
@@ -64,7 +64,7 @@ public interface IPaymentQRCode {
      * @param callbackData raw callback payload sent by VietQR.
      * @return the parsed and verified callback result.
      */
-    PaymentResult checkPaymentStatus(String callbackData);
+    VietQrPaymentResult checkPaymentStatus(String callbackData);
 
     /**
      * Triggers a mock payment callback for testing/development purposes.

@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, timeout } from 'rxjs';
-import { CalculateShippingRequest, CreateInvoiceRequest, InvoiceResponse, InvoiceScreenResponse } from '../models/order.model';
+import { CalculateShippingRequest, CreateInvoiceRequest, InvoiceResponse, InvoiceScreenResponse, OrderCancellationDetails } from '../models/order.model';
 import { DeliveryInfoRequest } from '../models/order.model';
 import { CartItemRequest } from '../../cart/models/cart.model';
 import { ApiResponse } from '../models/order.model'
@@ -66,6 +66,18 @@ export class OrderService {
 
   getCurrentOrderId(): string | null {
     return sessionStorage.getItem(this.currentOrderIdStorageKey);
+  }
+
+  getCancellationDetails(orderId: string): Observable<OrderCancellationDetails> {
+    return this.http
+      .get<OrderCancellationDetails>(`${this.BASE_URL}/${orderId}/cancel-details`)
+      .pipe(timeout(10000));
+  }
+
+  cancelOrder(orderId: string): Observable<ApiResponse<string>> {
+    return this.http
+      .post<ApiResponse<string>>(`${this.BASE_URL}/${orderId}/cancel`, {})
+      .pipe(timeout(15000));
   }
 
   clearCheckoutState() {

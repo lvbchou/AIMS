@@ -57,8 +57,8 @@ public class OrderConfirmationQueryService {
                 .orElseThrow(() -> new com.aims.exception.InvoiceNotFoundException(orderId));
 
         PaymentTransaction txn = paymentTransactionRepository
-                .findFirstByInvoiceIdAndStatusOrderByTransactionTimeDesc(
-                        invoice.getInvoiceId(), TransactionStatus.success)
+                .findFirstByInvoiceIdAndStatusInOrderByTransactionTimeDesc(
+                        invoice.getInvoiceId(), List.of(TransactionStatus.success, TransactionStatus.refunded))
                 .orElseThrow(() -> new com.aims.exception.PaymentTransactionNotFoundException(
                         "payment not yet confirmed for order " + orderId));
 

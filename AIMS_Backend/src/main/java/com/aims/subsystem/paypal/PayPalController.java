@@ -1,165 +1,258 @@
 // Coupling Level: Stamp Coupling
 // Cohesion Level: Sequential Cohesion
-// Reason for Coupling: It implements IPaymentGateway and receives entire Invoice and Order objects as parameters, using only a small subset of their attributes (e.g. ID, total amount). It is also stamp-coupled to custom DTO structures like GatewayTransactionContext and GatewayTransactionResult.
-// Reason for Cohesion: The methods coordinate a sequence of processing steps where the output of one operation (e.g., getting an access token or converting currency) is directly used as the input to the next step (creating the payload and sending the HTTP request via the boundary).
+// Reason for Coupling: Implements IPaymentGateway and receives gateway-neutral
+//   PaymentInitiateParams / PaymentCaptureParams rather than domain entities,
+//   breaking the previous stamp coupling to Invoice and Order.
+// Reason for Cohesion: The methods coordinate a sequence of steps (auth → convert
+//   → boundary call → parse → return) where each step's output feeds the next.
 /**
- * SOLID Principles Analysis:
- * - **SRP (Single Responsibility Principle) Violation**: Handles both the gateway transaction flow (coordinating payments) and PayPal credentials token caching/lifecycle management. Token caching should belong to a dedicated authentication helper.
- * - **DIP (Dependency Inversion Principle) Violation**:
- *   1. Directly instantiates `PayPalBoundary` in the constructor instead of injecting it.
- *   2. Directly instantiates concrete `CurrencyConverter` and `FixedExchangeRateProvider` inside `createPayment()` instead of injecting them as abstractions.
- * 
- * **Improvement Direction**:
- * 1. Extract OAuth token lifecycle management into a dedicated class (`PayPalAuthService`).
- * 2. Inject `PayPalBoundary`, `CurrencyConverter`, and `ExchangeRateProvider` through the constructor to allow runtime substitution and easier mocking.
+ * SOLID Principles Analysis (refactored):
+ * - **SRP**: Token lifecycle delegated to {@link PayPalAuthManager}. Currency
+ *   conversion is an injected collaborator. Parsing is delegated to
+ *   {@link PayPalResponseMapper}. This class is now responsible solely for
+ *   payment-flow orchestration.
+ * - **DIP**: All collaborators ({@link PayPalBoundary}, {@link CurrencyConverter},
+ *   {@link PayPalAuthManager}) are injected via the constructor — no {@code new}
+ *   inside business logic.
+ * - **OCP**: Adding a second gateway (MoMo, Stripe) does NOT require modifying
+ *   this class. The {@link SpringPaymentGatewayRegistry} discovers it automatically.
+ * - **LSP**: Implements {@link com.aims.gateway.IPaymentGateway} fully.
+ * - **ISP**: The interface is minimal (3 methods); no unused methods forced on this class.
+ *
+ * <h3>Changes in this revision</h3>
+ * <ul>
+ *   <li><strong>R5:</strong> Replaced scattered magic string literals
+ *       ({@code "MOCK-TOKEN-"}, {@code "MOCK-EC-"}) with
+ *       {@link PayPalMockMode} constants.</li>
+ *   <li><strong>R2:</strong> Removed the static {@code extractTokenFromApprovalUrl()}
+ *       method. The service layer now reads the token directly from
+ *       {@link com.aims.dto.GatewayTransactionContext#getGatewayOrderId()}, which this
+ *       class always populates from the PayPal order ID returned by the API.</li>
+ * </ul>
  */
 package com.aims.subsystem.paypal;
 
 import com.aims.dto.payment.GatewayTransactionContext;
 import com.aims.dto.payment.GatewayTransactionResult;
-import com.aims.entity.Invoice;
-import com.aims.entity.Order;
-import java.math.BigDecimal;
+import com.aims.dto.GatewayRefundResult;
+import com.aims.entity.PaymentMethod;
 import com.aims.exception.PaymentException;
-import com.aims.IPaymentGateway;
+import com.aims.gateway.IRefundableGateway;
+import com.aims.gateway.PaymentCaptureParams;
+import com.aims.gateway.PaymentInitiateParams;
+import com.aims.gateway.PaymentRefundParams;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-@Component
-public class PayPalController implements IPaymentGateway {
+import java.math.BigDecimal;
 
-    private final String clientId;
-    private final String clientSecret;
-    private final String baseUrl;
+/**
+ * PayPalController — the Adapter/Facade for the PayPal payment subsystem.
+ *
+ * <h3>Design Patterns</h3>
+ * <ul>
+ *   <li><strong>Adapter (HFDP Ch. 7):</strong> Adapts the PayPal REST API
+ *       (accessed via {@link PayPalBoundary}) to the {@link IRefundableGateway}
+ *       interface expected by the service layer.</li>
+ *   <li><strong>Facade (HFDP Ch. 7):</strong> Presents a simple two-method
+ *       interface to the outside world, hiding OAuth token management, currency
+ *       conversion, boundary calls, and DTO parsing happening underneath.</li>
+ *   <li><strong>Strategy (HFDP Ch. 1):</strong> Acts as one concrete strategy
+ *       in the {@link com.aims.gateway.SpringPaymentGatewayRegistry} registry;
+ *       selected at runtime when {@code PaymentMethod.PAYPAL} is the active
+ *       payment method.</li>
+ * </ul>
+ */
+@Component
+public class PayPalController implements IRefundableGateway {
+
     private final String returnUrl;
     private final String cancelUrl;
 
-    private String accessToken;
-    private long tokenExpiryTime;
     private final PayPalBoundary payPalBoundary;
+    private final CurrencyConverter currencyConverter;
+    private final PayPalAuthManager authManager;
 
+    /**
+     * Constructs the PayPal gateway adapter with all collaborators injected.
+     *
+     * <p><strong>DIP compliance:</strong> no {@code new} here — all
+     * infrastructure objects arrive via Spring constructor injection declared
+     * in {@link com.aims.subsystem.paypal.config.PayPalConfig}.</p>
+     *
+     * @param returnUrl         PayPal redirect URL on successful payment.
+     * @param cancelUrl         PayPal redirect URL on cancelled payment.
+     * @param payPalBoundary    the raw HTTP client for PayPal REST API calls.
+     * @param currencyConverter the VND→USD converter strategy.
+     * @param authManager       the OAuth token lifecycle manager.
+     */
     public PayPalController(
-            @Value("${paypal.client.id}") String clientId,
-            @Value("${paypal.client.secret}") String clientSecret,
-            @Value("${paypal.base.url}") String baseUrl,
             @Value("${paypal.url.return}") String returnUrl,
-            @Value("${paypal.url.cancel}") String cancelUrl) {
+            @Value("${paypal.url.cancel}") String cancelUrl,
+            PayPalBoundary payPalBoundary,
+            CurrencyConverter currencyConverter,
+            PayPalAuthManager authManager) {
 
-        this.clientId = clientId;
-        this.clientSecret = clientSecret;
-        this.baseUrl = baseUrl;
         this.returnUrl = returnUrl;
         this.cancelUrl = cancelUrl;
-        this.payPalBoundary = new PayPalBoundary(baseUrl);
+        this.payPalBoundary = payPalBoundary;
+        this.currencyConverter = currencyConverter;
+        this.authManager = authManager;
     }
 
-    private String getAccessToken() throws PaymentException {
-        long currentTime = System.currentTimeMillis();
+    // -------------------------------------------------------------------------
+    // IPaymentGateway implementation
+    // -------------------------------------------------------------------------
 
-        if (this.accessToken != null && currentTime < (this.tokenExpiryTime - 10000)) {
-            return this.accessToken;
-        }
-
-        try {
-            // if not, get new token:
-            // generate auth header
-            AccessTokenRequest request = new AccessTokenRequest(clientId, clientSecret);
-            String authHeader = request.toAuthorizationHeader();
-
-            // get token response string
-            String responseString = payPalBoundary.getAccessToken(authHeader);
-
-            // parse that string
-            AccessTokenResponse response = new AccessTokenResponse();
-            response.parseResponse(responseString);
-
-            // update and return new access token
-            this.accessToken = response.getAccessToken();
-            this.tokenExpiryTime = System.currentTimeMillis() + (response.getExpiresIn() * 1000);
-
-            return this.accessToken;
-        } catch (Exception e) {
-            throw new PaymentException("Failed to obtain PayPal access token: " + e.getMessage());
-        }
-    }
-
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Returns {@link PaymentMethod#PAYPAL} so that
+     * {@link com.aims.gateway.SpringPaymentGatewayRegistry} can index this
+     * bean automatically.</p>
+     */
     @Override
-    public GatewayTransactionContext createPayment(Invoice invoice) throws PaymentException {
-        // Developer Mock Mode
-        if (clientId != null && clientId.startsWith("AWmock")) {
-            String mockToken = "MOCK-EC-" + System.currentTimeMillis();
-            // Direct the frontend straight to the result page with the token
-            String mockApprovalUrl = this.returnUrl + "?token=" + mockToken;
-            return new GatewayTransactionContext(mockToken, mockApprovalUrl);
-        }
+    public PaymentMethod getSupportedMethod() {
+        return PaymentMethod.PAYPAL;
+    }
 
+    /**
+     * Initiates a PayPal payment session.
+     *
+     * <p>Retrieves a valid OAuth token via {@link PayPalAuthManager}, converts
+     * the VND amount to USD via {@link CurrencyConverter}, creates a PayPal
+     * order via {@link PayPalBoundary}, and returns the approval URL + order ID
+     * wrapped in a {@link GatewayTransactionContext}.</p>
+     *
+     * <p><strong>Contract (R2):</strong> This method always populates
+     * {@link GatewayTransactionContext#getGatewayOrderId()} with the PayPal
+     * order ID directly. The service layer can therefore read the token from
+     * {@code context.getGatewayOrderId()} without any URL parsing.</p>
+     *
+     * <p><strong>Mock mode:</strong> When {@code clientId} starts with
+     * {@link PayPalMockMode#CLIENT_ID_PREFIX}, the boundary is never called
+     * and a synthetic context is returned immediately.</p>
+     *
+     * @param params gateway-neutral initiation parameters (amount, currency,
+     *               invoiceId, redirect URLs).
+     * @return a context with the PayPal order ID and approval URL.
+     * @throws PaymentException if the gateway call fails.
+     */
+    @Override
+    public GatewayTransactionContext createPayment(PaymentInitiateParams params) throws PaymentException {
         try {
-            // get access token
-            String token = getAccessToken();
+            String token = authManager.getValidToken();
 
-            // get order total amount by invoice.getTotalAmount
-            BigDecimal vndAmount = invoice.getTotalAmount();
+            // Developer Mock Mode — sentinel token signals mock mode (R5)
+            if (token != null && token.startsWith(PayPalMockMode.TOKEN_PREFIX)) {
+                String mockOrderId = PayPalMockMode.ORDER_ID_PREFIX + System.currentTimeMillis();
+                String mockApprovalUrl = this.returnUrl + "?token=" + mockOrderId;
+                return new GatewayTransactionContext(mockOrderId, mockApprovalUrl);
+            }
 
-            // convert that VND amount to USD by using CurrencyConverter
-            CurrencyConverter converter = new CurrencyConverter(new FixedExchangeRateProvider());
-            BigDecimal usdAmount = converter.convert(vndAmount, "VND", "USD");
+            // Convert VND → USD
+            BigDecimal usdAmount = currencyConverter.convert(params.amount(), "VND", "USD");
 
-            // create CreateOrderRequest with the neccessary fields
+            // Build and send the create-order request
             CreateOrderRequest request = new CreateOrderRequest(
                     usdAmount.toString(),
                     "USD",
-                    invoice.getId(),
+                    params.invoiceId(),
                     this.returnUrl,
                     this.cancelUrl);
 
-            // call boundary.createOrder(token,request)
-            String responseString = payPalBoundary.createOrder(token, request);
+            String responseJson = payPalBoundary.createOrder(token, request);
+            CreateOrderResponse response = PayPalResponseMapper.parseCreateOrder(responseJson);
 
-            // get the response as CreateOrderResponse and call .parseResponse
-            CreateOrderResponse response = new CreateOrderResponse();
-            response.parseResponse(responseString);
-
-            // return GatewayTransactionContext
+            // gatewayOrderId is always populated here — service layer reads it directly (R2)
             return new GatewayTransactionContext(response.getPaypalOrderId(), response.getApproveUrl());
+
+        } catch (PaymentException pe) {
+            throw pe;
         } catch (Exception e) {
-            throw new PaymentException("Failed to create payment: " + e.getMessage());
+            throw new PaymentException("Failed to create PayPal payment: " + e.getMessage());
         }
     }
 
+    /**
+     * Captures a previously initiated PayPal payment.
+     *
+     * @param params gateway-neutral capture parameters (orderId, gatewayToken).
+     * @return the capture result with transaction ID and success flag.
+     * @throws PaymentException if the capture call fails.
+     */
     @Override
-    public GatewayTransactionResult completePayment(Order order, String paypalOrderId) throws PaymentException {
-        // Developer Mock Mode
-        if (paypalOrderId != null && paypalOrderId.startsWith("MOCK-EC-")) {
+    public GatewayTransactionResult completePayment(PaymentCaptureParams params) throws PaymentException {
+        String paypalOrderId = params.gatewayToken();
+
+        // Developer Mock Mode — mock order IDs start with the sentinel prefix (R5)
+        if (paypalOrderId != null && paypalOrderId.startsWith(PayPalMockMode.ORDER_ID_PREFIX)) {
             String transactionId = "MOCK-TX-" + System.currentTimeMillis();
-            String orderId = order != null ? order.getOrderId() : "MOCK-ORDER-ID";
-            String status = "COMPLETED";
-            boolean success = true;
-            String message = "Mock capture succeeded";
-            return new GatewayTransactionResult(transactionId, orderId, status, success, message);
+            return new GatewayTransactionResult(transactionId, params.orderId(),
+                    "COMPLETED", true, "Mock capture succeeded");
         }
 
         try {
-            // get access token
-            String token = getAccessToken();
+            String token = authManager.getValidToken();
+            String responseJson = payPalBoundary.captureOrder(token, paypalOrderId);
+            CaptureOrderResponse response = PayPalResponseMapper.parseCaptureOrder(responseJson);
 
-            // call boundary to capture order
-            String responseString = payPalBoundary.captureOrder(token, paypalOrderId);
-
-            // parse the response string
-            CaptureOrderResponse response = new CaptureOrderResponse();
-            response.parseResponse(responseString);
-
-            // return GatewayTransactionResult
-            String orderId = order.getOrderId();
             boolean success = response.checkSuccess();
-            String transactionId = response.getTransactionId();
             String status = success ? response.getStatus() : response.getErrorName();
             String message = success ? null : response.getErrorMessage();
 
-            return new GatewayTransactionResult(transactionId, orderId, status, success, message);
+            return new GatewayTransactionResult(
+                    response.getTransactionId(), params.orderId(), status, success, message);
+
+        } catch (PaymentException pe) {
+            throw pe;
         } catch (Exception e) {
-            throw new PaymentException("Failed to complete payment: " + e.getMessage());
+            throw new PaymentException("Failed to complete PayPal payment: " + e.getMessage());
         }
     }
 
+    /**
+     * Refunds a previously captured PayPal payment transaction.
+     *
+     * @param params gateway-neutral refund parameters containing the transaction ID.
+     * @return the refund result indicating success or failure.
+     * @throws PaymentException if the gateway call fails.
+     */
+    @Override
+    public GatewayRefundResult refundPayment(PaymentRefundParams params) throws PaymentException {
+        String captureId = params.transactionId();
+
+        // Developer Mock Mode — mock order/transaction IDs start with MOCK- or MOCK-TX-
+        if (captureId != null && (captureId.startsWith("MOCK-") || captureId.startsWith("MOCK-TX-"))) {
+            String mockRefundId = "MOCK-REF-" + System.currentTimeMillis();
+            return GatewayRefundResult.builder()
+                    .refundId(mockRefundId)
+                    .status("COMPLETED")
+                    .success(true)
+                    .message("Mock refund succeeded")
+                    .build();
+        }
+
+        try {
+            String token = authManager.getValidToken();
+            String responseJson = payPalBoundary.refundCapture(token, captureId);
+            RefundResponse response = PayPalResponseMapper.parseRefund(responseJson);
+
+            boolean success = response.checkSuccess();
+            String status = success ? response.getStatus() : response.getErrorName();
+            String message = success ? null : response.getErrorMessage();
+
+            return GatewayRefundResult.builder()
+                    .refundId(response.getRefundId())
+                    .status(status)
+                    .success(success)
+                    .message(message)
+                    .build();
+
+        } catch (PaymentException pe) {
+            throw pe;
+        } catch (Exception e) {
+            throw new PaymentException("Failed to refund PayPal payment: " + e.getMessage());
+        }
+    }
 }

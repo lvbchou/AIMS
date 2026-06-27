@@ -69,7 +69,7 @@ export class HomeComponent implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.toastService.show("Failed to load product details");
+        this.toastService.show("Failed to load product details. Please try again");
       }
     });
   }

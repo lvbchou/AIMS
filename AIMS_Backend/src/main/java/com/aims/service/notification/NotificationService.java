@@ -54,6 +54,31 @@ public class NotificationService {
         }
     }
 
+    public void sendOrderCancellationNotification(String orderId) {
+        if (orderId == null || orderId.isBlank()) {
+            return;
+        }
+
+        Optional<NotificationRecipient> recipient = orderConfirmationQueryService.findRecipient(orderId);
+        if (recipient.isEmpty()) {
+            log.info("Skip order cancellation notification because delivery contact is missing for orderId={}", orderId);
+            return;
+        }
+
+        // We can reuse the orderConfirmationQueryService since the transaction has been updated
+        OrderConfirmationDTO confirmation = orderConfirmationQueryService.findOrderConfirmation(orderId);
+        NotificationMessage message = contentBuilder.buildOrderCancellationMessage(orderId, confirmation);
+
+        for (NotificationChannel channel : orderSuccessChannels) {
+            try {
+                senderResolver.resolve(channel).send(recipient.get(), message);
+            } catch (Exception ex) {
+                log.warn("Failed to send order cancellation notification via {} for orderId={}: {}",
+                        channel, orderId, ex.getMessage());
+            }
+        }
+    }
+
     private List<NotificationChannel> parseChannels(String rawChannels) {
         if (rawChannels == null || rawChannels.isBlank()) {
             return List.of(NotificationChannel.EMAIL);

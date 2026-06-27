@@ -1,0 +1,186 @@
+<div class="cancel-page">
+  <div class="cancel-container">
+    <div class="cancel-state" *ngIf="isLoading">Loading order cancellation details...</div>
+    <div class="cancel-state cancel-error" *ngIf="!isLoading && errorMsg">{{ errorMsg }}</div>
+
+    <div class="cancel-layout" *ngIf="!isLoading && !errorMsg && details">
+      <!-- Left side: Order details -->
+      <div class="cancel-details-section">
+        
+        <!-- Header -->
+        <div class="cancel-header">
+          <div class="cancel-title-wrapper">
+            <h1 class="page-title">ORDER CANCELLATION</h1>
+            <p class="order-id">Order ID: <strong>{{ orderId }}</strong></p>
+          </div>
+          <div class="cancel-status-wrapper">
+            <div class="status-label">CURRENT STATUS</div>
+            <div class="status-value status-badge" [ngClass]="details.orderStatus.toLowerCase()">
+              {{ details.orderStatus | uppercase }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Success Message -->
+        <div class="alert-box success-alert" *ngIf="successMsg">
+          <div class="alert-icon">✓</div>
+          <div class="alert-content">
+            <h3 class="alert-title">ORDER CANCELLED</h3>
+            <p>{{ successMsg }}</p>
+            <button class="alert-btn" (click)="goHome()">Back to Home</button>
+          </div>
+        </div>
+
+        <!-- VietQR Manual Refund Message -->
+        <div class="alert-box warning-alert" *ngIf="vietQrManualMsg">
+          <div class="alert-icon">⚠</div>
+          <div class="alert-content">
+            <h3 class="alert-title">MANUAL REFUND REQUIRED</h3>
+            <p>{{ vietQrManualMsg }}</p>
+            <button class="alert-btn btn-secondary" (click)="goHome()">Back to Home</button>
+          </div>
+        </div>
+
+        <!-- Cancellation Warning -->
+        <div class="alert-box danger-alert" *ngIf="details.eligibleForCancellation && !successMsg && !vietQrManualMsg">
+          <div class="alert-icon">⚠</div>
+          <div class="alert-content">
+            <h3 class="alert-title">CANCELLATION POLICIES</h3>
+            <p>You are about to cancel this order. If the payment was processed through PayPal, a full automatic refund will be credited back to your original payment method immediately. If the payment was made via VietQR, our team will contact you to process the refund manually.</p>
+          </div>
+        </div>
+
+        <!-- Customer & Shipping Info -->
+        <div class="info-box">
+          <div class="info-col">
+            <h3 class="info-heading">RECIPIENT DETAILS</h3>
+            <div class="info-group">
+              <label>FULL NAME</label>
+              <div class="info-value">{{ details.recipientName }}</div>
+            </div>
+            <div class="info-group">
+              <label>PHONE NUMBER</label>
+              <div class="info-value">{{ details.phoneNumber }}</div>
+            </div>
+            <div class="info-group">
+              <label>EMAIL ADDRESS</label>
+              <div class="info-value">{{ details.email }}</div>
+            </div>
+          </div>
+          
+          <div class="info-col">
+            <h3 class="info-heading">SHIPPING DESTINATION</h3>
+            <div class="info-group">
+              <label>ADDRESS</label>
+              <div class="info-value">{{ details.detailAddress }}</div>
+            </div>
+            <div class="info-group">
+              <label>PROVINCE / CITY</label>
+              <div class="info-value">{{ details.province }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Products Table -->
+        <div class="products-table">
+          <div class="table-header">
+            <div class="col-details">PRODUCT DETAILS</div>
+            <div class="col-quantity">QUANTITY</div>
+            <div class="col-price">UNIT PRICE</div>
+            <div class="col-subtotal">TOTAL</div>
+          </div>
+
+          <div class="cart-item" *ngFor="let item of details.lineItems">
+            <div class="col-details item-details">
+              <img [src]="item.image || '/assets/book-cover.png'" alt="Product Image" class="item-image">
+              <div class="item-info">
+                <h3 class="item-title">{{ item.productTitle }}</h3>
+                <p class="item-category">{{ item.category }}</p>
+              </div>
+            </div>
+            <div class="col-quantity item-quantity-static">{{ item.quantity }}</div>
+            <div class="col-price item-price-static">{{ item.unitSellingPrice | number:'1.0-0' }} VND</div>
+            <div class="col-subtotal item-subtotal">{{ item.lineTotalSellingPrice | number:'1.0-0' }} VND</div>
+          </div>
+        </div>
+
+        <!-- Payment & Transaction Details -->
+        <div class="transaction-box">
+          <h3 class="info-heading">ORIGINAL PAYMENT TRANSACTION</h3>
+          <div class="info-grid">
+            <div class="info-group">
+              <label>PAYMENT METHOD</label>
+              <div class="info-value">{{ details.paymentMethod }}</div>
+            </div>
+            <div class="info-group">
+              <label>TRANSACTION ID</label>
+              <div class="info-value text-mono">{{ details.transactionId }}</div>
+            </div>
+            <div class="info-group">
+              <label>TRANSACTION CONTENT</label>
+              <div class="info-value">{{ details.transactionContent }}</div>
+            </div>
+            <div class="info-group">
+              <label>TRANSACTION DATE/TIME</label>
+              <div class="info-value">{{ details.transactionTimeDisplay }}</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right side: Refund Summary -->
+      <div class="order-summary-section">
+        <div class="summary-card">
+          <h2 class="summary-title">REFUND SUMMARY</h2>
+          
+          <div class="summary-row">
+            <span class="summary-label">Items Subtotal</span>
+            <span class="summary-value">{{ details.totalProductPriceInclVat | number:'1.0-0' }} VND</span>
+          </div>
+          
+          <div class="summary-row">
+            <span class="summary-label">Delivery Fee</span>
+            <span class="summary-value">{{ details.deliveryFee | number:'1.0-0' }} VND</span>
+          </div>
+          
+          <div class="summary-divider"></div>
+          
+          <div class="summary-row total-row">
+            <span class="summary-label">Total Refundable</span>
+            <span class="summary-value total-value">{{ details.totalAmountToBePaid | number:'1.0-0' }} VND</span>
+          </div>
+
+          <div class="cancellation-status-box" *ngIf="!details.eligibleForCancellation">
+            <p class="status-warning-text">This order is not eligible for cancellation (current status: <strong>{{ details.orderStatus | uppercase }}</strong>).</p>
+            <button class="back-btn" (click)="goHome()">Back to Home</button>
+          </div>
+          
+          <div class="action-box" *ngIf="details.eligibleForCancellation && !successMsg && !vietQrManualMsg">
+            <button class="cancel-btn" [disabled]="isCanceling" (click)="openConfirmDialog()">
+              <span *ngIf="!isCanceling">Cancel Order</span>
+              <span *ngIf="isCanceling">Processing...</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation Popup -->
+<div class="modal-backdrop" *ngIf="showConfirmPopup">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3 class="modal-title">Confirm Order Cancellation</h3>
+      <button class="close-btn" (click)="closeConfirmDialog()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="warning-text">Are you sure you want to cancel this order? The full amount of <strong>{{ details?.totalAmountToBePaid | number:'1.0-0' }} VND</strong> will be refunded to your original payment method.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="closeConfirmDialog()">Keep Order</button>
+      <button class="btn btn-danger" (click)="confirmCancelOrder()">Yes, Cancel & Refund</button>
+    </div>
+  </div>
+</div>

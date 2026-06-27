@@ -15,6 +15,7 @@ import { ProductListFacade } from '../../facades/product-list.facade';
 import { ProductSelectionService } from '../../facades/product-selection.service';
 import { ProductCrudFacade } from '../../facades/product-crud.facade';
 
+import { ToastService } from '../../../../core/services/toast/toast.service';
 /**
  * ProductManagementComponent — AFTER Phase 3 refactoring.
  *
@@ -61,6 +62,7 @@ export class ProductManagementComponent implements OnInit, OnDestroy {
     readonly listFacade: ProductListFacade,
     readonly selection: ProductSelectionService,
     readonly crud: ProductCrudFacade,
+    private toastService: ToastService,
   ) {}
 
   ngOnInit(): void {
@@ -145,8 +147,11 @@ export class ProductManagementComponent implements OnInit, OnDestroy {
   onViewDetail(productId: number): void {
     this.crud.getById(productId)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(product => {
-        this._viewDetailProduct$.next(product);
+      .subscribe({
+        next: product => {
+          this._viewDetailProduct$.next(product);
+        },
+        error: () => this.toastService.show('Failed to load product details. Please try again'),
       });
   }
 

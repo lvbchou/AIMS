@@ -52,7 +52,7 @@ export class HomeComponent implements OnInit {
       next:  (product) => { 
         this._viewProductDetail$.next(product);
       },
-      error: ()        => { this.toastService.show('Failed to load product details'); },
+      error: ()        => { this.toastService.show("Failed to load product details. Please try again"); },
     });
   }
 

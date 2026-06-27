@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { CartService } from '../../../features/cart/services/cart.service';
+import { ToastService } from '../../services/toast/toast.service';
 
 @Component({
   selector: 'app-header-customer',
@@ -19,6 +20,7 @@ export class HeaderCustomerComponent implements OnInit, OnDestroy {
     private router:      Router,
     private cartService: CartService,
     private cdr:         ChangeDetectorRef,
+    private toastService: ToastService,
   ) {}
 
   ngOnInit(): void {
@@ -44,11 +46,15 @@ export class HeaderCustomerComponent implements OnInit, OnDestroy {
   }
 
   onSearch(event: KeyboardEvent): void {
-    if (event.key === 'Enter') {
-      const input = event.target as HTMLInputElement;
-      const kw = input.value.trim();
-      kw ? this.router.navigate(['/products'], { queryParams: { q: kw } })
-         : this.router.navigate(['/products']);
+    if (event.key !== 'Enter') {
+      return;
     }
+    const input = event.target as HTMLInputElement;
+    const kw = input.value.trim();
+    if (!kw) {
+      this.toastService.show('Please enter a product title or category');
+      return;
+    }
+    this.router.navigate(['/products'], { queryParams: { q: kw } });
   }
 }

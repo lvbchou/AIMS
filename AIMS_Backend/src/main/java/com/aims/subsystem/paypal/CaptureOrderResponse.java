@@ -1,57 +1,64 @@
 // Coupling Level: Data Coupling
 // Cohesion Level: Functional Cohesion
-// Reason for Coupling: It interacts with external callers using simple parameters (receives a JSON string in parseResponse and exposes basic string/boolean values via getters), keeping it decoupled from any complex domain models.
-// Reason for Cohesion: Every method and field is solely dedicated to parsing and representing the specific properties and status (success/failure) of a captured PayPal transaction.
+// Reason for Coupling: Carries only simple primitive fields; all JSON parsing
+//   has been moved to PayPalResponseMapper (SRP fix).
+// Reason for Cohesion: Solely responsible for holding capture-order response data,
+//   plus the domain check checkSuccess() which operates purely on the held data.
 /**
- * SOLID Principles Analysis:
- * - **SRP (Single Responsibility Principle) Violation**: The DTO is loaded with complex JSON path navigation and parsing inside `parseResponse()`.
- * 
- * **Improvement Direction**: Refactor parsing logic to a dedicated deserializer or client adapter layer.
+ * SOLID Principles Analysis (refactored):
+ * - **SRP Compliance**: Previously violated SRP by owning an ObjectMapper and
+ *   a parseResponse() method. The DTO is now a pure data holder. All parsing
+ *   logic lives in {@link PayPalResponseMapper}.
+ * - **checkSuccess() retention**: This method is a domain check on the DTO's
+ *   own data (is the status "COMPLETED"?), not a parsing concern — it stays here.
  */
 package com.aims.subsystem.paypal;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+/**
+ * CaptureOrderResponse — immutable data holder for a PayPal Capture Order
+ * response.
+ *
+ * <p>Instances are created exclusively by
+ * {@link PayPalResponseMapper#parseCaptureOrder(String)}.</p>
+ */
 public class CaptureOrderResponse {
 
-    private String paypalOrderId;
-    private String transactionId;
-    private String status;
+    private final String paypalOrderId;
+    private final String transactionId;
+    private final String status;
+    private final String errorName;
+    private final String errorMessage;
+    private final String errorDebugId;
 
-    private String errorName;
-    private String errorMessage;
-    private String errorDebugId;
-
-    public void parseResponse(String response) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode rootNode = mapper.readTree(response);
-
-            // Parse success fields
-            this.paypalOrderId = rootNode.path("id").asText(null);
-            this.status = rootNode.path("status").asText(null);
-
-            // Parse error fields if any
-            this.errorName = rootNode.path("name").asText(null);
-            this.errorMessage = rootNode.path("message").asText(null);
-            this.errorDebugId = rootNode.path("debug_id").asText(null);
-
-            JsonNode purchaseUnits = rootNode.path("purchase_units");
-            if (purchaseUnits != null && purchaseUnits.isArray() && purchaseUnits.size() > 0) {
-                JsonNode payments = purchaseUnits.get(0).path("payments");
-                if (payments != null) {
-                    JsonNode captures = payments.path("captures");
-                    if (captures != null && captures.isArray() && captures.size() > 0) {
-                        this.transactionId = captures.get(0).path("id").asText(null);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to parse PayPal capture order response", e);
-        }
+    /**
+     * Constructs a fully populated capture-order response.
+     *
+     * @param paypalOrderId  the PayPal-issued order ID.
+     * @param transactionId  the capture transaction ID (nested in purchase_units).
+     * @param status         the capture status (e.g., {@code "COMPLETED"}).
+     * @param errorName      the error name if the call failed; {@code null} on success.
+     * @param errorMessage   the error message if the call failed; {@code null} on success.
+     * @param errorDebugId   the PayPal debug ID for tracing; {@code null} on success.
+     */
+    public CaptureOrderResponse(String paypalOrderId, String transactionId, String status,
+                                 String errorName, String errorMessage, String errorDebugId) {
+        this.paypalOrderId = paypalOrderId;
+        this.transactionId = transactionId;
+        this.status = status;
+        this.errorName = errorName;
+        this.errorMessage = errorMessage;
+        this.errorDebugId = errorDebugId;
     }
 
+    /**
+     * Returns {@code true} if the capture was successful.
+     *
+     * <p>PayPal signals a successful capture with status {@code "COMPLETED"}.
+     * This method encapsulates that PayPal-specific success semantic and is
+     * appropriately placed on the DTO that carries the status field.</p>
+     *
+     * @return {@code true} if {@code status} equals {@code "COMPLETED"} (case-insensitive).
+     */
     public boolean checkSuccess() {
         return "COMPLETED".equalsIgnoreCase(status);
     }

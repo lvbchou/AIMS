@@ -74,7 +74,7 @@ export class ProductListCustomerComponent implements OnInit, OnDestroy {
           console.log('Loaded product detail:', product);
           this._viewProductDetail$.next(product);
         },
-        error: () => this.toastService.show('Failed to load product details'),
+        error: () => this.toastService.show('Failed to load product details. Please try again'),
       });
   }
 

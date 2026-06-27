@@ -29,6 +29,11 @@ public class FixedExchangeRateProvider implements ExchangeRateProvider {
         setRate("USD", "VND", new BigDecimal("25000"));
     }
 
+    public FixedExchangeRateProvider(BigDecimal vndToUsd, BigDecimal usdToVnd) {
+        setRate("VND", "USD", vndToUsd);
+        setRate("USD", "VND", usdToVnd);
+    }
+
     /**
      * Sets a fixed exchange rate between two currencies.
      */
