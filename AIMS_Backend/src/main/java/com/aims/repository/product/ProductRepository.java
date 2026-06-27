@@ -26,18 +26,22 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Query("SELECT COUNT(p) > 0 FROM Product p WHERE barcode = :barcode")
     boolean existsByBarcode(@Param("barcode") String barcode);
 
-    /**
-     * Search thuần theo keyword + category (SD SearchProduct step 1.1.3).
-     * Không phụ thuộc bất kỳ tham số giá nào → tuân thủ ISP.
-     * Việc filter theo giá được thực hiện ở tầng service, áp trên tập đã search.
-     */
-    @Query("SELECT p FROM Product p WHERE p.status = 'active' " +
-            "AND (:keyword IS NULL OR LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-            "AND (:category IS NULL OR p.category = :category)")
-    Page<Product> searchByKeywordAndCategory(
-            @Param("keyword") String keyword,
-            @Param("category") String category,
-            Pageable pageable);
+        /**
+        * Search theo title HOẶC category (SD SearchProduct step 1.1.3).
+        * Spec: "customers use product title or category to search".
+        * - Cả hai đều LIKE + case-insensitive.
+        * - keyword và category nhận CÙNG một chuỗi người dùng nhập → gõ trùng
+        *   title hoặc trùng category đều ra kết quả.
+        * - Nếu cả hai NULL → trả về toàn bộ (giữ tương thích getAll-style).
+        */
+@Query("SELECT p FROM Product p WHERE p.status = 'active' " +
+        "AND ( (:keyword IS NULL AND :category IS NULL) " +
+        "      OR (:keyword  IS NOT NULL AND LOWER(p.title)    LIKE LOWER(CONCAT('%', :keyword,  '%'))) " +
+        "      OR (:category IS NOT NULL AND LOWER(p.category) LIKE LOWER(CONCAT('%', :category, '%'))) )")
+Page<Product> searchByKeywordAndCategory(
+        @Param("keyword") String keyword,
+        @Param("category") String category,
+        Pageable pageable);
 
     @Query("SELECT p FROM Product p WHERE p.status = 'active'")
     Page<Product> findAllActive(Pageable pageable);

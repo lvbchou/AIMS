@@ -1,5 +1,7 @@
 package com.aims.subsystem.vietqr.callback;
 
+import com.aims.exception.InvoiceNotFoundException;
+import com.aims.exception.OrderNotFoundException;
 import com.aims.subsystem.vietqr.security.ICallbackAuthGuard;
 import com.aims.subsystem.vietqr.security.IApiCredentialProvider;
 
@@ -197,6 +199,12 @@ public class VietQRCallbackEndpoint {
 
             return ResponseEntity.ok(TransactionSyncResponse.success(transactionId));
 
+        } catch (OrderNotFoundException | InvoiceNotFoundException ex) {
+            // Order or invoice no longer exists (e.g. stale retry from a previous DB session).
+            // Return 200 so VietQR stops retrying — there is nothing left to process.
+            System.out.println("[VietQR] Webhook for unknown order ignored (stale retry): " + ex.getMessage());
+            return ResponseEntity.ok(
+                    TransactionSyncResponse.error("ORDER_NOT_FOUND", "Order not found, webhook acknowledged"));
         } catch (RuntimeException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(TransactionSyncResponse.error("TRANSACTION_FAILED", ex.getMessage()));

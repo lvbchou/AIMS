@@ -159,26 +159,27 @@ export class ProductCatalogFacade {
   }
 
   private fetchSearch(keyword: string, page: number): void {
-    this.patch({ isLoading: true });
-    this.productService.search(keyword, undefined, page, this.PAGE_SIZE).subscribe({
-      next:  (data) => this.applyPagedResult(data),
-      error: ()     => this.patch({ isLoading: false }),
-    });
-  }
+  this.patch({ isLoading: true });
+  // Truyền cùng chuỗi vào keyword + category → backend match title HOẶC category
+  this.productService.search(keyword, keyword, page, this.PAGE_SIZE).subscribe({
+    next:  (data) => this.applyPagedResult(data),
+    error: ()     => this.patch({ isLoading: false }),
+  });
+}
 
   private fetchFilter(range: PriceRange, keyword: string, page: number): void {
-    this.patch({ isLoading: true });
-    this.productService.filterByPrice(
-      range.min, range.max,
-      keyword || undefined,
-      undefined,
-      page,
-      this.PAGE_SIZE,
-    ).subscribe({
-      next:  (data) => this.applyPagedResult(data),
-      error: ()     => this.patch({ isLoading: false }),
-    });
-  }
+  this.patch({ isLoading: true });
+  this.productService.filterByPrice(
+    range.min, range.max,
+    keyword || undefined,
+    keyword || undefined,   // ← category cũng nhận keyword (trước đây là undefined)
+    page,
+    this.PAGE_SIZE,
+  ).subscribe({
+    next:  (data) => this.applyPagedResult(data),
+    error: ()     => this.patch({ isLoading: false }),
+  });
+}
 
   private applyPagedResult(data: { content: ProductSummary[]; totalPages: number; totalElements: number }): void {
     this.patch({

@@ -18,7 +18,7 @@ public class ProductSearchController {
 
     private final IProductSearchService productSearchService;
 
-    public ProductSearchController(ProductSearchService productSearchService){
+    public ProductSearchController(ProductSearchService productSearchService) {
         this.productSearchService = productSearchService;
     }
 
@@ -27,7 +27,7 @@ public class ProductSearchController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String priceRange,
-            @RequestParam(defaultValue = "0")  int page,
+            @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
         Pageable pageable = PageRequest.of(page, size);

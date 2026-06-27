@@ -143,19 +143,22 @@ public class VietQrPaymentService {
         Invoice invoice = invoiceRepository.findByOrderOrderId(orderId)
                 .orElseThrow(() -> new InvoiceNotFoundException(orderId));
 
-        // 2. Validate that the callback amount matches the invoice total (fraud guard)
-        long expectedAmount = invoice.getSubTotalIncVAT() + invoice.getShippingFee();
-        if (callbackAmount != expectedAmount) {
-            throw new IllegalArgumentException(
-                    "Callback amount " + callbackAmount + " does not match invoice total " + expectedAmount);
-        }
-
-        // 3. Idempotency check — if a success transaction already exists, return it immediately
+        // 2. Idempotency check — if a success transaction already exists, return it immediately.
+        //    This must happen BEFORE amount validation so that stale VietQR retries on already-paid
+        //    orders do not cause a false amount-mismatch error.
         Optional<PaymentTransaction> successTxn = paymentTransactionRepository
                 .findFirstByInvoiceIdAndStatusOrderByTransactionTimeDesc(
                         invoice.getInvoiceId(), TransactionStatus.success);
         if (successTxn.isPresent()) {
             return successTxn.get().getTransactionId();
+        }
+
+        // 3. Validate that the callback amount matches the invoice total (fraud guard).
+        //    Only runs when the payment has NOT yet been confirmed.
+        long expectedAmount = invoice.getSubTotalIncVAT() + invoice.getShippingFee();
+        if (callbackAmount != expectedAmount) {
+            throw new IllegalArgumentException(
+                    "Callback amount " + callbackAmount + " does not match invoice total " + expectedAmount);
         }
 
         // 4. Fetch the pending transaction that was created when the QR was displayed.

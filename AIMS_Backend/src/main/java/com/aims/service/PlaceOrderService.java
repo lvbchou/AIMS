@@ -193,7 +193,8 @@ public class PlaceOrderService {
 
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new InvalidOrderException("Order does not exist. ID: " + orderId));
-        if (!OrderStatusValues.AWAITING_PAYMENT.equals(order.getStatus())) {
+        if (!OrderStatusValues.AWAITING_PAYMENT.equals(order.getStatus())
+                && !OrderStatusValues.PENDING_PROCESSING.equals(order.getStatus())) {
             throw new InvalidOrderException("Only pending orders can be confirmed as paid.");
         }
 
