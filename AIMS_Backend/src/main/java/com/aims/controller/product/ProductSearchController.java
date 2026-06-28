@@ -1,8 +1,8 @@
 package com.aims.controller.product;
 
+import com.aims.dto.common.PageResponse;
 import com.aims.dto.product.ProductSummaryDTO;
 import com.aims.service.product.IProductSearchService;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +23,7 @@ public class ProductSearchController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Page<ProductSummaryDTO>> searchAndFilterProduct(
+    public ResponseEntity<PageResponse<ProductSummaryDTO>> searchAndFilterProduct(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String priceRange,
@@ -33,11 +33,11 @@ public class ProductSearchController {
         Pageable pageable = PageRequest.of(page, size);
 
         if (priceRange != null && !priceRange.isBlank()) {
-            return ResponseEntity.ok(
-                    productSearchService.filterProductsByPriceRange(keyword, category, priceRange, pageable));
+            return ResponseEntity.ok(PageResponse.from(
+                    productSearchService.filterProductsByPriceRange(keyword, category, priceRange, pageable)));
         }
 
-        return ResponseEntity.ok(
-                productSearchService.searchProduct(keyword, category, pageable));
+        return ResponseEntity.ok(PageResponse.from(
+                productSearchService.searchProduct(keyword, category, pageable)));
     }
 }

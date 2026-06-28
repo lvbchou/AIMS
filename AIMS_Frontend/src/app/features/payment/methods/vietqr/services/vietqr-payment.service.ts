@@ -2,12 +2,12 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { environment } from '../../../../environments/environment';
+import { environment } from '../../../../../../environments/environment';
 import {
   Invoice,
   PaymentStatusResponse,
   QRCodeResponse,
-} from '../models/payment.model';
+} from '../../../core/models/payment-core.model';
 
 @Injectable({
   providedIn: 'root',
@@ -217,24 +217,7 @@ export class VietQRPaymentService {
     return statusMap[vietqrStatus?.toUpperCase()] || 'PENDING';
   }
 
-  /**
-   * Get current access token
-   */
-  getAccessToken(): Observable<string | null> {
-    return throwError(() => new Error('Token flow is disabled. Use backend QR generation instead.'));
-  }
 
-  /**
-   * Verify webhook callback from VietQR (backend should call this)
-   */
-  verifyWebhookSignature(payload: any, signature: string): boolean {
-    // Implement HMAC-SHA256 verification with clientSecret
-    // This should be done on backend for security
-    console.warn(
-      'Webhook verification should be done on backend, not frontend'
-    );
-    return false; // Always return false for frontend
-  }
 
   /**
    * Get invoice details for payment screen.

@@ -2,10 +2,9 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
-import { PaymentMockService } from '../../services/payment-mock.service';
 import { VietQRPaymentService } from '../../services/vietqr-payment.service';
-import { CartService } from '../../../cart/services/cart.service';
-import { OrderService } from '../../../order/services/order.service';
+import { CartService } from '../../../../../cart/services/cart.service';
+import { OrderService } from '../../../../../order/services/order.service';
 
 @Component({
   selector: 'app-payment-validating',
@@ -22,7 +21,6 @@ export class PaymentValidatingComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly router: Router,
-    private readonly paymentMockService: PaymentMockService,
     private readonly vietQRPaymentService: VietQRPaymentService,
     private readonly cartService: CartService,
     private readonly orderService: OrderService,
@@ -56,26 +54,9 @@ export class PaymentValidatingComponent implements OnInit, OnDestroy {
       return;
     }
 
-    setTimeout(() => this.step = 2, 2000);
-
-    (this.paymentMockService as any).validatePayment(transactionId).subscribe((result: any) => {
-      if (result.success) {
-        this.cartService.clear();
-        this.router.navigate(['/payment/success'], {
-          state: {
-            orderReference: result.orderReference,
-            transactionId: result.transactionId,
-          },
-        });
-      } else {
-        this.router.navigate(['/payment/failed'], {
-          state: {
-            errorMessage: result.errorMessage,
-            errorCode: result.errorCode,
-            transactionId: result.transactionId,
-          },
-        });
-      }
+    // Non-VietQR flow (e.g. PayPal) is handled by PaypalResultComponent
+    this.router.navigate(['/payment/failed'], {
+      state: { reason: 'Unsupported validation flow.' }
     });
   }
 

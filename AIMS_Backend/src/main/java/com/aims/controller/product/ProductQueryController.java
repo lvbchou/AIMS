@@ -1,9 +1,9 @@
 package com.aims.controller.product;
 
+import com.aims.dto.common.PageResponse;
 import com.aims.dto.product.ProductInfoDTO;
 import com.aims.dto.product.ProductSummaryDTO;
 import com.aims.service.product.IProductQueryService;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -24,7 +24,7 @@ public class ProductQueryController {
     }
 
     @GetMapping
-    public Page<ProductSummaryDTO> getAllProducts(
+    public PageResponse<ProductSummaryDTO> getAllProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "title") String sortBy,
@@ -33,7 +33,7 @@ public class ProductQueryController {
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        return productQueryService.getAllProducts(pageable);
+        return PageResponse.from(productQueryService.getAllProducts(pageable));
     }
 
     @GetMapping("/batch")

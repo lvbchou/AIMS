@@ -74,28 +74,6 @@ class ProductControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/products/{barcode} - should return product")
-    void viewProduct_shouldReturn200() throws Exception {
-        Book book = new Book();
-        book.setBarcode(validBookDTO.getBarcode());
-        book.setTitle(validBookDTO.getTitle());
-        when(productService.viewProduct(validBookDTO.getBarcode())).thenReturn(book);
-
-        mockMvc.perform(get("/api/products/" + validBookDTO.getBarcode()))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    @DisplayName("GET /api/products/{barcode} - should return 404 when not found")
-    void viewProduct_shouldReturn404() throws Exception {
-        when(productService.viewProduct(anyString()))
-                .thenThrow(new ProductNotFoundException("nonexistent"));
-
-        mockMvc.perform(get("/api/products/nonexistent"))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
     @DisplayName("DELETE /api/products/{productId} - should return 204")
     void deleteProduct_shouldReturn204() throws Exception {
         Book book = new Book();
@@ -105,29 +83,5 @@ class ProductControllerTest {
 
         mockMvc.perform(delete("/api/products/1"))
                 .andExpect(status().isNoContent());
-    }
-
-    @Test
-    @DisplayName("GET /api/products/search - should return list of products")
-    void searchProduct_shouldReturn200() throws Exception {
-        Book book = new Book();
-        book.setTitle("Clean Code");
-        when(productService.searchProduct("Clean")).thenReturn(List.of(book));
-
-        mockMvc.perform(get("/api/products/search")
-                .param("keyword", "Clean"))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    @DisplayName("GET /api/products/filter - should return filtered products")
-    void filterProduct_shouldReturn200() throws Exception {
-        Book book = new Book();
-        book.setSellingPrice(200_000L);
-        when(productService.filterProduct(any(), anyString())).thenReturn(List.of(book));
-
-        mockMvc.perform(get("/api/products/filter")
-                        .param("priceRange", "100000-500000"))
-                .andExpect(status().isOk());
     }
 }

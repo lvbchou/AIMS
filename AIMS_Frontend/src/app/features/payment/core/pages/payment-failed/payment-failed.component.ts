@@ -5,7 +5,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { OrderService } from '../../../order/services/order.service';
+import { OrderService } from '../../../../order/services/order.service';
 
 @Component({
   selector: 'app-payment-failed',

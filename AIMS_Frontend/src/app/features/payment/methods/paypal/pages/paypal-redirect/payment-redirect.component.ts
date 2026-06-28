@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { PaymentService } from '../../services/payment.service';
+import { PaymentService } from '../../services/paypal-payment.service';
 
 @Component({
   selector: 'app-payment-redirect',

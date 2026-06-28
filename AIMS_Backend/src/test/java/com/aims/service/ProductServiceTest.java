@@ -117,68 +117,6 @@ class ProductServiceTest {
     }
 
     // ----------------------------------------------------------------
-    // READ
-    // ----------------------------------------------------------------
-
-    @Nested
-    @DisplayName("viewProduct()")
-    class ViewProduct {
-
-        @Test
-        @DisplayName("Should return product when barcode exists")
-        void shouldReturnProductByBarcode() {
-            Book book = new Book();
-            book.setBarcode(validBookDTO.getBarcode());
-            when(productRepository.findByBarcode(validBookDTO.getBarcode()))
-                    .thenReturn(Optional.of(book));
-
-            Product result = productService.viewProduct(validBookDTO.getBarcode());
-
-            assertThat(result).isNotNull();
-            assertThat(result.getBarcode()).isEqualTo(validBookDTO.getBarcode());
-        }
-
-        @Test
-        @DisplayName("Should throw ProductNotFoundException when barcode not found")
-        void shouldThrowWhenBarcodeNotFound() {
-            when(productRepository.findByBarcode(anyString())).thenReturn(Optional.empty());
-
-            assertThatThrownBy(() -> productService.viewProduct("nonexistent"))
-                    .isInstanceOf(ProductNotFoundException.class);
-        }
-    }
-
-    @Nested
-    @DisplayName("searchProduct()")
-    class SearchProduct {
-
-        @Test
-        @DisplayName("Should return products matching keyword")
-        void shouldReturnMatchingProducts() {
-            Book book = new Book();
-            book.setTitle("Clean Code");
-            when(productRepository.searchByKeywordOrCategory("Clean"))
-                    .thenReturn(List.of(book));
-
-            List<Product> results = productService.searchProduct("Clean");
-
-            assertThat(results).hasSize(1);
-            assertThat(results.get(0).getTitle()).isEqualTo("Clean Code");
-        }
-
-        @Test
-        @DisplayName("Should return empty list when no match")
-        void shouldReturnEmptyWhenNoMatch() {
-            when(productRepository.searchByKeywordOrCategory(anyString()))
-                    .thenReturn(List.of());
-
-            List<Product> results = productService.searchProduct("xyz");
-
-            assertThat(results).isEmpty();
-        }
-    }
-
-    // ----------------------------------------------------------------
     // DELETE
     // ----------------------------------------------------------------
 
@@ -209,34 +147,3 @@ class ProductServiceTest {
                     .isInstanceOf(ProductNotFoundException.class);
         }
     }
-
-    // ----------------------------------------------------------------
-    // FILTER
-    // ----------------------------------------------------------------
-
-    @Nested
-    @DisplayName("filterProduct()")
-    class FilterProduct {
-
-        @Test
-        @DisplayName("Should throw when priceRange format is invalid")
-        void shouldThrowWhenPriceRangeInvalid() {
-            assertThatThrownBy(() -> productService.filterProduct(List.of(), "invalid"))
-                    .isInstanceOf(InvalidProductInfoException.class)
-                    .hasMessageContaining("price range");
-        }
-
-        @Test
-        @DisplayName("Should return products within price range")
-        void shouldReturnProductsInRange() {
-            Book book = new Book();
-            book.setSellingPrice(200_000L);
-            when(productRepository.findByPriceRange(100_000L, 500_000L))
-                    .thenReturn(List.of(book));
-
-            List<Product> results = productService.filterProduct(null, "100000-500000");
-
-            assertThat(results).hasSize(1);
-        }
-    }
-}

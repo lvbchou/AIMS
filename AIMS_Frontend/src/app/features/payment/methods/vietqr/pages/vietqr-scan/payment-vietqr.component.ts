@@ -9,9 +9,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 
-import { PaymentMockService } from '../../services/payment-mock.service';
 import { VietQRPaymentService } from '../../services/vietqr-payment.service';
-import { Order, PaymentMethod } from '../../models/payment.model';
+import { Order, PaymentMethod } from '../../../../core/models/payment-core.model';
 
 @Component({
   selector: 'app-payment-vietqr',
@@ -131,7 +130,6 @@ export class PaymentVietqrComponent implements OnInit, OnDestroy {
   ];
 
   constructor(
-    private paymentService: PaymentMockService,
     private vietQRPaymentService: VietQRPaymentService,
     private router: Router,
     private route: ActivatedRoute,
@@ -270,24 +268,11 @@ export class PaymentVietqrComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.paymentService
-      .processPayment({
-        orderId: this.order.id,
-        method: this.selectedMethod,
-        amount: this.order.total,
-      })
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (result) => {
-          this.router.navigate(['/payment/success'], { state: { result } });
-        },
-        error: (error) => {
-          this.router.navigate(['/payment/failed'], { state: { result: error } });
-        },
-        complete: () => {
-          this.isSubmitting = false;
-        },
-      });
+    // COD is not handled in this screen — navigate to failed
+    this.router.navigate(['/payment/failed'], {
+      state: { reason: 'Unsupported payment method selected.' }
+    });
+    this.isSubmitting = false;
   }
 
   navigateBack(): void {
@@ -295,7 +280,7 @@ export class PaymentVietqrComponent implements OnInit, OnDestroy {
   }
 
   formatCurrency(amount: number): string {
-    return this.paymentService.formatCurrency(amount);
+    return `${amount.toLocaleString('vi-VN')} VND`;
   }
 
   onQrImageError(): void {

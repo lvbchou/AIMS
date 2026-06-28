@@ -17,9 +17,6 @@ import java.util.Optional;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Integer> {
 
-    @Query("SELECT p FROM Product p WHERE p.barcode = :barcode AND p.status = 'active'")
-    Optional<Product> findByBarcode(@Param("barcode") String barcode);
-
     @Query("SELECT p FROM Product p WHERE p.productId = :productId AND p.status = 'active'")
     Optional<Product> findActiveById(@Param("productId") Integer productId);
 
@@ -66,7 +63,4 @@ Page<Product> searchByKeywordAndCategory(
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select p from Product p where p.productId = :productId")
     Optional<Product> findWithLockByProductId(Integer productId);
-
-    @Query("SELECT p FROM Product p WHERE p.productId IN :ids")
-    List<Product> findAllByIds(@Param("ids") List<Integer> ids);
 }

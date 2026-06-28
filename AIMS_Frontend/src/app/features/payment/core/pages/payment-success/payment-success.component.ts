@@ -1,11 +1,11 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { VietQRPaymentService } from '../../services/vietqr-payment.service';
-import { OrderConfirmationData } from '../../models/payment.model';
-import { CartService } from '../../../cart/services/cart.service';
-import { OrderService } from '../../../order/services/order.service';
-import { ToastService } from '../../../../core/services/toast/toast.service';
+import { VietQRPaymentService } from '../../../methods/vietqr/services/vietqr-payment.service';
+import { OrderConfirmationData } from '../../models/payment-core.model';
+import { CartService } from '../../../../cart/services/cart.service';
+import { OrderService } from '../../../../order/services/order.service';
+import { ToastService } from '../../../../../core/services/toast/toast.service';
 import { finalize, retry, timeout, timer } from 'rxjs';
 
 @Component({

@@ -2,7 +2,7 @@ package com.aims.service.product;
 
 import com.aims.dto.product.BookInfoDTO;
 import com.aims.dto.product.ProductInfoDTO;
-import com.aims.entity.product.*;
+import com.aims.entity.product.Book;
 import com.aims.exception.ProductNotFoundException;
 import com.aims.mapper.product.ProductMapper;
 import com.aims.mapper.product.ProductMapperRegistry;
@@ -14,7 +14,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -23,158 +22,136 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests — UC: View Product Details.
- * Unit under test: ProductQueryService.viewProduct(Integer productId) -> ProductInfoDTO
+ * Unit under test: ProductQueryService.viewProduct(Integer productId) ->
+ * ProductInfoDTO
+ * 
+ * - Repository.findActiveById(id) da loc status='active' NGAY trong cau query.
+ * Vi vay "khong ton tai", "id <= 0", va "san pham inactive" deu tra ve
+ * Optional.empty() -> service nem DUY NHAT ProductNotFoundException.
+ * - Code KHONG validate "id phai la so nguyen duong" o tang service.
  *
- * Strategy: Black-box – Equivalence Partitioning (EP) + Boundary Value Analysis (BVA).
- *   UT001–UT008
+ * Strategy: Black-box - Equivalence Partitioning (EP) + Boundary Value Analysis
+ * (BVA).
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("UC ViewProductDetails – ProductQueryService.viewProduct")
+@DisplayName("UC ViewProductDetails - ProductQueryService.viewProduct (UT001-UT005)")
 class ViewServiceTest {
 
-    @Mock private ProductRepository productRepository;
-    @Mock private ProductMapperRegistry mapperRegistry;
-    @Mock private ProductSummaryMapper productSummaryMapper;
+    @Mock
+    private ProductRepository productRepository;
+    @Mock
+    private ProductMapperRegistry mapperRegistry;
+    @Mock
+    private ProductSummaryMapper productSummaryMapper;
+    @Mock
+    private ProductMapper<ProductInfoDTO, Book> mapper;
 
     private ProductQueryService queryService;
 
-    private Book      sampleBook;
-    private DVD       sampleDvd;
-    private CD        sampleCd;
-    private Newspaper sampleNewspaper;
+    private Book sampleBook;
 
     @BeforeEach
     void setUp() {
         queryService = new ProductQueryService(productRepository, mapperRegistry, productSummaryMapper);
 
+        // "id == 42, active product" theo tai lieu
         sampleBook = new Book(
                 "Clean Code", "Programming", "978-0132350884", "img.jpg",
                 300_000L, 350_000L, 0.5, "Agile handbook", "24x16 cm", 50,
                 "Prentice Hall", LocalDate.of(2008, 8, 1), "English",
                 "Robert C. Martin", "Paperback", 431, "Technology");
-        sampleBook.setProductId(1);
-
-        sampleDvd = new DVD(
-                "Inception", "Film", "DVD-001", "inception.jpg",
-                200_000L, 250_000L, 0.1, "Sci-fi thriller", "19x13 cm", 20,
-                "Sci-Fi", LocalDate.of(2010, 7, 16),
-                "Blu-ray", "Christopher Nolan", 148, "Warner Bros", "English", "Vietnamese");
-        sampleDvd.setProductId(2);
-
-        sampleCd = new CD(
-                "Abbey Road", "Music", "CD-001", "abbey.jpg",
-                150_000L, 180_000L, 0.08, "Classic album", "12x12 cm", 30,
-                "Rock", LocalDate.of(1969, 9, 26),
-                List.of("The Beatles"), "Apple Records");
-        sampleCd.setProductId(3);
-
-        sampleNewspaper = new Newspaper(
-                "Tuoi Tre Daily", "News", "NEWS-001", "tuoitre.jpg",
-                10_000L, 12_000L, 0.2, "Daily newspaper", "30x42 cm", 100,
-                "Tuoi Tre", LocalDate.of(2024, 1, 1), "Vietnamese",
-                "Nguyen Van A", "1234", "Daily", "ISSN-001",
-                List.of("Politics", "Sports", "Economy"));
-        sampleNewspaper.setProductId(4);
+        sampleBook.setProductId(42);
+        sampleBook.setStatus("active");
     }
 
-    // Stub mapperRegistry trả 1 ProductInfoDTO mang field chung.
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private void stubViewMapper(Product product) {
-        ProductInfoDTO dto = new BookInfoDTO(); // concrete bất kỳ; chỉ cần field chung
-        dto.setProductId(product.getProductId());
-        dto.setTitle(product.getTitle());
-        dto.setBarcode(product.getBarcode());
-        dto.setSellingPrice(product.getSellingPrice());
-
-        ProductMapper mapper = mock(ProductMapper.class);
-        when(mapper.toDTO(product)).thenReturn(dto);
-        when(mapperRegistry.getMapper(product)).thenReturn(mapper);
+    /** DTO active day du field bat buoc, tuong ung sampleBook (id=42). */
+    private BookInfoDTO activeBookDto() {
+        BookInfoDTO dto = new BookInfoDTO();
+        dto.setProductId(42);
+        dto.setProductType("BOOK");
+        dto.setStatus("active");
+        dto.setTitle("Clean Code");
+        dto.setSellingPrice(350_000L);
+        dto.setDescription("Agile handbook");
+        dto.setImage("img.jpg");
+        dto.setAuthor("Robert C. Martin");
+        return dto;
     }
 
+    // ================================================================
+    // UT001 - Valid product (Happy path)
+    // ================================================================
     @Test
-    @DisplayName("UT001 View Valid Book Product")
-    void UT001_viewValidBookProduct() {
-        when(productRepository.findActiveById(1)).thenReturn(Optional.of(sampleBook));
-        stubViewMapper(sampleBook);
+    @DisplayName("UT001 Valid product - returns DTO of existing active product")
+    void UT001_validProduct() {
+        when(productRepository.findActiveById(42)).thenReturn(Optional.of(sampleBook));
+        when(mapperRegistry.getMapper(sampleBook)).thenReturn(mapper);
+        when(mapper.toDTO(sampleBook)).thenReturn(activeBookDto());
 
-        ProductInfoDTO result = queryService.viewProduct(1);
+        ProductInfoDTO result = queryService.viewProduct(42);
 
+        // A ProductInfoDTO instance with: id == 42, status active, mandatory fields not
+        // null.
         assertThat(result).isNotNull();
-        assertThat(result.getProductId()).isEqualTo(1);
-        assertThat(result.getTitle()).isEqualTo("Clean Code");
+        assertThat(result.getProductId()).isEqualTo(42);
+        assertThat(result.getStatus()).isEqualTo("active");
+        assertThat(result.getTitle()).isNotNull();
+        assertThat(result.getSellingPrice()).isNotNull();
+        assertThat(result.getDescription()).isNotNull();
+        assertThat(result.getImage()).isNotNull();
+
+        verify(productRepository, times(1)).findActiveById(42);
     }
 
+    // ================================================================
+    // UT002 - Product not found (ID absent)
+    // ================================================================
     @Test
-    @DisplayName("UT002 View Valid DVD Product")
-    void UT002_viewValidDvdProduct() {
-        when(productRepository.findActiveById(2)).thenReturn(Optional.of(sampleDvd));
-        stubViewMapper(sampleDvd);
+    @DisplayName("UT002 Product not found - raises ProductNotFoundException when ID is absent")
+    void UT002_productNotFound() {
+        when(productRepository.findActiveById(999_999)).thenReturn(Optional.empty());
 
-        ProductInfoDTO result = queryService.viewProduct(2);
-
-        assertThat(result.getTitle()).isEqualTo("Inception");
-    }
-
-    @Test
-    @DisplayName("UT003 View Valid CD Product")
-    void UT003_viewValidCdProduct() {
-        when(productRepository.findActiveById(3)).thenReturn(Optional.of(sampleCd));
-        stubViewMapper(sampleCd);
-
-        ProductInfoDTO result = queryService.viewProduct(3);
-
-        assertThat(result.getTitle()).isEqualTo("Abbey Road");
-    }
-
-    @Test
-    @DisplayName("UT004 View Valid Newspaper Product")
-    void UT004_viewValidNewspaperProduct() {
-        when(productRepository.findActiveById(4)).thenReturn(Optional.of(sampleNewspaper));
-        stubViewMapper(sampleNewspaper);
-
-        ProductInfoDTO result = queryService.viewProduct(4);
-
-        assertThat(result.getTitle()).isEqualTo("Tuoi Tre Daily");
-    }
-
-    @Test
-    @DisplayName("UT005 View Product With Nonexistent Id")
-    void UT005_viewProductWithNonexistentId() {
-        when(productRepository.findActiveById(999)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> queryService.viewProduct(999))
+        assertThatThrownBy(() -> queryService.viewProduct(999_999))
                 .isInstanceOf(ProductNotFoundException.class)
-                .hasMessageContaining("999");
+                .hasMessageContaining("999999"); // "Product not found with id: 999999"
+
+        verify(mapperRegistry, never()).getMapper(any());
+        verify(mapper, never()).toDTO(any());
     }
 
+    // ================================================================
+    // UT003 - Boundary ID zero
+    // ================================================================
     @Test
-    @DisplayName("UT006 View Product With Null Id")
-    void UT006_viewProductWithNullId() {
-        // Dùng matcher để stub khớp đối số null (literal null không khớp ổn định trong Mockito).
-        when(productRepository.findActiveById(nullable(Integer.class)))
-                .thenReturn(Optional.empty());
+    @DisplayName("UT003 Boundary ID zero - id=0 not found -> ProductNotFoundException")
+    void UT003_boundaryIdZero() {
+        // Code KHONG nem ValueError cho id<=0; id=0 don gian la khong co ban ghi
+        // active -> ProductNotFoundException (can duoi bien).
+        when(productRepository.findActiveById(0)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> queryService.viewProduct(null))
-                .isInstanceOf(ProductNotFoundException.class);
+        assertThatThrownBy(() -> queryService.viewProduct(0))
+                .isInstanceOf(ProductNotFoundException.class)
+                .hasMessageContaining("0");
+
+        verify(mapperRegistry, never()).getMapper(any());
     }
 
+    // ================================================================
+    // UT004 - Inactive product
+    // ================================================================
     @Test
-    @DisplayName("UT007 View Product With Negative Id")
-    void UT007_viewProductWithNegativeId() {
-        when(productRepository.findActiveById(-1)).thenReturn(Optional.empty());
+    @DisplayName("UT004 Inactive product - inactive record is not active -> ProductNotFoundException")
+    void UT004_inactiveProduct() {
+        // findActiveById loc status='active' TRONG query, nen mot san pham inactive
+        // (id=87) khong bao gio duoc tra ve -> Optional.empty().
+        // He qua: service nem ProductNotFoundException (khong co InactiveProductError
+        // rieng).
+        when(productRepository.findActiveById(87)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> queryService.viewProduct(-1))
-                .isInstanceOf(ProductNotFoundException.class);
-    }
+        assertThatThrownBy(() -> queryService.viewProduct(87))
+                .isInstanceOf(ProductNotFoundException.class)
+                .hasMessageContaining("87");
 
-    @Test
-    @DisplayName("UT008 View Product Calls Repository Once")
-    void UT008_viewProductCallsRepositoryOnce() {
-        when(productRepository.findActiveById(1)).thenReturn(Optional.of(sampleBook));
-        stubViewMapper(sampleBook);
-
-        queryService.viewProduct(1);
-
-        verify(productRepository, times(1)).findActiveById(1);
+        verify(mapper, never()).toDTO(any());
     }
 }

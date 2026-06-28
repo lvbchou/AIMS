@@ -1,9 +1,9 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { PaymentService } from '../../services/payment.service';
-import { CartService } from '../../../cart/services/cart.service';
-import { OrderService } from '../../../order/services/order.service';
+import { PaymentService } from '../../services/paypal-payment.service';
+import { CartService } from '../../../../../cart/services/cart.service';
+import { OrderService } from '../../../../../order/services/order.service';
 
 @Component({
   selector: 'app-payment-result',
